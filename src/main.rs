@@ -9,37 +9,19 @@ struct GameState(u64);
 
 impl GameState {
     fn new() -> GameState {
-        GameState(0)
+        let game = GameState(0);
+        game.generate_random_tile();
+        game.generate_random_tile();
+        game
     }
 
     fn from(val: u64) -> GameState {
         GameState(val)
     }
 
-    fn to_binary(&self) -> String {
-        let mut temp = self.0;
-        let mut bits = String::new();
-        while temp > 0 {
-            if temp % 2 == 0 {
-                bits.push('0')
-            } else {
-                bits.push('1')
-            };
-
-            temp /= 2;
-        }
-        while bits.len() < 64 {
-            bits.push('0');
-        }
-        bits.chars().rev().collect::<String>()
-    }
-
     fn parse_board(&self) -> [Option<u32>; 16] {
-        let bin = self.to_binary();
-        assert!(bin.len() == 64);
         let board = (0..16).fold([None; 16], |mut arr, idx| {
-            let bin_idx = idx * 4;
-            let num = binary_to_decimal(&bin[bin_idx..bin_idx + 4]);
+            let num = self.extract_tile(idx);
 
             match num {
                 0 => arr[idx] = None,
@@ -50,18 +32,17 @@ impl GameState {
         });
         board
     }
-}
 
-fn binary_to_decimal(bin: &str) -> u32 {
-    assert!(bin.len() == 4);
-    let num = (0..).zip(bin.chars()).fold(0, |acc, (idx, val)| {
-        let mut store = 0;
-        if let Some(x) = val.to_digit(10) {
-            store = x;
-        }
-        acc + store * (2 as u32).pow(bin.len() as u32 - (idx + 1))
-    });
-    num
+    fn extract_tile(&self, idx: usize) -> u32 {
+        ((self.0 >> ((15 - idx) * 4)) & 15) as u32
+    }
+
+    /// Function to generate random tiles
+    /// The random tiles are either 2 or 4
+    /// There is a 90% chance the tile generated is a 2 and 10% of a 4
+    /// At the start of the game 2 tiles are generated randomly and after a tile is generated after
+    /// a move has been completed
+    fn generate_random_tile(&self) {}
 }
 
 impl fmt::Display for GameState {
