@@ -37,6 +37,43 @@ impl GameState {
         board
     }
 
+    fn shift_left(tiles: &mut [u32; 4]) -> &mut [u32; 4] {
+        for i in 0..4 {
+            let slice = &mut tiles[i..4];
+            GameState::calc_val(slice);
+        }
+        tiles
+    }
+
+    fn calc_val(slice: &mut [u32]) {
+        slice[0] = slice.iter_mut().fold(0, |acc, val| {
+            let temp;
+            if acc != 0 && acc == *val {
+                temp = 1;
+                *val = 0;
+            } else if acc == 0 && *val != 0 {
+                temp = *val;
+                *val = 0;
+            } else {
+                temp = 0;
+            }
+            acc + temp
+        });
+        //let mut acc = 0;
+        //for idx in 0..slice.len() {
+        //    let val = slice[idx];
+        //    if acc != 0 && acc == val {
+        //        slice[idx] = 0;
+        //        acc += 1;
+        //        break;
+        //    } else if acc == 0 && val != 0 {
+        //        slice[idx] = 0;
+        //        acc = val;
+        //    };
+        //}
+        //slice[0] = acc;
+    }
+
     fn extract_tile(&self, idx: usize) -> u32 {
         ((self.0 >> ((15 - idx) * 4)) & 15) as u32
     }
@@ -159,4 +196,18 @@ enum Move {
     Down,
     Left,
     Right,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_shift_left() {
+        assert_eq!(GameState::shift_left(&mut [0, 0, 0, 0]), &mut [0, 0, 0, 0]);
+        assert_eq!(GameState::shift_left(&mut [0, 0, 0, 2]), &mut [2, 0, 0, 0]);
+        assert_eq!(GameState::shift_left(&mut [2, 0, 2, 0]), &mut [3, 0, 0, 0]);
+        assert_eq!(GameState::shift_left(&mut [1, 3, 3, 2]), &mut [1, 4, 2, 0]);
+        assert_eq!(GameState::shift_left(&mut [1, 2, 3, 4]), &mut [1, 2, 3, 4]);
+        assert_eq!(GameState::shift_left(&mut [1, 0, 0, 2]), &mut [1, 2, 0, 0]);
+    }
 }
