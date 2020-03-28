@@ -37,6 +37,16 @@ impl GameState {
         board
     }
 
+    fn shift_right(tiles: &mut [u32; 4]) -> &mut [u32; 4] {
+        let mut arr: [u32; 4] = [0; 4];
+        let temp_vec: Vec<u32> = tiles.iter().rev().map(|x| *x).collect();
+        arr.copy_from_slice(&temp_vec[..]);
+        let left_shifted = GameState::shift_left(&mut arr);
+        let temp_vec: Vec<u32> = left_shifted.iter().rev().map(|x| *x).collect();
+        tiles.copy_from_slice(&temp_vec[..]);
+        tiles
+    }
+
     fn shift_left(tiles: &mut [u32; 4]) -> &mut [u32; 4] {
         for i in 0..4 {
             let slice = &mut tiles[i..4];
@@ -209,5 +219,15 @@ mod tests {
         assert_eq!(GameState::shift_left(&mut [1, 3, 3, 2]), &mut [1, 4, 2, 0]);
         assert_eq!(GameState::shift_left(&mut [1, 2, 3, 4]), &mut [1, 2, 3, 4]);
         assert_eq!(GameState::shift_left(&mut [1, 0, 0, 2]), &mut [1, 2, 0, 0]);
+    }
+
+    #[test]
+    fn test_shift_right() {
+        assert_eq!(GameState::shift_right(&mut [0, 0, 0, 0]), &mut [0, 0, 0, 0]);
+        assert_eq!(GameState::shift_right(&mut [2, 0, 0, 0]), &mut [0, 0, 0, 2]);
+        assert_eq!(GameState::shift_right(&mut [4, 4, 1, 0]), &mut [0, 0, 5, 1]);
+        assert_eq!(GameState::shift_right(&mut [6, 0, 0, 6]), &mut [0, 0, 0, 7]);
+        assert_eq!(GameState::shift_right(&mut [1, 2, 3, 4]), &mut [1, 2, 3, 4]);
+        assert_eq!(GameState::shift_right(&mut [1, 0, 0, 2]), &mut [0, 0, 1, 2]);
     }
 }
