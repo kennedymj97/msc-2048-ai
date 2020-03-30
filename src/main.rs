@@ -5,7 +5,9 @@ use rand::Rng;
 fn main() {
     let game1 = GameState::new();
     println!("{}", game1);
-    let game = GameState::from(81985529216486895);
+    let mut game = GameState::from(81985529216486895);
+    println!("{}", game);
+    game.move_left();
     println!("{}", game);
 }
 
@@ -37,15 +39,48 @@ impl GameState {
         board
     }
 
-    fn shift_left(tiles: &mut [u32; 4]) -> &mut [u32; 4] {
+    fn execute_move(&mut self, move_dir: Move) {
+        match move_dir {
+            Move::Left => self.move_left(),
+            Move::Up => self.move_up(),
+            Move::Right => self.move_right(),
+            Move::Down => self.move_down(),
+        }
+    }
+
+    fn move_left(&mut self) {
+        // for each row calculate the new state and update the bit board
+        let rows = (0..4).fold(Vec::new(), |mut rows, row_idx| {
+            rows.push(self.extract_row(row_idx));
+            rows
+        });
+
+        let mut new_rows: Vec<u64> = rows.iter().map(|row| GameState::shift_left(*row)).collect();
+        new_rows[0] <<= 48;
+        new_rows[1] <<= 32;
+        new_rows[2] <<= 16;
+        self.0 = new_rows[0] | new_rows[1] | new_rows[2] | new_rows[3];
+    }
+    fn move_up(&self) {}
+    fn move_right(&self) {}
+    fn move_down(&self) {}
+
+    fn shift_left(row: u64) -> u64 {
+        let mut tiles = (0..4).fold(Vec::new(), |mut tiles, tile_idx| {
+            tiles.push(row >> ((3 - tile_idx) * 4) & 0b1111);
+            tiles
+        });
         for i in 0..4 {
             let slice = &mut tiles[i..4];
             GameState::calc_val(slice);
         }
-        tiles
+        tiles[0] <<= 12;
+        tiles[1] <<= 8;
+        tiles[2] <<= 4;
+        tiles[0] | tiles[1] | tiles[2] | tiles[3]
     }
 
-    fn calc_val(slice: &mut [u32]) {
+    fn calc_val(slice: &mut [u64]) {
         slice[0] = slice.iter_mut().fold(0, |acc, val| {
             let temp;
             if acc != 0 && acc == *val {
@@ -78,8 +113,8 @@ impl GameState {
         ((self.0 >> ((15 - idx) * 4)) & 15) as u32
     }
 
-    fn extract_row(&self, row_num: u32) -> u32 {
-        ((self.0 >> ((3 - row_num) * 16)) & 65535) as u32
+    fn extract_row(&self, row_num: u64) -> u64 {
+        (self.0 >> ((3 - row_num) * 16)) & 65535
     }
 
     fn extract_col(&self, col_num: u32) -> u32 {
