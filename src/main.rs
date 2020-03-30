@@ -9,6 +9,9 @@ fn main() {
     println!("{}", game);
     game.move_left();
     println!("{}", game);
+    let mut game2 = GameState::from(81985529216486895);
+    game2.move_up();
+    println!("{}", game2);
 }
 
 struct GameState(u64);
@@ -31,21 +34,12 @@ impl GameState {
 
             match num {
                 0 => arr[idx] = None,
-                _ => arr[idx] = Some((2 as u32).pow(num)),
+                _ => arr[idx] = Some((2 as u32).pow(num as u32)),
             }
 
             arr
         });
         board
-    }
-
-    fn execute_move(&mut self, move_dir: Move) {
-        match move_dir {
-            Move::Left => self.move_left(),
-            Move::Up => self.move_up(),
-            Move::Right => self.move_right(),
-            Move::Down => self.move_down(),
-        }
     }
 
     fn move_left(&mut self) {
@@ -61,7 +55,29 @@ impl GameState {
         new_rows[2] <<= 16;
         self.0 = new_rows[0] | new_rows[1] | new_rows[2] | new_rows[3];
     }
-    fn move_up(&self) {}
+
+    fn move_up(&mut self) {
+        let cols = (0..4).fold(Vec::new(), |mut cols, col_idx| {
+            cols.push(self.extract_col(col_idx));
+            cols
+        });
+        let mut new_cols: Vec<u64> = cols
+            .iter()
+            .map(|col| {
+                let col_val = GameState::shift_left(*col);
+                let tile0 = (col_val & 0b1111000000000000) << 36;
+                let tile1 = (col_val & 0b0000111100000000) << 24;
+                let tile2 = (col_val & 0b0000000011110000) << 12;
+                let tile3 = col_val & 0b0000000000001111;
+                tile0 | tile1 | tile2 | tile3
+            })
+            .collect();
+        new_cols[0] <<= 12;
+        new_cols[1] <<= 8;
+        new_cols[2] <<= 4;
+        self.0 = new_cols[0] | new_cols[1] | new_cols[2] | new_cols[3];
+    }
+
     fn move_right(&self) {}
     fn move_down(&self) {}
 
@@ -109,28 +125,28 @@ impl GameState {
         //slice[0] = acc;
     }
 
-    fn extract_tile(&self, idx: usize) -> u32 {
-        ((self.0 >> ((15 - idx) * 4)) & 15) as u32
+    fn extract_tile(&self, idx: usize) -> u64 {
+        (self.0 >> ((15 - idx) * 4)) & 0b1111
     }
 
     fn extract_row(&self, row_num: u64) -> u64 {
-        (self.0 >> ((3 - row_num) * 16)) & 65535
+        (self.0 >> ((3 - row_num) * 16)) & 0b1111111111111111
     }
 
-    fn extract_col(&self, col_num: u32) -> u32 {
+    fn extract_col(&self, col_num: u64) -> u64 {
         // extract the 4 cells
-        let mut tile_vals: [u32; 4] = (0..4).fold([0; 4], |mut arr, idx| {
+        let mut tiles: Vec<u64> = (0..4).fold(Vec::new(), |mut tiles, idx| {
             let tile_val = self.extract_tile((col_num + (idx * 4)) as usize);
-            arr[idx as usize] = tile_val;
-            arr
+            tiles.push(tile_val);
+            tiles
         });
         // shift the cells appropriately
-        tile_vals[0] = tile_vals[0] << 12;
-        tile_vals[1] = tile_vals[1] << 8;
-        tile_vals[2] = tile_vals[2] << 4;
+        tiles[0] <<= 12;
+        tiles[1] <<= 8;
+        tiles[2] <<= 4;
 
         // or the shifted vals together for the 16 bit column value
-        tile_vals[0] | tile_vals[1] | tile_vals[2] | tile_vals[3]
+        tiles[0] | tiles[1] | tiles[2] | tiles[3]
     }
 
     /// Function to generate random tiles
