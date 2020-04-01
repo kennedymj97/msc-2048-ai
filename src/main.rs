@@ -70,10 +70,6 @@ impl GameState {
         game
     }
 
-    fn from(val: u64) -> GameState {
-        GameState(val)
-    }
-
     fn parse_board(&self) -> [Option<u32>; 16] {
         let board = (0..16).fold([None; 16], |mut arr, idx| {
             let num = self.extract_tile(idx);
