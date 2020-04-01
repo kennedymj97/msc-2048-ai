@@ -53,7 +53,7 @@ fn run_game(game: &mut GameState) {
         if current_state != new_state {
             game.generate_random_tile();
         }
-        write!(stdout, "{}", game).unwrap();
+        write!(stdout, "{}", game);
         stdout.flush().unwrap();
     }
 
@@ -180,6 +180,19 @@ impl GameState {
     }
 
     fn calc_val(slice: &mut [u64]) {
+        //slice[0] = slice.iter_mut().fold(0, |acc, val| {
+        //    let temp;
+        //    if acc != 0 && acc == *val {
+        //        temp = 1;
+        //        *val = 0;
+        //    } else if acc == 0 && *val != 0 {
+        //        temp = *val;
+        //        *val = 0;
+        //    } else {
+        //        temp = 0;
+        //    }
+        //    acc + temp
+        //});
         let mut acc = 0;
         for idx in 0..slice.len() {
             let val = slice[idx];
@@ -243,6 +256,25 @@ impl GameState {
             vec
         })
     }
+}
+
+// Temporary function just used to sanity check the bitwise operations
+fn to_binary(num: u64) -> String {
+    let mut temp = num;
+    let mut bits = String::new();
+    while temp > 0 {
+        if temp % 2 == 0 {
+            bits.push('0')
+        } else {
+            bits.push('1')
+        };
+
+        temp /= 2;
+    }
+    while bits.len() < 64 {
+        bits.push('0');
+    }
+    bits.chars().rev().collect::<String>()
 }
 
 impl fmt::Display for GameState {
@@ -353,5 +385,15 @@ mod tests {
         let mut game = GameState::from(0x1121230033004222);
         game.move_down();
         assert_eq!(game.0, 0x1000210034014232);
+    }
+
+    #[test]
+    fn test_shift_right() {
+        assert_eq!(GameState::shift_right(&mut [0, 0, 0, 0]), &mut [0, 0, 0, 0]);
+        assert_eq!(GameState::shift_right(&mut [2, 0, 0, 0]), &mut [0, 0, 0, 2]);
+        assert_eq!(GameState::shift_right(&mut [4, 4, 1, 0]), &mut [0, 0, 5, 1]);
+        assert_eq!(GameState::shift_right(&mut [6, 0, 0, 6]), &mut [0, 0, 0, 7]);
+        assert_eq!(GameState::shift_right(&mut [1, 2, 3, 4]), &mut [1, 2, 3, 4]);
+        assert_eq!(GameState::shift_right(&mut [1, 0, 0, 2]), &mut [0, 0, 1, 2]);
     }
 }
