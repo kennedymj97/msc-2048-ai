@@ -31,10 +31,12 @@ impl GameState {
 
     pub fn move_left(&mut self) {
         self.move_left_or_right(Move::Left);
+        self.generate_random_tile();
     }
 
     pub fn move_right(&mut self) {
         self.move_left_or_right(Move::Right);
+        self.generate_random_tile();
     }
 
     fn move_left_or_right(&mut self, move_dir: Move) {
@@ -60,10 +62,12 @@ impl GameState {
 
     pub fn move_up(&mut self) {
         self.move_up_or_down(Move::Up);
+        self.generate_random_tile();
     }
 
     pub fn move_down(&mut self) {
         self.move_up_or_down(Move::Down);
+        self.generate_random_tile();
     }
 
     fn move_up_or_down(&mut self, move_dir: Move) {
@@ -173,6 +177,10 @@ impl GameState {
     /// a move has been completed
     pub fn generate_random_tile(&mut self) {
         let zero_tiles = self.get_zero_tiles();
+        let num_zero_tiles = zero_tiles.len();
+        if num_zero_tiles == 0 {
+            return;
+        }
         let mut rng = rand::thread_rng();
         let rand_idx = rng.gen_range(0, zero_tiles.len());
         let rand_val = if rng.gen_range(0, 10) < 9 { 1 } else { 2 };
@@ -275,28 +283,28 @@ mod tests {
     #[test]
     fn test_move_left() {
         let mut game = GameState::from(0x1234133220021002);
-        game.move_left();
+        game.move_left_or_right(Move::Left);
         assert_eq!(game.0, 0x1234142030001200);
     }
 
     #[test]
     fn test_move_up() {
         let mut game = GameState::from(0x1121230033004222);
-        game.move_up();
+        game.move_up_or_down(Move::Up);
         assert_eq!(game.0, 0x1131240232004000);
     }
 
     #[test]
     fn test_move_right() {
         let mut game = GameState::from(0x1234133220021002);
-        game.move_right();
+        game.move_left_or_right(Move::Right);
         assert_eq!(game.0, 0x1234014200030012);
     }
 
     #[test]
     fn test_move_down() {
         let mut game = GameState::from(0x1121230033004222);
-        game.move_down();
+        game.move_up_or_down(Move::Down);
         assert_eq!(game.0, 0x1000210034014232);
     }
 }
