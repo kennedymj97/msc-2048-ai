@@ -1,3 +1,7 @@
+#![feature(test)]
+
+extern crate test;
+
 pub mod ai;
 pub mod game;
 pub mod ui;

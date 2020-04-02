@@ -118,9 +118,8 @@ impl GameState {
             tiles.push(row >> ((3 - tile_idx) * 4) & 0xf);
             tiles
         });
-        for i in 0..4 {
-            let slice = &mut tiles[i..4];
-            GameState::calc_val(slice);
+        for _ in 0..4 {
+            GameState::calc_val(&mut tiles[0..4]);
         }
         tiles[0] <<= 12;
         tiles[1] <<= 8;
@@ -258,6 +257,7 @@ enum Move {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use test::Bencher;
     #[test]
     fn test_shift_left() {
         assert_eq!(GameState::shift_left(0x0000), 0x0000);
@@ -306,5 +306,19 @@ mod tests {
         let mut game = GameState::from(0x1121230033004222);
         game.move_up_or_down(Move::Down);
         assert_eq!(game.0, 0x1000210034014232);
+    }
+
+    #[bench]
+    fn bench_extract_row(b: &mut Bencher) {
+        let game = GameState::from(0x1111222233334444);
+        b.iter(|| {
+            let row = game.extract_row(0);
+            println!("{}", row);
+        });
+    }
+
+    #[bench]
+    fn bench_test(b: &mut Bencher) {
+        b.iter(|| std::thread::sleep(std::time::Duration::from_nanos(100)));
     }
 }

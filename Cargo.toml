@@ -11,5 +11,5 @@ rand="0.7"
 termion="*"
 
 # Enable the below when profiling
-# [profile.release]
-# debug = true
+[profile.release]
+debug = true
