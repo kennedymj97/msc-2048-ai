@@ -1,1 +1,5 @@
 /target
+/oprofile_data
+*.data
+*.data.old
+*.svg
