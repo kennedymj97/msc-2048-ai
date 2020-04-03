@@ -1,42 +1,69 @@
 use rand::Rng;
 use std::fmt;
 
-pub struct GameState(pub u64);
+use crate::engine::*;
 
-impl GameState {
-    pub fn new() -> GameState {
-        let mut game = GameState(0);
+type State = u64;
+
+#[derive(Clone)]
+pub struct Initial(pub State);
+
+impl GameEngine for Initial {
+    type Board = State;
+
+    fn new() -> Self {
+        let mut game = Initial(0);
         game.generate_random_tile();
         game.generate_random_tile();
         game
     }
 
-    fn from(num: u64) -> GameState {
-        GameState(num)
+    fn get_state(&self) -> Self::Board {
+        self.0
     }
 
-    fn parse_board(&self) -> [Option<u32>; 16] {
-        let board = (0..16).fold([None; 16], |mut arr, idx| {
-            let num = self.extract_tile(idx);
-
-            match num {
-                0 => arr[idx] = None,
-                _ => arr[idx] = Some((2 as u32).pow(num as u32)),
-            }
-
-            arr
-        });
-        board
+    fn update_state(&mut self, new_state: Self::Board) {
+        self.0 = new_state;
     }
 
-    pub fn move_left(&mut self) {
+    fn move_left(&mut self) {
         self.move_left_or_right(Move::Left);
         self.generate_random_tile();
     }
 
-    pub fn move_right(&mut self) {
+    fn move_right(&mut self) {
         self.move_left_or_right(Move::Right);
         self.generate_random_tile();
+    }
+
+    fn move_up(&mut self) {
+        self.move_up_or_down(Move::Up);
+        self.generate_random_tile();
+    }
+
+    fn move_down(&mut self) {
+        self.move_up_or_down(Move::Down);
+        self.generate_random_tile();
+    }
+
+    fn to_vec(&self) -> Vec<Option<u32>> {
+        (0..16).fold(Vec::new(), |mut vec, idx| {
+            let num = self.extract_tile(idx);
+
+            if num == 0 {
+                vec.push(None)
+            } else {
+                vec.push(Some((2 as u32).pow(num as u32)))
+            }
+
+            vec
+        })
+    }
+}
+
+impl Initial {
+    fn from(num: u64) -> Initial {
+        Initial(num)
     }
 
     fn move_left_or_right(&mut self, move_dir: Move) {
@@ -49,25 +76,15 @@ impl GameState {
         let mut new_rows: Vec<u64> = rows
             .iter()
             .map(|row| match move_dir {
-                Move::Left => GameState::shift_left(*row),
-                Move::Right => GameState::shift_right(*row),
+                Move::Left => Initial::shift_left(*row),
+                Move::Right => Initial::shift_right(*row),
                 _ => panic!("Trying to move up or down in move_left_or_right()"),
             })
             .collect();
         new_rows[0] <<= 48;
         new_rows[1] <<= 32;
         new_rows[2] <<= 16;
-        self.0 = new_rows[0] | new_rows[1] | new_rows[2] | new_rows[3];
-    }
-
-    pub fn move_up(&mut self) {
-        self.move_up_or_down(Move::Up);
-        self.generate_random_tile();
-    }
-
-    pub fn move_down(&mut self) {
-        self.move_up_or_down(Move::Down);
-        self.generate_random_tile();
+        self.update_state(new_rows[0] | new_rows[1] | new_rows[2] | new_rows[3]);
     }
 
     fn move_up_or_down(&mut self, move_dir: Move) {
@@ -80,8 +97,8 @@ impl GameState {
             .map(|col| {
                 let col_val;
                 match move_dir {
-                    Move::Up => col_val = GameState::shift_left(*col),
-                    Move::Down => col_val = GameState::shift_right(*col),
+                    Move::Up => col_val = Initial::shift_left(*col),
+                    Move::Down => col_val = Initial::shift_right(*col),
                     _ => panic!("Trying to move left or right in move_up_or_down()"),
                 }
                 let tile0 = (col_val & 0xf000) << 36;
@@ -94,7 +111,7 @@ impl GameState {
         new_cols[0] <<= 12;
         new_cols[1] <<= 8;
         new_cols[2] <<= 4;
-        self.0 = new_cols[0] | new_cols[1] | new_cols[2] | new_cols[3];
+        self.update_state(new_cols[0] | new_cols[1] | new_cols[2] | new_cols[3]);
     }
 
     fn shift_right(col: u64) -> u64 {
@@ -104,8 +121,7 @@ impl GameState {
         });
         let mut tiles: Vec<u64> = tiles.iter().rev().map(|x| *x).collect();
         for i in 0..4 {
-            let slice = &mut tiles[i..4];
-            GameState::calc_val(slice);
+            calculate_left_shift(&mut tiles[i..]);
         }
         tiles[3] <<= 12;
         tiles[2] <<= 8;
@@ -119,7 +135,7 @@ impl GameState {
             tiles
         });
         for i in 0..4 {
-            GameState::calc_val(&mut tiles[i..4]);
+            calculate_left_shift(&mut tiles[i..]);
         }
         tiles[0] <<= 12;
         tiles[1] <<= 8;
@@ -127,30 +143,12 @@ impl GameState {
         tiles[0] | tiles[1] | tiles[2] | tiles[3]
     }
 
-    fn calc_val(slice: &mut [u64]) {
-        let mut acc = 0;
-        for idx in 0..slice.len() {
-            let val = slice[idx];
-            if acc != 0 && acc == val {
-                slice[idx] = 0;
-                acc += 1;
-                break;
-            } else if acc != 0 && val != 0 && acc != val {
-                break;
-            } else if acc == 0 && val != 0 {
-                slice[idx] = 0;
-                acc = val;
-            };
-        }
-        slice[0] = acc;
-    }
-
     fn extract_tile(&self, idx: usize) -> u64 {
-        (self.0 >> ((15 - idx) * 4)) & 0xf
+        (self.get_state() >> ((15 - idx) * 4)) & 0xf
     }
 
     fn extract_row(&self, row_num: u64) -> u64 {
-        (self.0 >> ((3 - row_num) * 16)) & 0xffff
+        (self.get_state() >> ((3 - row_num) * 16)) & 0xffff
     }
 
     fn extract_col(&self, col_num: u64) -> u64 {
@@ -183,7 +181,7 @@ impl GameState {
         let mut rng = rand::thread_rng();
         let rand_idx = rng.gen_range(0, zero_tiles.len());
         let rand_val = if rng.gen_range(0, 10) < 9 { 1 } else { 2 };
-        self.0 = self.0 | (rand_val << ((15 - zero_tiles[rand_idx]) * 4));
+        self.update_state(self.get_state() | (rand_val << ((15 - zero_tiles[rand_idx]) * 4)));
     }
 
     fn get_zero_tiles(&self) -> Vec<usize> {
@@ -197,61 +195,10 @@ impl GameState {
     }
 }
 
-impl fmt::Display for GameState {
+impl fmt::Display for Initial {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let board: Vec<String> = self.parse_board().iter().map(|x| format_val(x)).collect();
-        let out = format!(
-            "\r
-        {}|{}|{}|{}\r
-        --------------------------------\r
-        {}|{}|{}|{}\r
-        --------------------------------\r
-        {}|{}|{}|{}\r
-        --------------------------------\r
-        {}|{}|{}|{}\r
-        ",
-            board[0],
-            board[1],
-            board[2],
-            board[3],
-            board[4],
-            board[5],
-            board[6],
-            board[7],
-            board[8],
-            board[9],
-            board[10],
-            board[11],
-            board[12],
-            board[13],
-            board[14],
-            board[15]
-        );
-        write!(f, "{}", out)
+        write!(f, "{}", self.to_str())
     }
-}
-
-fn format_val(val: &Option<u32>) -> String {
-    match val {
-        None => return String::from("       "),
-        Some(x) => {
-            let mut x = x.to_string();
-            while x.len() < 7 {
-                match x.len() {
-                    6 => x = format!(" {}", x),
-                    _ => x = format!(" {} ", x),
-                }
-            }
-            x
-        }
-    }
-}
-
-enum Move {
-    Up,
-    Down,
-    Left,
-    Right,
 }
 
 #[cfg(test)]
@@ -260,57 +207,57 @@ mod tests {
     use test::Bencher;
     #[test]
     fn test_shift_left() {
-        assert_eq!(GameState::shift_left(0x0000), 0x0000);
-        assert_eq!(GameState::shift_left(0x0002), 0x2000);
-        assert_eq!(GameState::shift_left(0x2020), 0x3000);
-        assert_eq!(GameState::shift_left(0x1332), 0x1420);
-        assert_eq!(GameState::shift_left(0x1234), 0x1234);
-        assert_eq!(GameState::shift_left(0x1002), 0x1200);
-        assert_ne!(GameState::shift_left(0x1210), 0x2200);
+        assert_eq!(Initial::shift_left(0x0000), 0x0000);
+        assert_eq!(Initial::shift_left(0x0002), 0x2000);
+        assert_eq!(Initial::shift_left(0x2020), 0x3000);
+        assert_eq!(Initial::shift_left(0x1332), 0x1420);
+        assert_eq!(Initial::shift_left(0x1234), 0x1234);
+        assert_eq!(Initial::shift_left(0x1002), 0x1200);
+        assert_ne!(Initial::shift_left(0x1210), 0x2200);
     }
 
     #[test]
     fn test_shift_right() {
-        assert_eq!(GameState::shift_right(0x0000), 0x0000);
-        assert_eq!(GameState::shift_right(0x2000), 0x0002);
-        assert_eq!(GameState::shift_right(0x2020), 0x0003);
-        assert_eq!(GameState::shift_right(0x1332), 0x0142);
-        assert_eq!(GameState::shift_right(0x1234), 0x1234);
-        assert_eq!(GameState::shift_right(0x1002), 0x0012);
-        assert_ne!(GameState::shift_right(0x0121), 0x0022);
+        assert_eq!(Initial::shift_right(0x0000), 0x0000);
+        assert_eq!(Initial::shift_right(0x2000), 0x0002);
+        assert_eq!(Initial::shift_right(0x2020), 0x0003);
+        assert_eq!(Initial::shift_right(0x1332), 0x0142);
+        assert_eq!(Initial::shift_right(0x1234), 0x1234);
+        assert_eq!(Initial::shift_right(0x1002), 0x0012);
+        assert_ne!(Initial::shift_right(0x0121), 0x0022);
     }
 
     #[test]
     fn test_move_left() {
-        let mut game = GameState::from(0x1234133220021002);
+        let mut game = Initial::from(0x1234133220021002);
         game.move_left_or_right(Move::Left);
         assert_eq!(game.0, 0x1234142030001200);
     }
 
     #[test]
     fn test_move_up() {
-        let mut game = GameState::from(0x1121230033004222);
+        let mut game = Initial::from(0x1121230033004222);
         game.move_up_or_down(Move::Up);
         assert_eq!(game.0, 0x1131240232004000);
     }
 
     #[test]
     fn test_move_right() {
-        let mut game = GameState::from(0x1234133220021002);
+        let mut game = Initial::from(0x1234133220021002);
         game.move_left_or_right(Move::Right);
         assert_eq!(game.0, 0x1234014200030012);
     }
 
     #[test]
     fn test_move_down() {
-        let mut game = GameState::from(0x1121230033004222);
+        let mut game = Initial::from(0x1121230033004222);
         game.move_up_or_down(Move::Down);
         assert_eq!(game.0, 0x1000210034014232);
     }
 
     #[bench]
     fn bench_extract_row(b: &mut Bencher) {
-        let game = GameState::from(0x1111222233334444);
+        let game = Initial::from(0x1111222233334444);
         b.iter(|| {
             let row = game.extract_row(0);
             println!("{}", row);

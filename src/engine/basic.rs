@@ -1,8 +1,10 @@
 use crate::engine::GameEngine;
-use rand::seq::IteratorRandom;
 use rand::Rng;
+use std::fmt;
 
 type State = Vec<u32>;
+
+#[derive(Clone)]
 pub struct Basic(State);
 
 impl GameEngine for Basic {
@@ -15,8 +17,12 @@ impl GameEngine for Basic {
         new_game
     }
 
-    fn get_state(&mut self) -> &mut Self::Board {
-        &mut self.0
+    fn get_state(&self) -> Self::Board {
+        self.0.clone()
+    }
+
+    fn update_state(&mut self, new_state: Self::Board) {
+        self.0 = new_state;
     }
 
     fn move_left(&mut self) {}
@@ -26,6 +32,19 @@ impl GameEngine for Basic {
     fn move_down(&mut self) {}
 
     fn move_up(&mut self) {}
+
+    fn to_vec(&self) -> Vec<Option<u32>> {
+        self.get_state()
+            .iter()
+            .map(|&x| {
+                if x == 0 {
+                    None
+                } else {
+                    Some((2 as u32).pow(x))
+                }
+            })
+            .collect()
+    }
 }
 
 impl Basic {
@@ -38,12 +57,24 @@ impl Basic {
             .get_state()
             .iter()
             .zip(0..)
-            .filter(|(ele, _)| **ele == 0)
-            .map(|(_, idx)| idx)
+            .filter_map(|(&ele, idx)| if ele == 0 { Some(idx) } else { None })
             .collect();
         let mut rng = rand::thread_rng();
-        let rand_idx = rng.gen_range(0, zero_tile_idxs.len());
-        self.get_state()[rand_idx] = if rng.gen_range(0, 10) < 9 { 1 } else { 2 };
+        let rand_idx: usize = zero_tile_idxs[rng.gen_range(0, zero_tile_idxs.len())] as usize;
+        let new_tile_val = if rng.gen_range(0, 10) < 9 { 1 } else { 2 };
+        self.update_state(
+            self.get_state()
+                .iter()
+                .enumerate()
+                .map(|(idx, &ele)| if idx == rand_idx { new_tile_val } else { ele })
+                .collect(),
+        );
+    }
+}
+
+impl fmt::Display for Basic {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.to_str())
     }
 }
 
@@ -54,14 +85,42 @@ mod tests {
     #[test]
     fn test_generate_random_tile() {
         let mut game = Basic::from(vec![0; 16]);
-        game.generate_random_tile();
+        for _ in 0..16 {
+            game.generate_random_tile();
+        }
         assert_eq!(
             game.get_state()
                 .iter()
-                .filter(|x| **x != 0)
+                .filter(|&x| *x != 0)
                 .collect::<Vec<_>>()
                 .len(),
-            1
+            16
+        );
+    }
+
+    #[test]
+    fn test_to_vec() {
+        let game = Basic::from(vec![0, 0, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4]);
+        assert_eq!(
+            game.to_vec(),
+            vec![
+                None,
+                None,
+                Some(2),
+                Some(2),
+                Some(4),
+                Some(4),
+                Some(4),
+                Some(4),
+                Some(8),
+                Some(8),
+                Some(8),
+                Some(8),
+                Some(16),
+                Some(16),
+                Some(16),
+                Some(16)
+            ]
         );
     }
 }

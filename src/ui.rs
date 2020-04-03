@@ -3,21 +3,19 @@ use termion::event::Key;
 use termion::input::TermRead;
 use termion::raw::IntoRawMode;
 
-use crate::engine::initial::GameState;
+use crate::engine::GameEngine;
 
-pub fn start_game_in_ui() {
+pub fn start_game_in_ui(engine: &mut impl GameEngine) {
     let stdin = stdin();
 
     let mut stdout = stdout().into_raw_mode().unwrap();
-
-    let mut game = GameState::new();
 
     write!(
         stdout,
         "{}{}Use the arrow keys to control the game.\r\n{}{}",
         termion::clear::All,
         termion::cursor::Goto(1, 1),
-        game,
+        engine,
         termion::cursor::Hide
     )
     .unwrap();
@@ -35,14 +33,18 @@ pub fn start_game_in_ui() {
 
         match c.unwrap() {
             Key::Ctrl('c') => break,
-            Key::Left => game.move_left(),
-            Key::Right => game.move_right(),
-            Key::Up => game.move_up(),
-            Key::Down => game.move_down(),
+            Key::Left => engine.move_left(),
+            Key::Right => engine.move_right(),
+            Key::Up => engine.move_up(),
+            Key::Down => engine.move_down(),
             _ => (),
         }
 
-        write!(stdout, "{}", game).unwrap();
+        if engine.is_game_over() {
+            break;
+        };
+
+        write!(stdout, "{}", engine).unwrap();
         stdout.flush().unwrap();
     }
 
