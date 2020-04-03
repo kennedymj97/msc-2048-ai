@@ -3,7 +3,7 @@
 extern crate test;
 
 pub mod ai;
-pub mod game;
+pub mod engine;
 pub mod ui;
 
 // https://dev.to/robertorojasr/rust-project-structure-example-step-by-step-3ee

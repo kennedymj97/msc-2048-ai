@@ -3,7 +3,7 @@ use termion::event::Key;
 use termion::input::TermRead;
 use termion::raw::IntoRawMode;
 
-use crate::game::GameState;
+use crate::engine::initial::GameState;
 
 pub fn start_game_in_ui() {
     let stdin = stdin();

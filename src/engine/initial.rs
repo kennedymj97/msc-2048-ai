@@ -118,8 +118,8 @@ impl GameState {
             tiles.push(row >> ((3 - tile_idx) * 4) & 0xf);
             tiles
         });
-        for _ in 0..4 {
-            GameState::calc_val(&mut tiles[0..4]);
+        for i in 0..4 {
+            GameState::calc_val(&mut tiles[i..4]);
         }
         tiles[0] <<= 12;
         tiles[1] <<= 8;

@@ -1,4 +1,4 @@
-use crate::game::GameState;
+use crate::engine::initial::GameState;
 use rand::Rng;
 
 pub fn run_ai() {
