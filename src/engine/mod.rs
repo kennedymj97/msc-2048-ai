@@ -40,7 +40,7 @@ pub trait GameEngine: Display + Clone {
         old_state == new_state
     }
 
-    fn to_vec(&self) -> Vec<Option<u32>>;
+    fn to_vec(&self) -> Vec<Option<u64>>;
 
     fn to_str(&self) -> String {
         let board: Vec<_> = self.to_vec().iter().map(|x| format_val(x)).collect();
@@ -74,7 +74,7 @@ pub trait GameEngine: Display + Clone {
     }
 }
 
-fn format_val(val: &Option<u32>) -> String {
+fn format_val(val: &Option<u64>) -> String {
     match val {
         None => return String::from("       "),
         Some(x) => {
@@ -88,6 +88,18 @@ fn format_val(val: &Option<u32>) -> String {
             x
         }
     }
+}
+
+fn shift_vec_right(vec: Vec<u64>) -> Vec<u64> {
+    let rev_vec: Vec<u64> = vec.into_iter().rev().collect();
+    shift_vec_left(rev_vec).iter().rev().map(|&x| x).collect()
+}
+
+fn shift_vec_left(mut vec: Vec<u64>) -> Vec<u64> {
+    for i in 0..4 {
+        calculate_left_shift(&mut vec[i..]);
+    }
+    vec
 }
 
 fn calculate_left_shift(slice: &mut [u64]) {
@@ -106,4 +118,26 @@ fn calculate_left_shift(slice: &mut [u64]) {
         };
     }
     slice[0] = acc;
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn it_shift_vec_left() {
+        assert_eq!(shift_vec_left(vec![0, 0, 0, 0]), vec![0, 0, 0, 0]);
+        assert_eq!(shift_vec_left(vec![1, 2, 1, 2]), vec![1, 2, 1, 2]);
+        assert_eq!(shift_vec_left(vec![1, 1, 2, 2]), vec![2, 3, 0, 0]);
+        assert_eq!(shift_vec_left(vec![1, 0, 0, 1]), vec![2, 0, 0, 0]);
+    }
+
+    #[test]
+    fn it_shift_vec_right() {
+        assert_eq!(shift_vec_right(vec![0, 0, 0, 0]), vec![0, 0, 0, 0]);
+        assert_eq!(shift_vec_right(vec![1, 2, 1, 2]), vec![1, 2, 1, 2]);
+        assert_eq!(shift_vec_right(vec![1, 1, 2, 2]), vec![0, 0, 2, 3]);
+        assert_eq!(shift_vec_right(vec![5, 0, 0, 5]), vec![0, 0, 0, 6]);
+        assert_eq!(shift_vec_right(vec![0, 2, 2, 2]), vec![0, 0, 2, 3]);
+    }
 }

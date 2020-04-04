@@ -46,14 +46,14 @@ impl GameEngine for Initial {
         self.generate_random_tile();
     }
 
-    fn to_vec(&self) -> Vec<Option<u32>> {
+    fn to_vec(&self) -> Vec<Option<u64>> {
         (0..16).fold(Vec::new(), |mut vec, idx| {
             let num = self.extract_tile(idx);
 
             if num == 0 {
                 vec.push(None)
             } else {
-                vec.push(Some((2 as u32).pow(num as u32)))
+                vec.push(Some((2 as u64).pow(num as u32)))
             }
 
             vec
@@ -115,18 +115,15 @@ impl Initial {
     }
 
     fn shift_right(col: u64) -> u64 {
-        let tiles = (0..4).fold(Vec::new(), |mut tiles, tile_idx| {
+        let mut tiles = (0..4).fold(Vec::new(), |mut tiles, tile_idx| {
             tiles.push(col >> ((3 - tile_idx) * 4) & 0xf);
             tiles
         });
-        let mut tiles: Vec<u64> = tiles.iter().rev().map(|x| *x).collect();
-        for i in 0..4 {
-            calculate_left_shift(&mut tiles[i..]);
-        }
-        tiles[3] <<= 12;
-        tiles[2] <<= 8;
-        tiles[1] <<= 4;
-        tiles[3] | tiles[2] | tiles[1] | tiles[0]
+        tiles = shift_vec_right(tiles);
+        tiles[0] <<= 12;
+        tiles[1] <<= 8;
+        tiles[2] <<= 4;
+        tiles[0] | tiles[1] | tiles[2] | tiles[3]
     }
 
     fn shift_left(row: u64) -> u64 {
@@ -134,9 +131,7 @@ impl Initial {
             tiles.push(row >> ((3 - tile_idx) * 4) & 0xf);
             tiles
         });
-        for i in 0..4 {
-            calculate_left_shift(&mut tiles[i..]);
-        }
+        tiles = shift_vec_left(tiles);
         tiles[0] <<= 12;
         tiles[1] <<= 8;
         tiles[2] <<= 4;
