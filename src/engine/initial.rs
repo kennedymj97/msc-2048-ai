@@ -26,46 +26,6 @@ impl GameEngine for Initial {
         self.0 = new_state;
     }
 
-    fn move_left(&mut self) {
-        self.move_left_or_right(Move::Left);
-        self.generate_random_tile();
-    }
-
-    fn move_right(&mut self) {
-        self.move_left_or_right(Move::Right);
-        self.generate_random_tile();
-    }
-
-    fn move_up(&mut self) {
-        self.move_up_or_down(Move::Up);
-        self.generate_random_tile();
-    }
-
-    fn move_down(&mut self) {
-        self.move_up_or_down(Move::Down);
-        self.generate_random_tile();
-    }
-
-    fn to_vec(&self) -> Vec<Option<u64>> {
-        (0..16).fold(Vec::new(), |mut vec, idx| {
-            let num = self.extract_tile(idx);
-
-            if num == 0 {
-                vec.push(None)
-            } else {
-                vec.push(Some((2 as u64).pow(num as u32)))
-            }
-
-            vec
-        })
-    }
-}
-
-impl Initial {
-    fn from(num: u64) -> Initial {
-        Initial(num)
-    }
-
     fn move_left_or_right(&mut self, move_dir: Move) {
         // for each row calculate the new state and update the bit board
         let rows = (0..4).fold(Vec::new(), |mut rows, row_idx| {
@@ -114,6 +74,38 @@ impl Initial {
         self.update_state(new_cols[0] | new_cols[1] | new_cols[2] | new_cols[3]);
     }
 
+    fn generate_random_tile(&mut self) {
+        let zero_tiles = self.get_zero_tiles();
+        let num_zero_tiles = zero_tiles.len();
+        if num_zero_tiles == 0 {
+            return;
+        }
+        let mut rng = rand::thread_rng();
+        let rand_idx = rng.gen_range(0, zero_tiles.len());
+        let rand_val = if rng.gen_range(0, 10) < 9 { 1 } else { 2 };
+        self.update_state(self.get_state() | (rand_val << ((15 - zero_tiles[rand_idx]) * 4)));
+    }
+
+    fn to_vec(&self) -> Vec<Option<u64>> {
+        (0..16).fold(Vec::new(), |mut vec, idx| {
+            let num = self.extract_tile(idx);
+
+            if num == 0 {
+                vec.push(None)
+            } else {
+                vec.push(Some((2 as u64).pow(num as u32)))
+            }
+
+            vec
+        })
+    }
+}
+
+impl Initial {
+    fn from(num: u64) -> Initial {
+        Initial(num)
+    }
+
     fn shift_right(col: u64) -> u64 {
         let mut tiles = (0..4).fold(Vec::new(), |mut tiles, tile_idx| {
             tiles.push(col >> ((3 - tile_idx) * 4) & 0xf);
@@ -160,23 +152,6 @@ impl Initial {
 
         // or the shifted vals together for the 16 bit column value
         tiles[0] | tiles[1] | tiles[2] | tiles[3]
-    }
-
-    /// Function to generate random tiles
-    /// The random tiles are either 2 or 4
-    /// There is a 90% chance the tile generated is a 2 and 10% of a 4
-    /// At the start of the game 2 tiles are generated randomly and after a tile is generated after
-    /// a move has been completed
-    pub fn generate_random_tile(&mut self) {
-        let zero_tiles = self.get_zero_tiles();
-        let num_zero_tiles = zero_tiles.len();
-        if num_zero_tiles == 0 {
-            return;
-        }
-        let mut rng = rand::thread_rng();
-        let rand_idx = rng.gen_range(0, zero_tiles.len());
-        let rand_val = if rng.gen_range(0, 10) < 9 { 1 } else { 2 };
-        self.update_state(self.get_state() | (rand_val << ((15 - zero_tiles[rand_idx]) * 4)));
     }
 
     fn get_zero_tiles(&self) -> Vec<usize> {

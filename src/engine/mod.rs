@@ -21,13 +21,25 @@ pub trait GameEngine: Display + Clone {
 
     fn update_state(&mut self, state: Self::Board);
 
-    fn move_left(&mut self);
+    fn move_left(&mut self) {
+        execute(self, Move::Left);
+    }
 
-    fn move_right(&mut self);
+    fn move_right(&mut self) {
+        execute(self, Move::Right);
+    }
 
-    fn move_up(&mut self);
+    fn move_up(&mut self) {
+        execute(self, Move::Up);
+    }
 
-    fn move_down(&mut self);
+    fn move_down(&mut self) {
+        execute(self, Move::Down);
+    }
+
+    fn move_left_or_right(&mut self, dir: Move);
+
+    fn move_up_or_down(&mut self, dir: Move);
 
     fn is_game_over(&mut self) -> bool {
         let mut game_clone = self.clone();
@@ -39,6 +51,8 @@ pub trait GameEngine: Display + Clone {
         let new_state = game_clone.get_state();
         old_state == new_state
     }
+
+    fn generate_random_tile(&mut self);
 
     fn to_vec(&self) -> Vec<Option<u64>>;
 
@@ -118,6 +132,18 @@ fn calculate_left_shift(slice: &mut [u64]) {
         };
     }
     slice[0] = acc;
+}
+
+fn execute(engine: &mut impl GameEngine, dir: Move) {
+    let old_state = engine.get_state();
+    match dir {
+        Move::Left | Move::Right => engine.move_left_or_right(dir),
+        Move::Up | Move::Down => engine.move_up_or_down(dir),
+    }
+    let new_state = engine.get_state();
+    if old_state != new_state {
+        engine.generate_random_tile();
+    }
 }
 
 #[cfg(test)]
