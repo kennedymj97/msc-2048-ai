@@ -5,6 +5,7 @@ pub use basic::Basic;
 pub use initial::Initial;
 use std::fmt::Display;
 
+#[derive(Debug)]
 pub enum Move {
     Up,
     Down,
@@ -20,6 +21,8 @@ pub trait GameEngine: Display + Clone {
     fn get_state(&self) -> Self::Board;
 
     fn update_state(&mut self, state: Self::Board);
+
+    fn update_state_by_idx(&mut self, idx: usize, new_value: u64);
 
     fn move_left(&mut self) {
         execute(self, Move::Left);
@@ -53,6 +56,8 @@ pub trait GameEngine: Display + Clone {
     }
 
     fn generate_random_tile(&mut self);
+
+    fn get_empty_tile_idxs(&self) -> Vec<usize>;
 
     fn to_vec(&self) -> Vec<Option<u64>>;
 

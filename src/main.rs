@@ -7,6 +7,7 @@ use msc_2048_ai::ui;
 fn main() {
     //let mut engine = Initial::new();
     let mut engine = Basic::new();
-    //ai::run_ai(&mut engine);
-    ui::start_game_in_ui(&mut engine);
+    //ai::basic::run_ai(&mut engine);
+    ai::expectimax::run_ai(&mut engine);
+    //ui::start_game_in_ui(&mut engine);
 }

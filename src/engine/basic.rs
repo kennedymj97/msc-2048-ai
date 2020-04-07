@@ -25,6 +25,10 @@ impl GameEngine for Basic {
         self.0 = new_state;
     }
 
+    fn update_state_by_idx(&mut self, idx: usize, new_value: u64) {
+        self.0[idx] = new_value;
+    }
+
     fn move_left_or_right(&mut self, dir: Move) {
         let rows = (0..4).fold(Vec::new(), |mut vec, row_idx| {
             let starting_idx = row_idx * 4;
@@ -67,22 +71,19 @@ impl GameEngine for Basic {
     }
 
     fn generate_random_tile(&mut self) {
-        let zero_tile_idxs: Vec<u64> = self
-            .get_state()
-            .iter()
-            .zip(0..)
-            .filter_map(|(&ele, idx)| if ele == 0 { Some(idx) } else { None })
-            .collect();
+        let zero_tile_idxs: Vec<usize> = self.get_empty_tile_idxs();
         let mut rng = rand::thread_rng();
         let rand_idx: usize = zero_tile_idxs[rng.gen_range(0, zero_tile_idxs.len())] as usize;
         let new_tile_val = if rng.gen_range(0, 10) < 9 { 1 } else { 2 };
-        self.update_state(
-            self.get_state()
-                .iter()
-                .enumerate()
-                .map(|(idx, &ele)| if idx == rand_idx { new_tile_val } else { ele })
-                .collect(),
-        );
+        self.update_state_by_idx(rand_idx, new_tile_val);
+    }
+
+    fn get_empty_tile_idxs(&self) -> Vec<usize> {
+        self.get_state()
+            .iter()
+            .zip(0..)
+            .filter_map(|(&ele, idx)| if ele == 0 { Some(idx) } else { None })
+            .collect()
     }
 
     fn to_vec(&self) -> Vec<Option<u64>> {

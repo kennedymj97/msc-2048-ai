@@ -26,6 +26,11 @@ impl GameEngine for Initial {
         self.0 = new_state;
     }
 
+    fn update_state_by_idx(&mut self, idx: usize, new_value: u64) {
+        let shift_amount = (15 - idx) * 4;
+        self.0 = (self.get_state() & (0xf << shift_amount)) | (new_value << shift_amount);
+    }
+
     fn move_left_or_right(&mut self, move_dir: Move) {
         // for each row calculate the new state and update the bit board
         let rows = (0..4).fold(Vec::new(), |mut rows, row_idx| {
@@ -75,7 +80,7 @@ impl GameEngine for Initial {
     }
 
     fn generate_random_tile(&mut self) {
-        let zero_tiles = self.get_zero_tiles();
+        let zero_tiles = self.get_empty_tile_idxs();
         let num_zero_tiles = zero_tiles.len();
         if num_zero_tiles == 0 {
             return;
@@ -83,7 +88,17 @@ impl GameEngine for Initial {
         let mut rng = rand::thread_rng();
         let rand_idx = rng.gen_range(0, zero_tiles.len());
         let rand_val = if rng.gen_range(0, 10) < 9 { 1 } else { 2 };
-        self.update_state(self.get_state() | (rand_val << ((15 - zero_tiles[rand_idx]) * 4)));
+        self.update_state_by_idx(zero_tiles[rand_idx], rand_val);
+    }
+
+    fn get_empty_tile_idxs(&self) -> Vec<usize> {
+        (0..16).fold(Vec::new(), |mut vec, idx| {
+            let tile_val = self.extract_tile(idx);
+            if tile_val == 0 {
+                vec.push(idx)
+            };
+            vec
+        })
     }
 
     fn to_vec(&self) -> Vec<Option<u64>> {
@@ -152,16 +167,6 @@ impl Initial {
 
         // or the shifted vals together for the 16 bit column value
         tiles[0] | tiles[1] | tiles[2] | tiles[3]
-    }
-
-    fn get_zero_tiles(&self) -> Vec<usize> {
-        (0..16).fold(Vec::new(), |mut vec, idx| {
-            let tile_val = self.extract_tile(idx);
-            if tile_val == 0 {
-                vec.push(idx)
-            };
-            vec
-        })
     }
 }
 
