@@ -33,6 +33,64 @@ impl AI for BasicExpectimax {
 //  - the max function (and expectimax will need to return which move is chosen along with the
 //  value
 
+enum Node {
+    Max,
+    Chance,
+}
+
+struct ExpectimaxResult {
+    score: u64,
+    move_dir: Option<Move>,
+}
+
+fn expectimax2(engine: &impl GameEngine, node: Node, move_depth: u64) -> ExpectimaxResult {
+    if move_depth == 0 {
+        return evaluate_terminal(engine);
+    } else {
+        match node {
+            Node::Max => return evaluate_max(engine),
+            Node::Chance => return evaluate_terminal(engine),
+        }
+    }
+}
+
+fn evaluate_terminal(engine: &impl GameEngine) -> ExpectimaxResult {
+    ExpectimaxResult {
+        score: engine.get_score(),
+        move_dir: None,
+    }
+}
+
+fn evaluate_max(engine: &impl GameEngine, move_depth: u64) -> ExpectimaxResult {
+    let mut best_score = 0;
+    let mut best_move = None;
+    for direction in vec![Move::Up, Move::Down, Move::Left, Move::Right] {
+        let mut engine_copy = engine.clone();
+        let old_state = engine_copy.get_state();
+        match direction {
+            Move::Up => engine_copy.move_up_or_down(Move::Up),
+            Move::Down => engine_copy.move_up_or_down(Move::Down),
+            Move::Left => engine_copy.move_left_or_right(Move::Left),
+            Move::Right => engine_copy.move_left_or_right(Move::Right),
+        }
+        let new_state = engine_copy.get_state();
+        if old_state == new_state {
+            continue;
+        }
+        let score = expectimax2(&engine_copy, Node::Chance, move_depth).score;
+        if score > best_score {
+            best_score = score;
+            best_move = Some(direction);
+        }
+    }
+    ExpectimaxResult {
+        score: best_score,
+        move_dir: best_move,
+    }
+}
+
+fn evaluate_chance(engine: &impl GameEngine) -> ExpectimaxResult {}
+
 fn expectimax(engine: &impl GameEngine) -> Move {
     let mut max_score = 0.;
     let mut best_move = Move::Down;
