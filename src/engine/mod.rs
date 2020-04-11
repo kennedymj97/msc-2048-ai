@@ -24,6 +24,16 @@ pub trait GameEngine: Display + Clone {
 
     fn update_state_by_idx(&mut self, idx: usize, new_value: u64);
 
+    fn get_score(&self) -> u64 {
+        self.to_vec()
+            .iter()
+            .map(|&x| match x {
+                Some(y) => y,
+                None => 0,
+            })
+            .sum()
+    }
+
     fn move_left(&mut self) {
         execute(self, Move::Left);
     }

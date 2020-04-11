@@ -1,20 +1,24 @@
+use crate::ai::AI;
+use crate::engine::Basic;
 use crate::engine::GameEngine;
 use crate::engine::Move;
 
-pub fn run_ai(engine: &mut impl GameEngine) {
-    loop {
-        let best_move = expectimax(engine);
-        println!("{:?}", best_move);
-        match best_move {
-            Move::Left => engine.move_left(),
-            Move::Right => engine.move_right(),
-            Move::Up => engine.move_up(),
-            Move::Down => engine.move_down(),
-        }
-        println!("{}", engine);
-        std::thread::sleep(std::time::Duration::from_secs(1));
-        if engine.is_game_over() {
-            break;
+pub struct BasicExpectimax;
+
+impl AI for BasicExpectimax {
+    fn run() -> u64 {
+        let mut engine = Basic::new();
+        loop {
+            let best_move = expectimax(&engine);
+            match best_move {
+                Move::Left => engine.move_left(),
+                Move::Right => engine.move_right(),
+                Move::Up => engine.move_up(),
+                Move::Down => engine.move_down(),
+            }
+            if engine.is_game_over() {
+                return engine.get_score();
+            }
         }
     }
 }
@@ -56,22 +60,10 @@ fn calculate_move_score(engine: &impl GameEngine) -> f32 {
         for (val, prob) in vec![(1, 0.9), (2, 0.1)] {
             let mut engine_copy = engine.clone();
             engine_copy.update_state_by_idx(idx, val);
-            idx_avg_score += prob * (evaluate(&engine_copy) as f32);
+            idx_avg_score += prob * (engine_copy.get_score() as f32);
         }
         // probability = tile probability * (1 / num free tiles)???
         // don't think there is any use in the scaling down by number of empty tiles acc + ((1 / empty_tile_idxs) * idx_avg_score)
         acc + idx_avg_score
     })
-}
-
-fn evaluate(engine: &impl GameEngine) -> u64 {
-    // very simply just sum the value of the tiles
-    engine
-        .to_vec()
-        .iter()
-        .map(|&x| match x {
-            Some(y) => y,
-            None => 0,
-        })
-        .sum()
 }
