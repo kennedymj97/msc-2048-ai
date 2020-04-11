@@ -23,6 +23,16 @@ impl AI for BasicExpectimax {
     }
 }
 
+// Three cases:
+//  - max nodes (moves)
+//  - chance nodes (after moves)
+//  - terminal node (depth is 0)
+//
+// Use an enum to represent the three states.
+// Have a seperate function for each of the three cases
+//  - the max function (and expectimax will need to return which move is chosen along with the
+//  value
+
 fn expectimax(engine: &impl GameEngine) -> Move {
     let mut max_score = 0.;
     let mut best_move = Move::Down;
