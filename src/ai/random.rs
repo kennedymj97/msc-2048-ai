@@ -1,26 +1,39 @@
 use crate::ai::AI;
 use crate::engine::Basic;
 use crate::engine::GameEngine;
+use crate::engine::Move;
 use rand::Rng;
 
-pub struct BasicRandom;
+pub struct BasicRandom(Basic);
 
 impl AI for BasicRandom {
-    fn run() -> u64 {
-        let mut engine = Basic::new();
+    type Engine = Basic;
+
+    fn new() -> Self {
+        BasicRandom(Basic::new())
+    }
+
+    fn restart(&mut self) {
+        self.0 = Basic::new();
+    }
+
+    fn get_engine(&mut self) -> &Self::Engine {
+        &self.0
+    }
+
+    fn get_mut_engine(&mut self) -> &mut Self::Engine {
+        &mut self.0
+    }
+
+    fn get_next_move(&mut self) -> Move {
         let mut rng = rand::thread_rng();
-        loop {
-            let num = rng.gen_range(0, 4);
-            match num {
-                0 => engine.move_left(),
-                1 => engine.move_right(),
-                2 => engine.move_up(),
-                3 => engine.move_down(),
-                _ => panic!("The number generated to select the move was invalid"),
-            }
-            if engine.is_game_over() {
-                return engine.get_score();
-            }
+        let num = rng.gen_range(0, 4);
+        match num {
+            0 => return Move::Left,
+            1 => return Move::Right,
+            2 => return Move::Up,
+            3 => return Move::Down,
+            _ => panic!("The number generated to select the move was invalid"),
         }
     }
 }

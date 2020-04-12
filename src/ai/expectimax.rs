@@ -3,23 +3,31 @@ use crate::engine::Basic;
 use crate::engine::GameEngine;
 use crate::engine::Move;
 
-pub struct BasicExpectimax;
+pub struct BasicExpectimax(Basic);
 
 impl AI for BasicExpectimax {
-    fn run() -> u64 {
-        let mut engine = Basic::new();
-        loop {
-            let best_move = expectimax(&engine);
-            match best_move {
-                Move::Left => engine.move_left(),
-                Move::Right => engine.move_right(),
-                Move::Up => engine.move_up(),
-                Move::Down => engine.move_down(),
-            }
-            if engine.is_game_over() {
-                return engine.get_score();
-            }
-        }
+    type Engine = Basic;
+
+    fn new() -> Self {
+        BasicExpectimax(Basic::new())
+    }
+
+    fn restart(&mut self) {
+        self.0 = Basic::new();
+    }
+
+    fn get_engine(&mut self) -> &Self::Engine {
+        &self.0
+    }
+
+    fn get_mut_engine(&mut self) -> &mut Self::Engine {
+        &mut self.0
+    }
+
+    fn get_next_move(&mut self) -> Move {
+        expectimax2(self.get_engine(), Node::Max, 3)
+            .move_dir
+            .unwrap()
     }
 }
 
@@ -39,7 +47,7 @@ enum Node {
 }
 
 struct ExpectimaxResult {
-    score: u64,
+    score: f64,
     move_dir: Option<Move>,
 }
 
@@ -48,21 +56,21 @@ fn expectimax2(engine: &impl GameEngine, node: Node, move_depth: u64) -> Expecti
         return evaluate_terminal(engine);
     } else {
         match node {
-            Node::Max => return evaluate_max(engine),
-            Node::Chance => return evaluate_terminal(engine),
+            Node::Max => return evaluate_max(engine, move_depth),
+            Node::Chance => return evaluate_chance(engine, move_depth),
         }
     }
 }
 
 fn evaluate_terminal(engine: &impl GameEngine) -> ExpectimaxResult {
     ExpectimaxResult {
-        score: engine.get_score(),
+        score: engine.get_score() as f64,
         move_dir: None,
     }
 }
 
 fn evaluate_max(engine: &impl GameEngine, move_depth: u64) -> ExpectimaxResult {
-    let mut best_score = 0;
+    let mut best_score = 0.;
     let mut best_move = None;
     for direction in vec![Move::Up, Move::Down, Move::Left, Move::Right] {
         let mut engine_copy = engine.clone();
@@ -89,7 +97,24 @@ fn evaluate_max(engine: &impl GameEngine, move_depth: u64) -> ExpectimaxResult {
     }
 }
 
-fn evaluate_chance(engine: &impl GameEngine) -> ExpectimaxResult {}
+fn evaluate_chance(engine: &impl GameEngine, move_depth: u64) -> ExpectimaxResult {
+    let empty_tile_idxs = engine.get_empty_tile_idxs();
+
+    let average_score = empty_tile_idxs.iter().fold(0., |acc, &idx| {
+        let mut idx_avg_score = 0.;
+        for (val, prob) in vec![(1, 0.9), (2, 0.1)] {
+            let mut engine_copy = engine.clone();
+            engine_copy.update_state_by_idx(idx, val);
+            idx_avg_score += prob * expectimax2(&engine_copy, Node::Max, move_depth - 1).score;
+        }
+        acc + idx_avg_score
+    });
+
+    ExpectimaxResult {
+        score: average_score,
+        move_dir: None,
+    }
+}
 
 fn expectimax(engine: &impl GameEngine) -> Move {
     let mut max_score = 0.;

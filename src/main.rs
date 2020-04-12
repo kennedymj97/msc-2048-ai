@@ -10,7 +10,11 @@ fn main() {
     //let mut engine = Initial::new();
     //let mut engine = Basic::new();
     //ai::basic::run_ai(&mut engine);
-    BasicRandom::evaluate(20);
-    BasicExpectimax::evaluate(20);
+    //BasicRandom::evaluate(20);
+    //BasicExpectimax::evaluate(20);
     //ui::start_game_in_ui(&mut engine);
+    let mut basic_random = BasicRandom::new();
+    basic_random.evaluate(20);
+    let mut basic_exp = BasicExpectimax::new();
+    basic_exp.debug();
 }
