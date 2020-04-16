@@ -98,6 +98,12 @@ impl GameEngine for Basic {
             })
             .collect()
     }
+
+    fn get_score(&self) -> u64 {
+        self.get_state()
+            .iter()
+            .fold(0, |acc, &tile_val| acc + (2 as u64).pow(tile_val as u32))
+    }
 }
 
 impl Basic {

@@ -10,6 +10,14 @@ edition = "2018"
 rand="0.7"
 termion="*"
 
+[dev-dependencies]
+criterion="0.3"
+
+[[bench]]
+name = "my_benchmark"
+harness = false
+
 # Enable the below when profiling
-# [profile.release]
-# debug = true
+[profile.release]
+debug = true
+

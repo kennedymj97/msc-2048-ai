@@ -5,6 +5,7 @@ mod expectimax;
 mod random;
 
 pub use self::expectimax::BasicExpectimax;
+pub use self::expectimax::OptimisedExpectimax;
 pub use self::random::BasicRandom;
 
 pub trait AI {
