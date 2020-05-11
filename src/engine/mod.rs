@@ -55,14 +55,21 @@ pub trait GameEngine: Display + Clone {
     fn move_up_or_down(&mut self, dir: Move);
 
     fn is_game_over(&mut self) -> bool {
-        let mut game_clone = self.clone();
-        let old_state = game_clone.get_state();
-        game_clone.move_down();
-        game_clone.move_up();
-        game_clone.move_left();
-        game_clone.move_right();
-        let new_state = game_clone.get_state();
-        old_state == new_state
+        for direction in vec![Move::Up, Move::Down, Move::Left, Move::Right] {
+            let mut engine_copy = self.clone();
+            let old_state = engine_copy.get_state();
+            match direction {
+                Move::Up => engine_copy.move_up_or_down(Move::Up),
+                Move::Down => engine_copy.move_up_or_down(Move::Down),
+                Move::Left => engine_copy.move_left_or_right(Move::Left),
+                Move::Right => engine_copy.move_left_or_right(Move::Right),
+            }
+            let new_state = engine_copy.get_state();
+            if old_state != new_state {
+                return false;
+            }
+        }
+        true
     }
 
     fn generate_random_tile(&mut self);

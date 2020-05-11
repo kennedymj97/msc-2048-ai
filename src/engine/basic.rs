@@ -72,6 +72,9 @@ impl GameEngine for Basic {
 
     fn generate_random_tile(&mut self) {
         let zero_tile_idxs: Vec<usize> = self.get_empty_tile_idxs();
+        if zero_tile_idxs.len() == 0 {
+            return;
+        }
         let mut rng = rand::thread_rng();
         let rand_idx: usize = zero_tile_idxs[rng.gen_range(0, zero_tile_idxs.len())] as usize;
         let new_tile_val = if rng.gen_range(0, 10) < 9 { 1 } else { 2 };

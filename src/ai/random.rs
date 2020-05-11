@@ -25,14 +25,14 @@ impl AI for BasicRandom {
         &mut self.0
     }
 
-    fn get_next_move(&mut self) -> Move {
+    fn get_next_move(&mut self) -> Option<Move> {
         let mut rng = rand::thread_rng();
         let num = rng.gen_range(0, 4);
         match num {
-            0 => return Move::Left,
-            1 => return Move::Right,
-            2 => return Move::Up,
-            3 => return Move::Down,
+            0 => return Some(Move::Left),
+            1 => return Some(Move::Right),
+            2 => return Some(Move::Up),
+            3 => return Some(Move::Down),
             _ => panic!("The number generated to select the move was invalid"),
         }
     }

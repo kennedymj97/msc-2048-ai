@@ -19,7 +19,7 @@ pub trait AI {
 
     fn get_mut_engine(&mut self) -> &mut Self::Engine;
 
-    fn get_next_move(&mut self) -> Move;
+    fn get_next_move(&mut self) -> Option<Move>;
 
     fn evaluate(&mut self, num_iters: u64) {
         let average_score = (0..num_iters).fold(0, |acc, _| {
@@ -34,13 +34,11 @@ pub trait AI {
         loop {
             let best_move = self.get_next_move();
             match best_move {
-                Move::Left => self.get_mut_engine().move_left(),
-                Move::Right => self.get_mut_engine().move_right(),
-                Move::Up => self.get_mut_engine().move_up(),
-                Move::Down => self.get_mut_engine().move_down(),
-            }
-            if self.get_mut_engine().is_game_over() {
-                return self.get_engine().get_score();
+                Some(Move::Left) => self.get_mut_engine().move_left(),
+                Some(Move::Right) => self.get_mut_engine().move_right(),
+                Some(Move::Up) => self.get_mut_engine().move_up(),
+                Some(Move::Down) => self.get_mut_engine().move_down(),
+                None => return self.get_engine().get_score(),
             }
         }
     }
@@ -49,15 +47,14 @@ pub trait AI {
         loop {
             let best_move = self.get_next_move();
             match best_move {
-                Move::Left => self.get_mut_engine().move_left(),
-                Move::Right => self.get_mut_engine().move_right(),
-                Move::Up => self.get_mut_engine().move_up(),
-                Move::Down => self.get_mut_engine().move_down(),
+                Some(Move::Left) => self.get_mut_engine().move_left(),
+                Some(Move::Right) => self.get_mut_engine().move_right(),
+                Some(Move::Up) => self.get_mut_engine().move_up(),
+                Some(Move::Down) => self.get_mut_engine().move_down(),
+                None => break,
             }
+
             println!("{}", self.get_engine());
-            if self.get_mut_engine().is_game_over() {
-                break;
-            }
             // std::thread::sleep(std::time::Duration::from_secs(1));
         }
     }

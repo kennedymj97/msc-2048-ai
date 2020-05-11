@@ -25,10 +25,8 @@ impl AI for OptimisedExpectimax {
         &mut self.0
     }
 
-    fn get_next_move(&mut self) -> Move {
-        expectimax(self.get_engine(), Node::Max, 3)
-            .move_dir
-            .unwrap()
+    fn get_next_move(&mut self) -> Option<Move> {
+        expectimax(self.get_engine(), Node::Max, 3).move_dir
     }
 }
 
@@ -53,10 +51,8 @@ impl AI for BasicExpectimax {
         &mut self.0
     }
 
-    fn get_next_move(&mut self) -> Move {
-        expectimax(self.get_engine(), Node::Max, 3)
-            .move_dir
-            .unwrap()
+    fn get_next_move(&mut self) -> Option<Move> {
+        expectimax(self.get_engine(), Node::Max, 3).move_dir
     }
 }
 
@@ -120,6 +116,7 @@ fn evaluate_max(engine: &impl GameEngine, move_depth: u64) -> ExpectimaxResult {
             best_move = Some(direction);
         }
     }
+
     ExpectimaxResult {
         score: best_score,
         move_dir: best_move,

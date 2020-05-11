@@ -5,5 +5,7 @@
 [RustConf 2017 - Improving Rust Performance Through Profiling and Benchmarking by Steve Jenson](https://www.youtube.com/watch?v=hTHp0gjWMLQ)
 
 ## Expectimax depth 3 timings
-Basic: 10.059s
-Opimised: 8.690s
+
+On PC (average over 20 runs):
+Basic: 14.07s
+Optimised: 10.44s
