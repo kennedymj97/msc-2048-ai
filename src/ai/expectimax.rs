@@ -116,7 +116,6 @@ fn evaluate_max(engine: &impl GameEngine, move_depth: u64) -> ExpectimaxResult {
             best_move = Some(direction);
         }
     }
-
     ExpectimaxResult {
         score: best_score,
         move_dir: best_move,

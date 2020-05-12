@@ -9,3 +9,6 @@
 On PC (average over 20 runs):
 Basic: 14.07s
 Optimised: 10.44s
+
+25/05/2020 - Improvements made to extracting columns and using hashmaps for the shifting.
+Optimised: 6.22s

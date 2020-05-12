@@ -1,82 +1,85 @@
 use rand::Rng;
+use std::collections::HashMap;
 use std::fmt;
+use std::rc::Rc;
 
 use crate::engine::*;
 
 type State = u64;
 
 #[derive(Clone)]
-pub struct Optimised(pub State);
+struct Stores {
+    move_left: HashMap<u64, u64>,
+    move_right: HashMap<u64, u64>,
+    move_up: HashMap<u64, u64>,
+    move_down: HashMap<u64, u64>,
+}
+
+#[derive(Clone)]
+pub struct Optimised {
+    state: State,
+    stores: Rc<Stores>,
+}
 
 impl GameEngine for Optimised {
     type Board = State;
 
     fn new() -> Self {
-        let mut game = Optimised(0);
+        let stores = Optimised::create_stores();
+        let mut game = Optimised {
+            state: 0,
+            stores: Rc::new(stores),
+        };
         game.generate_random_tile();
         game.generate_random_tile();
         game
     }
 
     fn get_state(&self) -> Self::Board {
-        self.0
+        self.state
     }
 
     fn update_state(&mut self, new_state: Self::Board) {
-        self.0 = new_state;
+        self.state = new_state;
     }
 
     fn update_state_by_idx(&mut self, idx: usize, new_value: u64) {
         let shift_amount = (15 - idx) * 4;
-        self.0 = (self.get_state() & !(0xf << shift_amount)) | (new_value << shift_amount);
+        self.state = (self.get_state() & !(0xf << shift_amount)) | (new_value << shift_amount);
     }
 
     fn move_left_or_right(&mut self, move_dir: Move) {
-        // for each row calculate the new state and update the bit board
-        let rows = (0..4).fold(Vec::new(), |mut rows, row_idx| {
-            rows.push(self.extract_row(row_idx));
-            rows
-        });
-
-        let mut new_rows: Vec<u64> = rows
-            .iter()
-            .map(|row| match move_dir {
-                Move::Left => Optimised::shift_left(*row),
-                Move::Right => Optimised::shift_right(*row),
-                _ => panic!("Trying to move up or down in move_left_or_right()"),
-            })
-            .collect();
-        new_rows[0] <<= 48;
-        new_rows[1] <<= 32;
-        new_rows[2] <<= 16;
-        self.update_state(new_rows[0] | new_rows[1] | new_rows[2] | new_rows[3]);
+        let mut new_board: u64 = 0;
+        for row_idx in 0..4 {
+            let row_val = self.extract_row(row_idx);
+            let new_row_val = match move_dir {
+                Move::Left => self.stores.move_left.get(&row_val),
+                Move::Right => self.stores.move_right.get(&row_val),
+                _ => panic!("Trying to move up or down in move_left_or_right"),
+            };
+            match new_row_val {
+                Some(value) => new_board = new_board | (value << (48 - (16 * row_idx))),
+                None => panic!(format!("The row: {} was not found in the stores", row_val)),
+            }
+        }
+        self.update_state(new_board);
     }
 
     fn move_up_or_down(&mut self, move_dir: Move) {
-        let cols = (0..4).fold(Vec::new(), |mut cols, col_idx| {
-            cols.push(self.extract_col(col_idx));
-            cols
-        });
-        let mut new_cols: Vec<u64> = cols
-            .iter()
-            .map(|col| {
-                let col_val;
-                match move_dir {
-                    Move::Up => col_val = Optimised::shift_left(*col),
-                    Move::Down => col_val = Optimised::shift_right(*col),
-                    _ => panic!("Trying to move left or right in move_up_or_down()"),
-                }
-                let tile0 = (col_val & 0xf000) << 36;
-                let tile1 = (col_val & 0x0f00) << 24;
-                let tile2 = (col_val & 0x00f0) << 12;
-                let tile3 = col_val & 0x000f;
-                tile0 | tile1 | tile2 | tile3
-            })
-            .collect();
-        new_cols[0] <<= 12;
-        new_cols[1] <<= 8;
-        new_cols[2] <<= 4;
-        self.update_state(new_cols[0] | new_cols[1] | new_cols[2] | new_cols[3]);
+        let mut new_board: u64 = 0;
+        for col_idx in 0..4 {
+            let col_val = self.extract_col(col_idx);
+            let new_col_val = match move_dir {
+                Move::Up => self.stores.move_up.get(&col_val),
+                Move::Down => self.stores.move_down.get(&col_val),
+                _ => panic!("Trying to move left or right in move up or down"),
+            };
+            match new_col_val {
+                Some(value) => new_board = new_board | (value << (12 - (4 * col_idx))),
+                None => panic!(format!("The col: {} was not found in the stores", col_val)),
+            }
+        }
+        self.update_state(new_board);
     }
 
     fn generate_random_tile(&mut self) {
@@ -125,31 +128,35 @@ impl GameEngine for Optimised {
 }
 
 impl Optimised {
-    fn from(num: u64) -> Optimised {
-        Optimised(num)
-    }
-
-    fn shift_right(col: u64) -> u64 {
+    fn shift_left_or_right(row: u64, direction: Move) -> u64 {
         let mut tiles = (0..4).fold(Vec::new(), |mut tiles, tile_idx| {
-            tiles.push(col >> ((3 - tile_idx) * 4) & 0xf);
+            tiles.push(row >> ((3 - tile_idx) * 4) & 0xf);
             tiles
         });
-        tiles = shift_vec_right(tiles);
+        match direction {
+            Move::Left => tiles = shift_vec_left(tiles),
+            Move::Right => tiles = shift_vec_right(tiles),
+            _ => panic!("trying to shift up or down in shift left or right"),
+        }
         tiles[0] <<= 12;
         tiles[1] <<= 8;
         tiles[2] <<= 4;
         tiles[0] | tiles[1] | tiles[2] | tiles[3]
     }
 
-    fn shift_left(row: u64) -> u64 {
+    fn shift_up_or_down(col: u64, direction: Move) -> u64 {
         let mut tiles = (0..4).fold(Vec::new(), |mut tiles, tile_idx| {
-            tiles.push(row >> ((3 - tile_idx) * 4) & 0xf);
+            tiles.push(col >> ((3 - tile_idx) * 16) & 0xf);
             tiles
         });
-        tiles = shift_vec_left(tiles);
-        tiles[0] <<= 12;
-        tiles[1] <<= 8;
-        tiles[2] <<= 4;
+        match direction {
+            Move::Up => tiles = shift_vec_left(tiles),
+            Move::Down => tiles = shift_vec_right(tiles),
+            _ => panic!("trying to shift left or right in shift up or down"),
+        }
+        tiles[0] <<= 48;
+        tiles[1] <<= 32;
+        tiles[2] <<= 16;
         tiles[0] | tiles[1] | tiles[2] | tiles[3]
     }
 
@@ -162,19 +169,30 @@ impl Optimised {
     }
 
     fn extract_col(&self, col_num: u64) -> u64 {
-        // extract the 4 cells
-        let mut tiles: Vec<u64> = (0..4).fold(Vec::new(), |mut tiles, idx| {
-            let tile_val = self.extract_tile((col_num + (idx * 4)) as usize);
-            tiles.push(tile_val);
-            tiles
-        });
-        // shift the cells appropriately
-        tiles[0] <<= 12;
-        tiles[1] <<= 8;
-        tiles[2] <<= 4;
+        (self.get_state() >> ((3 - col_num) * 4)) & 0x000f000f000f000f
+    }
 
-        // or the shifted vals together for the 16 bit column value
-        tiles[0] | tiles[1] | tiles[2] | tiles[3]
+    fn create_stores() -> Stores {
+        let mut move_left_store = HashMap::new();
+        let mut move_right_store = HashMap::new();
+        let mut move_up_store = HashMap::new();
+        let mut move_down_store = HashMap::new();
+
+        for val in 0..0xffff {
+            move_left_store.insert(val, Optimised::shift_left_or_right(val, Move::Left));
+            move_right_store.insert(val, Optimised::shift_left_or_right(val, Move::Right));
+
+            let col_val = ((val << 36) | (val << 24) | (val << 12) | val) & 0x000f000f000f000f;
+            move_up_store.insert(col_val, Optimised::shift_up_or_down(col_val, Move::Up));
+            move_down_store.insert(col_val, Optimised::shift_up_or_down(col_val, Move::Down));
+        }
+
+        Stores {
+            move_left: move_left_store,
+            move_right: move_right_store,
+            move_up: move_up_store,
+            move_down: move_down_store,
+        }
     }
 }
 
@@ -216,51 +234,55 @@ mod tests {
 
     #[test]
     fn test_shift_left() {
-        assert_eq!(Optimised::shift_left(0x0000), 0x0000);
-        assert_eq!(Optimised::shift_left(0x0002), 0x2000);
-        assert_eq!(Optimised::shift_left(0x2020), 0x3000);
-        assert_eq!(Optimised::shift_left(0x1332), 0x1420);
-        assert_eq!(Optimised::shift_left(0x1234), 0x1234);
-        assert_eq!(Optimised::shift_left(0x1002), 0x1200);
-        assert_ne!(Optimised::shift_left(0x1210), 0x2200);
+        assert_eq!(Optimised::shift_left_or_right(0x0000, Move::Left), 0x0000);
+        assert_eq!(Optimised::shift_left_or_right(0x0002, Move::Left), 0x2000);
+        assert_eq!(Optimised::shift_left_or_right(0x2020, Move::Left), 0x3000);
+        assert_eq!(Optimised::shift_left_or_right(0x1332, Move::Left), 0x1420);
+        assert_eq!(Optimised::shift_left_or_right(0x1234, Move::Left), 0x1234);
+        assert_eq!(Optimised::shift_left_or_right(0x1002, Move::Left), 0x1200);
+        assert_ne!(Optimised::shift_left_or_right(0x1210, Move::Left), 0x2200);
     }
 
     #[test]
     fn test_shift_right() {
-        assert_eq!(Optimised::shift_right(0x0000), 0x0000);
-        assert_eq!(Optimised::shift_right(0x2000), 0x0002);
-        assert_eq!(Optimised::shift_right(0x2020), 0x0003);
-        assert_eq!(Optimised::shift_right(0x1332), 0x0142);
-        assert_eq!(Optimised::shift_right(0x1234), 0x1234);
-        assert_eq!(Optimised::shift_right(0x1002), 0x0012);
-        assert_ne!(Optimised::shift_right(0x0121), 0x0022);
+        assert_eq!(Optimised::shift_left_or_right(0x0000, Move::Right), 0x0000);
+        assert_eq!(Optimised::shift_left_or_right(0x2000, Move::Right), 0x0002);
+        assert_eq!(Optimised::shift_left_or_right(0x2020, Move::Right), 0x0003);
+        assert_eq!(Optimised::shift_left_or_right(0x1332, Move::Right), 0x0142);
+        assert_eq!(Optimised::shift_left_or_right(0x1234, Move::Right), 0x1234);
+        assert_eq!(Optimised::shift_left_or_right(0x1002, Move::Right), 0x0012);
+        assert_ne!(Optimised::shift_left_or_right(0x0121, Move::Right), 0x0022);
     }
 
     #[test]
     fn test_move_left() {
-        let mut game = Optimised::from(0x1234133220021002);
+        let mut game = Optimised::new();
+        game.update_state(0x1234133220021002);
         game.move_left_or_right(Move::Left);
-        assert_eq!(game.0, 0x1234142030001200);
+        assert_eq!(game.get_state(), 0x1234142030001200);
     }
 
     #[test]
     fn test_move_up() {
-        let mut game = Optimised::from(0x1121230033004222);
+        let mut game = Optimised::new();
+        game.update_state(0x1121230033004222);
         game.move_up_or_down(Move::Up);
-        assert_eq!(game.0, 0x1131240232004000);
+        assert_eq!(game.get_state(), 0x1131240232004000);
     }
 
     #[test]
     fn test_move_right() {
-        let mut game = Optimised::from(0x1234133220021002);
+        let mut game = Optimised::new();
+        game.update_state(0x1234133220021002);
         game.move_left_or_right(Move::Right);
-        assert_eq!(game.0, 0x1234014200030012);
+        assert_eq!(game.get_state(), 0x1234014200030012);
     }
 
     #[test]
     fn test_move_down() {
-        let mut game = Optimised::from(0x1121230033004222);
+        let mut game = Optimised::new();
+        game.update_state(0x1121230033004222);
         game.move_up_or_down(Move::Down);
-        assert_eq!(game.0, 0x1000210034014232);
+        assert_eq!(game.get_state(), 0x1000210034014232);
     }
 }

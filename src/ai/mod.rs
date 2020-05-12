@@ -45,6 +45,7 @@ pub trait AI {
 
     fn debug(&mut self) {
         loop {
+            println!("{}", self.get_engine());
             let best_move = self.get_next_move();
             match best_move {
                 Some(Move::Left) => self.get_mut_engine().move_left(),
@@ -54,8 +55,7 @@ pub trait AI {
                 None => break,
             }
 
-            println!("{}", self.get_engine());
-            // std::thread::sleep(std::time::Duration::from_secs(1));
+            //std::thread::sleep(std::time::Duration::from_secs(1));
         }
     }
 }

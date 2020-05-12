@@ -18,6 +18,6 @@ name = "my_benchmark"
 harness = false
 
 # Enable the below when profiling
-[profile.release]
-debug = true
+#[profile.release]
+#debug = true
 
