@@ -5,7 +5,7 @@ use termion::raw::IntoRawMode;
 
 use crate::engine::GameEngine;
 
-pub fn start_game_in_ui(engine: &mut impl GameEngine) {
+pub fn start_game_in_ui(engine: &mut GameEngine) {
     let stdin = stdin();
 
     let mut stdout = stdout().into_raw_mode().unwrap();

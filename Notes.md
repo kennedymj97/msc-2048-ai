@@ -6,9 +6,18 @@
 
 ## Expectimax depth 3 timings
 
-On PC (average over 20 runs):
-Basic: 14.07s
-Optimised: 10.44s
+On PC (average over 20 runs):  
+Basic: 14.07s  
+Optimised: 10.44s  
+  
+12/05/2020 - Improvements made to extracting columns and using hashmaps for the shifting.  
+Optimised: 6.22s  
+  
+13/05/2020  
+1. Changed the move tables from hashmaps to vectors ~90% performance boost.
+2. Changed the score function to use a store, find score for every row and column and sum. ~75% performance boost.
+    1. This has made the ai perform worse however so the times will not be representative, compared to old times, need to measure time per move instead.
+    1. Current average move_time 3-6ms.
+3. Refactor to remove the basic engine, started work on optimising the evaluation of chance nodes.
 
-25/05/2020 - Improvements made to extracting columns and using hashmaps for the shifting.
-Optimised: 6.22s
+

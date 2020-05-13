@@ -1,27 +1,24 @@
 use crate::ai::AI;
-use crate::engine::Basic;
 use crate::engine::GameEngine;
 use crate::engine::Move;
 use rand::Rng;
 
-pub struct BasicRandom(Basic);
+pub struct Random(GameEngine);
 
-impl AI for BasicRandom {
-    type Engine = Basic;
-
+impl AI for Random {
     fn new() -> Self {
-        BasicRandom(Basic::new())
+        Random(GameEngine::new())
     }
 
     fn restart(&mut self) {
-        self.0 = Basic::new();
+        self.0 = GameEngine::new();
     }
 
-    fn get_engine(&mut self) -> &Self::Engine {
+    fn get_engine(&mut self) -> &GameEngine {
         &self.0
     }
 
-    fn get_mut_engine(&mut self) -> &mut Self::Engine {
+    fn get_mut_engine(&mut self) -> &mut GameEngine {
         &mut self.0
     }
 
