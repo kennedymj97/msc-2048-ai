@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use std::fmt;
 use std::rc::Rc;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum Move {
     Up,
     Down,

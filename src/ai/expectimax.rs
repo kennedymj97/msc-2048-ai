@@ -69,7 +69,7 @@ impl Expectimax {
     fn evaluate_max(self, move_depth: u64) -> ExpectimaxResult {
         let mut best_score = 0.;
         let mut best_move = None;
-        for direction in vec![Move::Up, Move::Down, Move::Left, Move::Right] {
+        for &direction in &[Move::Up, Move::Down, Move::Left, Move::Right] {
             let board = self.get_board();
             let mut expectimax_copy = self;
             match direction {
