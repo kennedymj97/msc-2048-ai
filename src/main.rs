@@ -8,5 +8,5 @@ fn main() {
     //let mut engine = GameEngine::new();
     //ui::start_game_in_ui(&mut engine);
     let mut expectimax = Expectimax::new();
-    expectimax.evaluate(1);
+    expectimax.evaluate(5);
 }

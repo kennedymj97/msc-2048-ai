@@ -22,3 +22,6 @@ Optimised: 6.22s
 
 14/05/2020  
 1. Improved evaluate chance function ~35% improvement.
+    1. Average move time down to 0.5-2ms (at depth 3).
+2. Changed evaluate chance so no loop is used, meaning no vector alloc. ~32% improvement.
+    1. Average move time down to 0.5-1.5ms (at depth 3).

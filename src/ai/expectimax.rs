@@ -105,12 +105,16 @@ impl Expectimax {
 
         while tiles_searched < num_empty_tiles {
             if (tmp & 0xf) == 0 {
-                for (val, prob) in vec![(0, 0.9), (1, 0.1)] {
-                    let mut expectimax_copy = self.clone();
-                    let engine_copy = expectimax_copy.get_mut_engine();
-                    engine_copy.update_state(engine_copy.get_state() | (insert_tile << val));
-                    score += expectimax_copy.expectimax(Node::Max, move_depth - 1).score * prob;
-                }
+                let mut expectimax_copy = self.clone();
+                let engine_copy = expectimax_copy.get_mut_engine();
+                engine_copy.update_state(engine_copy.get_state() | insert_tile);
+                score += expectimax_copy.expectimax(Node::Max, move_depth - 1).score * 0.9;
+
+                let mut expectimax_copy = self.clone();
+                let engine_copy = expectimax_copy.get_mut_engine();
+                engine_copy.update_state(engine_copy.get_state() | (insert_tile << 1));
+                score += expectimax_copy.expectimax(Node::Max, move_depth - 1).score * 0.1;
+
                 tiles_searched += 1;
             }
             tmp >>= 4;
