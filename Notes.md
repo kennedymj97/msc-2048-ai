@@ -25,3 +25,5 @@ Optimised: 6.22s
     1. Average move time down to 0.5-2ms (at depth 3).
 2. Changed evaluate chance so no loop is used, meaning no vector alloc. ~32% improvement.
     1. Average move time down to 0.5-1.5ms (at depth 3).
+3. Using a static store, requires unsafe code, but makes the copying of the structs more efficient.
+    1. Average move time down to 0.4-1ms (at depth 3).

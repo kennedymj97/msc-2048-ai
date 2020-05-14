@@ -1,28 +1,28 @@
 use crate::ai::AI;
-use crate::engine::GameEngine;
+use crate::engine as GameEngine;
 use crate::engine::Move;
 
-#[derive(Clone)]
-pub struct Expectimax(GameEngine);
+#[derive(Clone, Copy)]
+pub struct Expectimax(GameEngine::Board);
 
 impl AI for Expectimax {
     fn new() -> Self {
-        Expectimax(GameEngine::new())
+        Expectimax(GameEngine::new_game())
     }
 
-    fn restart(&mut self) {
-        self.0 = GameEngine::new();
+    fn restart(self) -> Self {
+        Expectimax(GameEngine::restart_game())
     }
 
-    fn get_engine(&mut self) -> &GameEngine {
-        &self.0
+    fn get_board(self) -> GameEngine::Board {
+        self.0
     }
 
-    fn get_mut_engine(&mut self) -> &mut GameEngine {
-        &mut self.0
+    fn update_board(self, new_board: GameEngine::Board) -> Self {
+        Expectimax(new_board)
     }
 
-    fn get_next_move(&mut self) -> Option<Move> {
+    fn get_next_move(self) -> Option<Move> {
         self.expectimax(Node::Max, 3).move_dir
     }
 }
@@ -48,7 +48,7 @@ pub struct ExpectimaxResult {
 }
 
 impl Expectimax {
-    fn expectimax(&mut self, node: Node, move_depth: u64) -> ExpectimaxResult {
+    fn expectimax(self, node: Node, move_depth: u64) -> ExpectimaxResult {
         if move_depth == 0 {
             return self.evaluate_terminal();
         } else {
@@ -59,28 +59,38 @@ impl Expectimax {
         }
     }
 
-    fn evaluate_terminal(&mut self) -> ExpectimaxResult {
+    fn evaluate_terminal(self) -> ExpectimaxResult {
         ExpectimaxResult {
-            score: self.get_engine().get_score() as f64,
+            score: GameEngine::get_score(self.get_board()) as f64,
             move_dir: None,
         }
     }
 
-    fn evaluate_max(&mut self, move_depth: u64) -> ExpectimaxResult {
+    fn evaluate_max(self, move_depth: u64) -> ExpectimaxResult {
         let mut best_score = 0.;
         let mut best_move = None;
         for direction in vec![Move::Up, Move::Down, Move::Left, Move::Right] {
-            let mut expectimax_copy = self.clone();
-            let engine_copy = expectimax_copy.get_mut_engine();
-            let old_state = engine_copy.get_state();
+            let board = self.get_board();
+            let mut expectimax_copy = self;
             match direction {
-                Move::Up => engine_copy.move_up_or_down(Move::Up),
-                Move::Down => engine_copy.move_up_or_down(Move::Down),
-                Move::Left => engine_copy.move_left_or_right(Move::Left),
-                Move::Right => engine_copy.move_left_or_right(Move::Right),
+                Move::Up => {
+                    expectimax_copy =
+                        expectimax_copy.update_board(GameEngine::move_up_or_down(board, Move::Up))
+                }
+                Move::Down => {
+                    expectimax_copy =
+                        expectimax_copy.update_board(GameEngine::move_up_or_down(board, Move::Down))
+                }
+                Move::Left => {
+                    expectimax_copy = expectimax_copy
+                        .update_board(GameEngine::move_left_or_right(board, Move::Left))
+                }
+                Move::Right => {
+                    expectimax_copy = expectimax_copy
+                        .update_board(GameEngine::move_left_or_right(board, Move::Right))
+                }
             }
-            let new_state = engine_copy.get_state();
-            if old_state == new_state {
+            if expectimax_copy.get_board() == board {
                 continue;
             }
             let score = expectimax_copy.expectimax(Node::Chance, move_depth).score;
@@ -95,24 +105,24 @@ impl Expectimax {
         }
     }
 
-    pub fn evaluate_chance(&mut self, move_depth: u64) -> ExpectimaxResult {
-        let engine = self.get_engine();
-        let num_empty_tiles = engine.count_empty();
+    fn evaluate_chance(self, move_depth: u64) -> ExpectimaxResult {
+        let board = self.get_board();
+        let num_empty_tiles = GameEngine::count_empty(board);
         let mut tiles_searched = 0;
-        let mut tmp = engine.get_state();
+        let mut tmp = board;
         let mut insert_tile = 1;
         let mut score = 0.;
 
         while tiles_searched < num_empty_tiles {
             if (tmp & 0xf) == 0 {
-                let mut expectimax_copy = self.clone();
-                let engine_copy = expectimax_copy.get_mut_engine();
-                engine_copy.update_state(engine_copy.get_state() | insert_tile);
+                let expectimax_copy = self;
+                let expectimax_copy =
+                    expectimax_copy.update_board(expectimax_copy.get_board() | insert_tile);
                 score += expectimax_copy.expectimax(Node::Max, move_depth - 1).score * 0.9;
 
-                let mut expectimax_copy = self.clone();
-                let engine_copy = expectimax_copy.get_mut_engine();
-                engine_copy.update_state(engine_copy.get_state() | (insert_tile << 1));
+                let expectimax_copy = self;
+                let expectimax_copy =
+                    expectimax_copy.update_board(expectimax_copy.get_board() | (insert_tile << 1));
                 score += expectimax_copy.expectimax(Node::Max, move_depth - 1).score * 0.1;
 
                 tiles_searched += 1;
@@ -134,10 +144,8 @@ mod tests {
 
     #[test]
     fn it_evaluate_chance() {
-        let mut expectimax = Expectimax::new();
-        let engine = expectimax.get_mut_engine();
-        engine.update_state(0x1100000000000000);
-        assert_eq!(engine.count_empty(), 14);
-        assert_eq!(expectimax.evaluate_chance(1).score, 12.4);
+        let expectimax = Expectimax::new();
+        let expectimax = expectimax.update_board(0x1100000000000000);
+        assert_eq!(Expectimax::evaluate_chance(expectimax, 1).score, 12.4);
     }
 }
