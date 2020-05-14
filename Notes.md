@@ -20,4 +20,5 @@ Optimised: 6.22s
     1. Current average move_time 3-6ms.
 3. Refactor to remove the basic engine, started work on optimising the evaluation of chance nodes.
 
-
+14/05/2020  
+1. Improved evaluate chance function ~35% improvement.

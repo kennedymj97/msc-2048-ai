@@ -217,12 +217,13 @@ impl GameEngine {
         tile1 | tile2 | tile3 | tile4
     }
 
+    // https://stackoverflow.com/questions/38225571/count-number-of-zero-nibbles-in-an-unsigned-64-bit-integer
     pub fn count_empty(&self) -> u64 {
         let mut board = self.get_state();
         board |= board >> 1;
         board |= board >> 2;
         board &= 0x1111111111111111;
-        return board.popcnt();
+        return 16 - board.popcnt();
     }
 
     fn create_stores() -> Stores {
@@ -259,7 +260,10 @@ impl GameEngine {
 
     fn calc_score(row: u64) -> u64 {
         let tiles = GameEngine::row_to_vec(row);
-        tiles.iter().fold(0, |acc, tile_val| acc + tile_val.pow(2))
+        tiles.iter().fold(0, |acc, &tile_val| match tile_val {
+            0 => acc,
+            _ => acc + (2 as u64).pow(tile_val as u32),
+        })
     }
 
     pub fn is_game_over(&mut self) -> bool {
@@ -471,5 +475,14 @@ mod tests {
         game.update_state(0x1111000011110000);
         assert_eq!(game.count_empty(), 8);
         assert_eq!(game.get_state(), 0x1111000011110000);
+        game.update_state(0x1100000000000000);
+        assert_eq!(game.count_empty(), 14);
+        assert_eq!(game.get_state(), 0x1100000000000000);
+    }
+
+    #[test]
+    fn it_calc_score() {
+        assert_eq!(GameEngine::calc_score(0x1100), 4);
+        assert_eq!(GameEngine::calc_score(0x4321), 30);
     }
 }
