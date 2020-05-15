@@ -27,3 +27,7 @@ Optimised: 6.22s
     1. Average move time down to 0.5-1.5ms (at depth 3).
 3. Using a static store, requires unsafe code, but makes the copying of the structs more efficient.
     1. Average move time down to 0.4-1ms (at depth 3).
+
+15/05/2020
+1. Added a transposition table.
+    1. Average move time down to 0.1-0.2ms (at depth 3).

@@ -12,7 +12,7 @@ impl AI for Random {
     }
 
     fn restart(self) -> Self {
-        Random(GameEngine::restart_game())
+        Random(GameEngine::start_new_game())
     }
 
     fn get_board(self) -> GameEngine::Board {

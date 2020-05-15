@@ -49,10 +49,10 @@ pub fn new_game() -> Board {
     unsafe {
         create_stores();
     }
-    restart_game()
+    start_new_game()
 }
 
-pub fn restart_game() -> Board {
+pub fn start_new_game() -> Board {
     let board = 0;
     let board = generate_random_tile(board);
     generate_random_tile(board)
