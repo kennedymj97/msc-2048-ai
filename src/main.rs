@@ -9,8 +9,8 @@ use std::collections::HashMap;
 fn main() {
     //ui::start_game_in_ui();
     let expectimax = Expectimax::new();
-    evaluate(expectimax, 5);
-    //debug(expectimax);
+    //evaluate(expectimax, 5);
+    debug(expectimax);
     //let random = Random::new();
     //debug(random);
 }

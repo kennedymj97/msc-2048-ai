@@ -1,8 +1,5 @@
 use bitintr::Popcnt;
 use rand::Rng;
-use std::collections::HashMap;
-use std::fmt;
-use std::rc::Rc;
 
 #[derive(Debug, Clone, Copy)]
 pub enum Move {
@@ -17,7 +14,7 @@ struct Stores {
     move_right: [u64; 0xffff],
     move_up: [u64; 0xffff],
     move_down: [u64; 0xffff],
-    score: [u64; 0xffff],
+    score: [f64; 0xffff],
 }
 
 static mut STORES: Stores = Stores {
@@ -25,7 +22,7 @@ static mut STORES: Stores = Stores {
     move_right: [0; 0xffff],
     move_up: [0; 0xffff],
     move_down: [0; 0xffff],
-    score: [0; 0xffff],
+    score: [0.; 0xffff],
 };
 
 unsafe fn create_stores() {
@@ -161,8 +158,8 @@ fn to_vec(board: Board) -> Vec<Option<u64>> {
     })
 }
 
-pub fn get_score(board: Board) -> Board {
-    (0..4).fold(0, |acc, idx| {
+pub fn get_score(board: Board) -> f64 {
+    (0..4).fold(0., |acc, idx| {
         let row_val = extract_row(board, idx);
         let col_val = extract_col(board, idx);
         let row_score;
@@ -240,12 +237,70 @@ pub fn count_empty(board: Board) -> u64 {
     return 16 - board_copy.popcnt();
 }
 
-fn calc_score(row: u64) -> u64 {
+// The heuristics developed by Nneonneo were used: https://github.com/nneonneo/2048-ai/blob/master/2048.cpp
+fn calc_score(row: u64) -> f64 {
+    const LOST_PENALTY: f64 = 200000.;
     let tiles = row_to_vec(row);
-    tiles.iter().fold(0, |acc, &tile_val| match tile_val {
-        0 => acc,
-        _ => acc + (2 as u64).pow(tile_val as u32),
-    })
+    LOST_PENALTY + calc_empty(&tiles) + calc_merges(&tiles)
+        - calc_monotonicity(&tiles)
+        - calc_sum(&tiles)
+}
+
+fn calc_sum(line: &Vec<u64>) -> f64 {
+    const SUM_POWER: f64 = 3.5;
+    const SUM_WEIGHT: f64 = 11.;
+    line.iter()
+        .fold(0., |acc, &tile_val| acc + (tile_val as f64).powf(SUM_POWER))
+        * SUM_WEIGHT
+}
+
+fn calc_empty(line: &Vec<u64>) -> f64 {
+    const EMPTY_WEIGHT: f64 = 270.0;
+    line.iter().fold(0., |num_empty_tiles, &tile_val| {
+        if tile_val == 0 {
+            num_empty_tiles + 1.
+        } else {
+            num_empty_tiles
+        }
+    }) * EMPTY_WEIGHT
+}
+
+fn calc_merges(line: &Vec<u64>) -> f64 {
+    const MERGES_WEIGHT: f64 = 700.0;
+    let mut prev = 0;
+    let mut counter = 0.;
+    let mut merges = 0.;
+    for &tile_val in line {
+        if prev == tile_val && tile_val != 0 {
+            counter += 1.;
+        } else if counter > 0. {
+            merges += 1. + counter;
+            counter = 0.;
+        }
+        prev = tile_val;
+    }
+    if counter > 0. {
+        merges += 1. + counter;
+    }
+    merges * MERGES_WEIGHT
+}
+
+fn calc_monotonicity(line: &Vec<u64>) -> f64 {
+    const MONOTONICITY_POWER: f64 = 4.;
+    const MONOTONICITY_WEIGHT: f64 = 47.;
+
+    let mut monotonicity_left = 0.;
+    let mut monotonicity_right = 0.;
+    for i in 1..4 {
+        let tile1 = line[i - 1] as f64;
+        let tile2 = line[i] as f64;
+        if tile1 > tile2 {
+            monotonicity_left += tile1.powf(MONOTONICITY_POWER) - tile2.powf(MONOTONICITY_POWER);
+        } else {
+            monotonicity_right += tile2.powf(MONOTONICITY_POWER) - tile1.powf(MONOTONICITY_POWER);
+        }
+    }
+    monotonicity_left.min(monotonicity_right) * MONOTONICITY_WEIGHT
 }
 
 pub fn is_game_over(board: Board) -> bool {
@@ -451,7 +506,11 @@ mod tests {
 
     #[test]
     fn it_calc_score() {
-        assert_eq!(calc_score(0x1100), 4);
-        assert_eq!(calc_score(0x4321), 30);
+        assert_eq!(calc_score(0x1100), 201918.);
+        assert_eq!(
+            calc_score(0x4321),
+            200000.
+                - (11. * ((4 as f64).powf(3.5) + (3 as f64).powf(3.5) + (2 as f64).powf(3.5) + 1.))
+        );
     }
 }

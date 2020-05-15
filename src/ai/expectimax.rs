@@ -25,7 +25,8 @@ impl AI for Expectimax {
     }
 
     fn get_next_move(self) -> Option<Move> {
-        expectimax(self, Node::Max, 3).move_dir
+        unsafe { TRANSPOSITION = Lazy::new(|| HashMap::new()) }
+        expectimax(self, Node::Max, 6).move_dir
     }
 }
 
@@ -91,13 +92,12 @@ fn evaluate_max(ai: Expectimax, move_depth: u64) -> ExpectimaxResult {
                     expectimax_copy.update_board(GameEngine::move_left_or_right(board, Move::Right))
             }
         }
-        if expectimax_copy.get_board() == board {
-            continue;
-        }
-        let score = expectimax(expectimax_copy, Node::Chance, move_depth).score;
-        if score > best_score {
-            best_score = score;
-            best_move = Some(direction);
+        if expectimax_copy.get_board() != board {
+            let score = expectimax(expectimax_copy, Node::Chance, move_depth).score;
+            if score > best_score {
+                best_score = score;
+                best_move = Some(direction);
+            }
         }
     }
     ExpectimaxResult {
@@ -106,7 +106,7 @@ fn evaluate_max(ai: Expectimax, move_depth: u64) -> ExpectimaxResult {
     }
 }
 
-static mut transposition: Lazy<HashMap<u64, TranspositionEntry>> = Lazy::new(|| HashMap::new());
+static mut TRANSPOSITION: Lazy<HashMap<u64, TranspositionEntry>> = Lazy::new(|| HashMap::new());
 
 struct TranspositionEntry {
     score: f64,
@@ -118,7 +118,7 @@ fn evaluate_chance(ai: Expectimax, move_depth: u64) -> ExpectimaxResult {
 
     // Check if board has already been seen
     unsafe {
-        if let Some(entry) = transposition.get(&board) {
+        if let Some(entry) = TRANSPOSITION.get(&board) {
             // need to check depth is greater than or equal to current depth
             // if depth is less then the score will not be accurate enough
             if entry.move_depth >= move_depth {
@@ -156,25 +156,13 @@ fn evaluate_chance(ai: Expectimax, move_depth: u64) -> ExpectimaxResult {
 
     score = score / num_empty_tiles as f64;
 
-    // add the result to the transposition table before returning
+    // add the result to the TRANSPOSITION table before returning
     unsafe {
-        transposition.insert(board, TranspositionEntry { score, move_depth });
+        TRANSPOSITION.insert(board, TranspositionEntry { score, move_depth });
     }
 
     ExpectimaxResult {
         score,
         move_dir: None,
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn it_evaluate_chance() {
-        let expectimax = Expectimax::new();
-        let expectimax = expectimax.update_board(0x1100000000000000);
-        assert_eq!(evaluate_chance(expectimax, 1).score, 12.4);
     }
 }

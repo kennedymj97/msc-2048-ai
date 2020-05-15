@@ -21,14 +21,15 @@ pub trait AI: Clone + Copy {
 }
 
 pub fn evaluate(ai: impl AI, num_iters: u64) {
-    let average_score = (0..num_iters).fold(0, |acc, _| {
+    let average_score = (0..num_iters).fold(0., |acc, _| {
         let score = run(ai);
-        acc + (score / num_iters)
+        acc + (score / num_iters as f64)
     });
     println!("Average score: {}", average_score);
+    println!("Final board: {}", GameEngine::to_str(ai.get_board()));
 }
 
-pub fn run(ai: impl AI) -> u64 {
+pub fn run(ai: impl AI) -> f64 {
     let mut ai = ai.restart();
     let mut num_moves = 0;
     let start_time = SystemTime::now();
@@ -73,6 +74,6 @@ pub fn debug(ai: impl AI) {
             break;
         }
 
-        std::thread::sleep(std::time::Duration::from_millis(250));
+        //std::thread::sleep(std::time::Duration::from_millis(100));
     }
 }
