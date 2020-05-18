@@ -26,7 +26,6 @@ pub fn evaluate(ai: impl AI, num_iters: u64) {
         acc + (score / num_iters as f64)
     });
     println!("Average score: {}", average_score);
-    println!("Final board: {}", GameEngine::to_str(ai.get_board()));
 }
 
 pub fn run(ai: impl AI) -> f64 {
@@ -54,6 +53,7 @@ pub fn run(ai: impl AI) -> f64 {
         time_elapsed / (num_moves * 1000),
         time_elapsed / (num_moves * 1000000)
     );
+    println!("Final board: {}", GameEngine::to_str(ai.get_board()));
     GameEngine::get_score(ai.get_board())
 }
 

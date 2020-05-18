@@ -230,11 +230,34 @@ fn extract_col(board: Board, col_num: u64) -> u64 {
 
 // https://stackoverflow.com/questions/38225571/count-number-of-zero-nibbles-in-an-unsigned-64-bit-integer
 pub fn count_empty(board: Board) -> u64 {
+    16 - count_non_empty(board)
+}
+
+pub fn count_non_empty(board: Board) -> u64 {
     let mut board_copy = board;
     board_copy |= board_copy >> 1;
     board_copy |= board_copy >> 2;
     board_copy &= 0x1111111111111111;
-    return 16 - board_copy.popcnt();
+    board_copy.popcnt()
+}
+
+pub fn count_unique(board: Board) -> i32 {
+    let mut bitset = 0;
+    let mut board_copy = board;
+    while board_copy != 0 {
+        bitset |= 1 << (board_copy & 0xf);
+        board_copy >>= 4;
+    }
+
+    // Don't count empty tiles.
+    bitset >>= 1;
+
+    let mut count = 0;
+    while bitset != 0 {
+        bitset &= bitset - 1;
+        count += 1;
+    }
+    return count;
 }
 
 // The heuristics developed by Nneonneo were used: https://github.com/nneonneo/2048-ai/blob/master/2048.cpp
@@ -512,5 +535,19 @@ mod tests {
             200000.
                 - (11. * ((4 as f64).powf(3.5) + (3 as f64).powf(3.5) + (2 as f64).powf(3.5) + 1.))
         );
+    }
+
+    #[test]
+    fn it_count_non_empty() {
+        let game = 0x1134000000000000;
+        assert_eq!(count_non_empty(game), 4);
+    }
+
+    #[test]
+    fn it_count_unique() {
+        let game = 0x1134000000000000;
+        assert_eq!(count_unique(game), 3);
+        let game = 0x0000010000000010;
+        assert_eq!(count_unique(game), 1);
     }
 }

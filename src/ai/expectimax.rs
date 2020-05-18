@@ -26,7 +26,9 @@ impl AI for Expectimax {
 
     fn get_next_move(self) -> Option<Move> {
         unsafe { TRANSPOSITION = Lazy::new(|| HashMap::new()) }
-        expectimax(self, Node::Max, 6).move_dir
+        let depth = 3.max(GameEngine::count_unique(self.get_board()) - 2) as u64;
+        let depth = depth.min(7);
+        expectimax(self, Node::Max, depth, 1.).move_dir
     }
 }
 
@@ -50,13 +52,13 @@ pub struct ExpectimaxResult {
     move_dir: Option<Move>,
 }
 
-fn expectimax(ai: Expectimax, node: Node, move_depth: u64) -> ExpectimaxResult {
-    if move_depth == 0 {
+fn expectimax(ai: Expectimax, node: Node, move_depth: u64, cum_prob: f32) -> ExpectimaxResult {
+    if move_depth == 0 || cum_prob < 0.0001 {
         return evaluate_terminal(ai);
     } else {
         match node {
-            Node::Max => return evaluate_max(ai, move_depth),
-            Node::Chance => return evaluate_chance(ai, move_depth),
+            Node::Max => return evaluate_max(ai, move_depth, cum_prob),
+            Node::Chance => return evaluate_chance(ai, move_depth, cum_prob),
         }
     }
 }
@@ -68,7 +70,7 @@ fn evaluate_terminal(ai: Expectimax) -> ExpectimaxResult {
     }
 }
 
-fn evaluate_max(ai: Expectimax, move_depth: u64) -> ExpectimaxResult {
+fn evaluate_max(ai: Expectimax, move_depth: u64, cum_prob: f32) -> ExpectimaxResult {
     let mut best_score = 0.;
     let mut best_move = None;
     for &direction in &[Move::Up, Move::Down, Move::Left, Move::Right] {
@@ -93,7 +95,7 @@ fn evaluate_max(ai: Expectimax, move_depth: u64) -> ExpectimaxResult {
             }
         }
         if expectimax_copy.get_board() != board {
-            let score = expectimax(expectimax_copy, Node::Chance, move_depth).score;
+            let score = expectimax(expectimax_copy, Node::Chance, move_depth, cum_prob).score;
             if score > best_score {
                 best_score = score;
                 best_move = Some(direction);
@@ -113,7 +115,7 @@ struct TranspositionEntry {
     move_depth: u64,
 }
 
-fn evaluate_chance(ai: Expectimax, move_depth: u64) -> ExpectimaxResult {
+fn evaluate_chance(ai: Expectimax, move_depth: u64, cum_prob: f32) -> ExpectimaxResult {
     let board = ai.get_board();
 
     // Check if board has already been seen
@@ -141,12 +143,14 @@ fn evaluate_chance(ai: Expectimax, move_depth: u64) -> ExpectimaxResult {
             let expectimax_copy = ai;
             let expectimax_copy =
                 expectimax_copy.update_board(expectimax_copy.get_board() | insert_tile);
-            score += expectimax(expectimax_copy, Node::Max, move_depth - 1).score * 0.9;
+            score +=
+                expectimax(expectimax_copy, Node::Max, move_depth - 1, cum_prob * 0.9).score * 0.9;
 
             let expectimax_copy = ai;
             let expectimax_copy =
                 expectimax_copy.update_board(expectimax_copy.get_board() | (insert_tile << 1));
-            score += expectimax(expectimax_copy, Node::Max, move_depth - 1).score * 0.1;
+            score +=
+                expectimax(expectimax_copy, Node::Max, move_depth - 1, cum_prob * 0.9).score * 0.1;
 
             tiles_searched += 1;
         }
