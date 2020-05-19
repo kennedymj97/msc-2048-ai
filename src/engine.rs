@@ -1,3 +1,4 @@
+use bitintr::Pext;
 use bitintr::Popcnt;
 use rand::Rng;
 
@@ -107,8 +108,9 @@ pub fn move_left_or_right(board: Board, move_dir: Move) -> Board {
 
 pub fn move_up_or_down(board: Board, move_dir: Move) -> Board {
     let mut new_board = 0;
+    let transpose_board = transpose(board);
     for col_idx in 0..4 {
-        let col_val = extract_col(board, col_idx);
+        let col_val = extract_row(transpose_board, col_idx);
         let new_col_val = match move_dir {
             Move::Up => unsafe { STORES.move_up.get(col_val as usize) },
             Move::Down => unsafe { STORES.move_down.get(col_val as usize) },
@@ -159,9 +161,10 @@ fn to_vec(board: Board) -> Vec<Option<u64>> {
 }
 
 pub fn get_score(board: Board) -> f64 {
+    let transpose_board = transpose(board);
     (0..4).fold(0., |acc, idx| {
         let row_val = extract_row(board, idx);
-        let col_val = extract_col(board, idx);
+        let col_val = extract_row(transpose_board, idx);
         let row_score;
         let col_score;
         unsafe {
@@ -216,16 +219,23 @@ fn extract_tile(board: Board, idx: usize) -> u64 {
     (board >> ((15 - idx) * 4)) & 0xf
 }
 
+fn transpose(x: Board) -> Board {
+    let a1 = x & 0xF0F00F0FF0F00F0F;
+    let a2 = x & 0x0000F0F00000F0F0;
+    let a3 = x & 0x0F0F00000F0F0000;
+    let a = a1 | (a2 << 12) | (a3 >> 12);
+    let b1 = a & 0xFF00FF0000FF00FF;
+    let b2 = a & 0x00FF00FF00000000;
+    let b3 = a & 0x00000000FF00FF00;
+    return b1 | (b2 >> 24) | (b3 << 24);
+}
+
 fn extract_row(board: Board, row_num: u64) -> u64 {
     (board >> ((3 - row_num) * 16)) & 0xffff
 }
 
 fn extract_col(board: Board, col_num: u64) -> u64 {
-    let tile1 = (board >> (48 - (4 * col_num))) & 0xf000;
-    let tile2 = (board >> (36 - (4 * col_num))) & 0x0f00;
-    let tile3 = (board >> (24 - (4 * col_num))) & 0x00f0;
-    let tile4 = (board >> (12 - (4 * col_num))) & 0x000f;
-    tile1 | tile2 | tile3 | tile4
+    board.pext(0xf000f000f000f000 >> (col_num * 4))
 }
 
 // https://stackoverflow.com/questions/38225571/count-number-of-zero-nibbles-in-an-unsigned-64-bit-integer

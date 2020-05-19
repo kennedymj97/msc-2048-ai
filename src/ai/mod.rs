@@ -41,12 +41,15 @@ pub fn run(ai: impl AI) -> f64 {
             Some(Move::Down) => ai = ai.update_board(GameEngine::move_down(ai.get_board())),
             None => break,
         }
+        println!("{}", GameEngine::to_str(ai.get_board()));
         num_moves += 1;
     }
     let time_elapsed = match start_time.elapsed() {
         Ok(elapsed) => elapsed.as_nanos(),
         Err(e) => panic!(e),
     };
+    println!("Total number of moves made: {}", num_moves);
+    println!("Total time taken: {}s", time_elapsed / 1000000000);
     println!(
         "Average move time for run was: {}ns, {}us, {}ms",
         time_elapsed / num_moves,
