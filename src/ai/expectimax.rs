@@ -2,6 +2,7 @@ use crate::ai::AI;
 use crate::engine as GameEngine;
 use crate::engine::Move;
 use std::collections::HashMap;
+use std::thread;
 
 #[derive(Clone, Copy)]
 pub struct Expectimax(GameEngine::Board);
@@ -24,10 +25,11 @@ impl AI for Expectimax {
     }
 
     fn get_next_move(self) -> Option<Move> {
-        let mut map = HashMap::new();
+        //let mut map = HashMap::new();
         let depth = 3.max(GameEngine::count_unique(self.get_board()) - 2) as u64;
         //let depth = depth.min(6);
-        expectimax(self, Node::Max, depth, 1., &mut map).move_dir
+        //expectimax(self, Node::Max, depth, 1., &mut map).move_dir
+        evaluate_multithread(self, depth, 1.).move_dir
     }
 }
 
@@ -46,12 +48,69 @@ enum Node {
     Chance,
 }
 
+#[derive(Debug)]
 pub struct ExpectimaxResult {
     score: f64,
     move_dir: Option<Move>,
 }
 
 type TranspositionTable = HashMap<u64, TranspositionEntry>;
+
+fn evaluate_multithread(ai: Expectimax, move_depth: u64, cum_prob: f32) -> ExpectimaxResult {
+    let mut threads = vec![];
+    for &direction in &[Move::Up, Move::Down, Move::Left, Move::Right] {
+        // spawn computation threads using function and push to vec
+        let expectimax_copy = ai;
+        threads.push(spawn_move_computation(
+            expectimax_copy,
+            move_depth,
+            cum_prob,
+            direction,
+        ));
+    }
+
+    let mut best_result = ExpectimaxResult {
+        score: 0.,
+        move_dir: None,
+    };
+    for thread in threads {
+        let result = thread.join().unwrap();
+        if result.score > best_result.score {
+            best_result = result;
+        }
+    }
+    best_result
+}
+
+fn spawn_move_computation(
+    ai: Expectimax,
+    move_depth: u64,
+    cum_prob: f32,
+    direction: Move,
+) -> thread::JoinHandle<ExpectimaxResult> {
+    thread::spawn(move || {
+        let board = ai.get_board();
+        let mut ai = ai;
+        match direction {
+            Move::Up => ai = ai.update_board(GameEngine::move_up_or_down(board, Move::Up)),
+            Move::Down => ai = ai.update_board(GameEngine::move_up_or_down(board, Move::Down)),
+            Move::Left => ai = ai.update_board(GameEngine::move_left_or_right(board, Move::Left)),
+            Move::Right => ai = ai.update_board(GameEngine::move_left_or_right(board, Move::Right)),
+        }
+        if ai.get_board() != board {
+            return ExpectimaxResult {
+                score: expectimax(ai, Node::Chance, move_depth, cum_prob, &mut HashMap::new())
+                    .score,
+                move_dir: Some(direction),
+            };
+        }
+
+        ExpectimaxResult {
+            score: 0.,
+            move_dir: None,
+        }
+    })
+}
 
 fn expectimax(
     ai: Expectimax,
