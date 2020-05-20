@@ -94,14 +94,15 @@ pub fn move_left_or_right(board: Board, move_dir: Move) -> Board {
     for row_idx in 0..4 {
         let row_val = extract_row(board, row_idx);
         let new_row_val = match move_dir {
-            Move::Left => unsafe { STORES.move_left.get(row_val as usize) },
-            Move::Right => unsafe { STORES.move_right.get(row_val as usize) },
+            Move::Left => unsafe { STORES.move_left.get_unchecked(row_val as usize) },
+            Move::Right => unsafe { STORES.move_right.get_unchecked(row_val as usize) },
             _ => panic!("Trying to move up or down in move_left_or_right"),
         };
-        match new_row_val {
-            Some(value) => new_board = new_board | (value << (48 - (16 * row_idx))),
-            None => panic!(format!("The row: {} was not found in the stores", row_val)),
-        }
+        //match new_row_val {
+        //Some(value) => new_board = new_board | (value << (48 - (16 * row_idx))),
+        new_board = new_board | (new_row_val << (48 - (16 * row_idx)));
+        //   None => panic!(format!("The row: {} was not found in the stores", row_val)),
+        //}
     }
     new_board
 }
@@ -112,14 +113,15 @@ pub fn move_up_or_down(board: Board, move_dir: Move) -> Board {
     for col_idx in 0..4 {
         let col_val = extract_row(transpose_board, col_idx);
         let new_col_val = match move_dir {
-            Move::Up => unsafe { STORES.move_up.get(col_val as usize) },
-            Move::Down => unsafe { STORES.move_down.get(col_val as usize) },
+            Move::Up => unsafe { STORES.move_up.get_unchecked(col_val as usize) },
+            Move::Down => unsafe { STORES.move_down.get_unchecked(col_val as usize) },
             _ => panic!("Trying to move left or right in move up or down"),
         };
-        match new_col_val {
-            Some(value) => new_board = new_board | (value << (12 - (4 * col_idx))),
-            None => panic!(format!("The col: {} was not found in the stores", col_val)),
-        }
+        //match new_col_val {
+        //    Some(value) => new_board = new_board | (value << (12 - (4 * col_idx))),
+        //    None => panic!(format!("The col: {} was not found in the stores", col_val)),
+        //}
+        new_board = new_board | (new_col_val << (12 - (4 * col_idx)))
     }
     new_board
 }
@@ -168,16 +170,17 @@ pub fn get_score(board: Board) -> f64 {
         let row_score;
         let col_score;
         unsafe {
-            row_score = STORES.score.get(row_val as usize);
-            col_score = STORES.score.get(col_val as usize);
+            row_score = STORES.score.get_unchecked(row_val as usize);
+            col_score = STORES.score.get_unchecked(col_val as usize);
         }
-        match row_score {
-            Some(row_score_val) => match col_score {
-                Some(col_score_val) => acc + row_score_val + col_score_val,
-                None => panic!("Could not find col value in store"),
-            },
-            None => panic!("Could not find row value in store"),
-        }
+        //match row_score {
+        //    Some(row_score_val) => match col_score {
+        //        Some(col_score_val) => acc + row_score_val + col_score_val,
+        //        None => panic!("Could not find col value in store"),
+        //    },
+        //    None => panic!("Could not find row value in store"),
+        //}
+        acc + row_score + col_score
     })
 }
 
