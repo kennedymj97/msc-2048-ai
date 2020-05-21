@@ -14,8 +14,8 @@ pub fn move_left_or_right_bench(c: &mut Criterion) {
     c.bench_function("move left or right", |b| {
         b.iter(|| {
             black_box({
-                game = GameEngine::move_left_or_right(game, Move::Left);
-                game = GameEngine::move_left_or_right(game, Move::Right);
+                game = GameEngine::shift(game, Move::Left);
+                game = GameEngine::shift(game, Move::Right);
             })
         })
     });
@@ -26,8 +26,8 @@ pub fn move_up_or_down_bench(c: &mut Criterion) {
     c.bench_function("move up or down", |b| {
         b.iter(|| {
             black_box({
-                game = GameEngine::move_up_or_down(game, Move::Up);
-                game = GameEngine::move_up_or_down(game, Move::Down);
+                game = GameEngine::shift(game, Move::Up);
+                game = GameEngine::shift(game, Move::Down);
             })
         })
     });

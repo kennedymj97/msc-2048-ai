@@ -1,4 +1,3 @@
-use bitintr::Pext;
 use bitintr::Popcnt;
 use rand::Rng;
 
@@ -11,235 +10,54 @@ pub enum Move {
 }
 
 struct Stores {
-    move_left: [u64; 0xffff],
-    move_right: [u64; 0xffff],
-    move_up: [u64; 0xffff],
-    move_down: [u64; 0xffff],
-    score: [f64; 0xffff],
-}
-
-static mut STORES: Stores = Stores {
-    move_left: [0; 0xffff],
-    move_right: [0; 0xffff],
-    move_up: [0; 0xffff],
-    move_down: [0; 0xffff],
-    score: [0.; 0xffff],
-};
-
-unsafe fn create_stores() {
-    let mut val = 0;
-    while val < 0xffff {
-        STORES.move_left[val] = shift_left_or_right(val as u64, Move::Left);
-        STORES.move_right[val] = shift_left_or_right(val as u64, Move::Right);
-
-        STORES.move_up[val] = shift_up_or_down(val as u64, Move::Up);
-        STORES.move_down[val] = shift_up_or_down(val as u64, Move::Down);
-
-        STORES.score[val] = calc_score(val as u64);
-
-        val += 1;
-    }
+    shift_left: [Board; 0xffff],
+    shift_right: [Board; 0xffff],
+    shift_up: [Board; 0xffff],
+    shift_down: [Board; 0xffff],
+    score: [Score; 0xffff],
 }
 
 pub type Board = u64;
+type Line = u64;
+type Tile = u64;
+type Score = u64;
 
 pub fn new_game() -> Board {
     unsafe {
         create_stores();
     }
-    start_new_game()
-}
-
-pub fn start_new_game() -> Board {
     let board = insert_random_tile(0);
     insert_random_tile(board)
 }
 
-pub fn update_state_by_idx(board: Board, idx: usize, new_value: u64) -> Board {
-    let shift_amount = (15 - idx) * 4;
-    (board & !(0xf << shift_amount)) | (new_value << shift_amount)
+pub fn get_score(board: Board) -> Score {
+    (0..4).fold(0, |acc, idx| {
+        let row_val = extract_line(board, idx);
+        let row_score;
+        unsafe {
+            row_score = STORES.score.get_unchecked(row_val as usize);
+        }
+        acc + row_score
+    })
 }
 
-pub fn move_left(board: Board) -> Board {
-    execute_move(board, Move::Left)
-}
-
-pub fn move_right(board: Board) -> Board {
-    execute_move(board, Move::Right)
-}
-
-pub fn move_up(board: Board) -> Board {
-    execute_move(board, Move::Up)
-}
-
-pub fn move_down(board: Board) -> Board {
-    execute_move(board, Move::Down)
-}
-
-fn execute_move(board: Board, dir: Move) -> Board {
-    let mut new_board;
-    match dir {
-        Move::Left | Move::Right => new_board = move_left_or_right(board, dir),
-        Move::Up | Move::Down => new_board = move_up_or_down(board, dir),
-    }
+pub fn make_move(board: Board, direction: Move) -> Board {
+    let new_board = shift(board, direction);
     if board != new_board {
-        new_board = insert_random_tile(new_board)
+        return insert_random_tile(new_board);
     }
-    new_board
+    board
 }
 
-pub fn move_left_or_right(board: Board, move_dir: Move) -> Board {
-    let mut new_board = 0;
-    for row_idx in 0..4 {
-        let row_val = extract_row(board, row_idx);
-        let new_row_val = match move_dir {
-            Move::Left => unsafe { STORES.move_left.get_unchecked(row_val as usize) },
-            Move::Right => unsafe { STORES.move_right.get_unchecked(row_val as usize) },
-            _ => panic!("Trying to move up or down in move_left_or_right"),
-        };
-        //match new_row_val {
-        //Some(value) => new_board = new_board | (value << (48 - (16 * row_idx))),
-        new_board = new_board | (new_row_val << (48 - (16 * row_idx)));
-        //   None => panic!(format!("The row: {} was not found in the stores", row_val)),
-        //}
+pub fn shift(board: Board, direction: Move) -> Board {
+    match direction {
+        Move::Left | Move::Right => shift_rows(board, direction),
+        Move::Up | Move::Down => shift_cols(board, direction),
     }
-    new_board
-}
-
-pub fn move_up_or_down(board: Board, move_dir: Move) -> Board {
-    let mut new_board = 0;
-    let transpose_board = transpose(board);
-    for col_idx in 0..4 {
-        let col_val = extract_row(transpose_board, col_idx);
-        let new_col_val = match move_dir {
-            Move::Up => unsafe { STORES.move_up.get_unchecked(col_val as usize) },
-            Move::Down => unsafe { STORES.move_down.get_unchecked(col_val as usize) },
-            _ => panic!("Trying to move left or right in move up or down"),
-        };
-        //match new_col_val {
-        //    Some(value) => new_board = new_board | (value << (12 - (4 * col_idx))),
-        //    None => panic!(format!("The col: {} was not found in the stores", col_val)),
-        //}
-        new_board = new_board | (new_col_val << (12 - (4 * col_idx)))
-    }
-    new_board
 }
 
 // Credit to Nneonneo
-fn insert_random_tile(board: Board) -> Board {
-    let mut rng = rand::thread_rng();
-    let mut index = rng.gen_range(0, count_empty(board));
-    let mut tmp = board;
-    let mut tile = generate_random_tile();
-    loop {
-        while (tmp & 0xf) != 0 {
-            tmp >>= 4;
-            tile <<= 4;
-        }
-        if index == 0 {
-            break;
-        }
-        index -= 1;
-        tmp >>= 4;
-        tile <<= 4;
-    }
-    return board | tile;
-}
-
-fn generate_random_tile() -> u64 {
-    let mut rng = rand::thread_rng();
-    if rng.gen_range(0, 10) < 9 {
-        1
-    } else {
-        2
-    }
-}
-
-pub fn get_empty_tile_idxs(board: Board) -> Vec<usize> {
-    (0..16).fold(Vec::new(), |mut vec, idx| {
-        let tile_val = extract_tile(board, idx);
-        if tile_val == 0 {
-            vec.push(idx)
-        };
-        vec
-    })
-}
-
-fn to_vec(board: Board) -> Vec<Option<u64>> {
-    (0..16).fold(Vec::new(), |mut vec, idx| {
-        let num = extract_tile(board, idx);
-
-        if num == 0 {
-            vec.push(None)
-        } else {
-            vec.push(Some((2 as u64).pow(num as u32)))
-        }
-
-        vec
-    })
-}
-
-pub fn get_score(board: Board) -> f64 {
-    let transpose_board = transpose(board);
-    (0..4).fold(0., |acc, idx| {
-        let row_val = extract_row(board, idx);
-        let col_val = extract_row(transpose_board, idx);
-        let row_score;
-        let col_score;
-        unsafe {
-            row_score = STORES.score.get_unchecked(row_val as usize);
-            col_score = STORES.score.get_unchecked(col_val as usize);
-        }
-        //match row_score {
-        //    Some(row_score_val) => match col_score {
-        //        Some(col_score_val) => acc + row_score_val + col_score_val,
-        //        None => panic!("Could not find col value in store"),
-        //    },
-        //    None => panic!("Could not find row value in store"),
-        //}
-        acc + row_score + col_score
-    })
-}
-
-fn shift_left_or_right(row: u64, direction: Move) -> u64 {
-    let mut tiles = row_to_vec(row);
-    match direction {
-        Move::Left => tiles = shift_vec_left(tiles),
-        Move::Right => tiles = shift_vec_right(tiles),
-        _ => panic!("trying to shift up or down in shift left or right"),
-    }
-    tiles[0] <<= 12;
-    tiles[1] <<= 8;
-    tiles[2] <<= 4;
-    tiles[0] | tiles[1] | tiles[2] | tiles[3]
-}
-
-fn shift_up_or_down(col: u64, direction: Move) -> u64 {
-    let mut tiles = row_to_vec(col);
-    match direction {
-        Move::Up => tiles = shift_vec_left(tiles),
-        Move::Down => tiles = shift_vec_right(tiles),
-        _ => panic!("trying to left or right in shift up or down"),
-    }
-    tiles[0] <<= 48;
-    tiles[1] <<= 32;
-    tiles[2] <<= 16;
-    tiles[0] | tiles[1] | tiles[2] | tiles[3]
-}
-
-fn row_to_vec(row: u64) -> Vec<u64> {
-    let tiles = (0..4).fold(Vec::new(), |mut tiles, tile_idx| {
-        tiles.push(row >> ((3 - tile_idx) * 4) & 0xf);
-        tiles
-    });
-    tiles
-}
-
-fn extract_tile(board: Board, idx: usize) -> u64 {
-    (board >> ((15 - idx) * 4)) & 0xf
-}
-
-fn transpose(x: Board) -> Board {
+pub fn transpose(x: Board) -> Board {
     let a1 = x & 0xF0F00F0FF0F00F0F;
     let a2 = x & 0x0000F0F00000F0F0;
     let a3 = x & 0x0F0F00000F0F0000;
@@ -250,123 +68,31 @@ fn transpose(x: Board) -> Board {
     return b1 | (b2 >> 24) | (b3 << 24);
 }
 
-fn extract_row(board: Board, row_num: u64) -> u64 {
-    (board >> ((3 - row_num) * 16)) & 0xffff
+pub fn extract_line(board: Board, line_idx: u64) -> Line {
+    (board >> ((3 - line_idx) * 16)) & 0xffff
 }
 
-// https://stackoverflow.com/questions/38225571/count-number-of-zero-nibbles-in-an-unsigned-64-bit-integer
-pub fn count_empty(board: Board) -> u64 {
-    16 - count_non_empty(board)
-}
-
-fn count_non_empty(board: Board) -> u64 {
-    let mut board_copy = board;
-    board_copy |= board_copy >> 1;
-    board_copy |= board_copy >> 2;
-    board_copy &= 0x1111111111111111;
-    board_copy.popcnt()
-}
-
-// Credit to Nneonneo
-pub fn count_unique(board: Board) -> i32 {
-    let mut bitset = 0;
-    let mut board_copy = board;
-    while board_copy != 0 {
-        bitset |= 1 << (board_copy & 0xf);
-        board_copy >>= 4;
-    }
-
-    // Don't count empty tiles.
-    bitset >>= 1;
-
-    let mut count = 0;
-    while bitset != 0 {
-        bitset &= bitset - 1;
-        count += 1;
-    }
-    return count;
-}
-
-// The heuristics developed by Nneonneo were used: https://github.com/nneonneo/2048-ai/blob/master/2048.cpp
-fn calc_score(row: u64) -> f64 {
-    const LOST_PENALTY: f64 = 200000.;
-    let tiles = row_to_vec(row);
-    LOST_PENALTY + calc_empty(&tiles) + calc_merges(&tiles)
-        - calc_monotonicity(&tiles)
-        - calc_sum(&tiles)
-}
-
-fn calc_sum(line: &Vec<u64>) -> f64 {
-    const SUM_POWER: f64 = 3.5;
-    const SUM_WEIGHT: f64 = 11.;
-    line.iter()
-        .fold(0., |acc, &tile_val| acc + (tile_val as f64).powf(SUM_POWER))
-        * SUM_WEIGHT
-}
-
-fn calc_empty(line: &Vec<u64>) -> f64 {
-    const EMPTY_WEIGHT: f64 = 270.0;
-    line.iter().fold(0., |num_empty_tiles, &tile_val| {
-        if tile_val == 0 {
-            num_empty_tiles + 1.
-        } else {
-            num_empty_tiles
-        }
-    }) * EMPTY_WEIGHT
-}
-
-fn calc_merges(line: &Vec<u64>) -> f64 {
-    const MERGES_WEIGHT: f64 = 700.0;
-    let mut prev = 0;
-    let mut counter = 0.;
-    let mut merges = 0.;
-    for &tile_val in line {
-        if prev == tile_val && tile_val != 0 {
-            counter += 1.;
-        } else if counter > 0. {
-            merges += 1. + counter;
-            counter = 0.;
-        }
-        prev = tile_val;
-    }
-    if counter > 0. {
-        merges += 1. + counter;
-    }
-    merges * MERGES_WEIGHT
-}
-
-fn calc_monotonicity(line: &Vec<u64>) -> f64 {
-    const MONOTONICITY_POWER: f64 = 4.;
-    const MONOTONICITY_WEIGHT: f64 = 47.;
-
-    let mut monotonicity_left = 0.;
-    let mut monotonicity_right = 0.;
-    for i in 1..4 {
-        let tile1 = line[i - 1] as f64;
-        let tile2 = line[i] as f64;
-        if tile1 > tile2 {
-            monotonicity_left += tile1.powf(MONOTONICITY_POWER) - tile2.powf(MONOTONICITY_POWER);
-        } else {
-            monotonicity_right += tile2.powf(MONOTONICITY_POWER) - tile1.powf(MONOTONICITY_POWER);
-        }
-    }
-    monotonicity_left.min(monotonicity_right) * MONOTONICITY_WEIGHT
+pub fn line_to_vec(line: Line) -> Vec<Tile> {
+    let tiles = (0..4).fold(Vec::new(), |mut tiles, tile_idx| {
+        tiles.push(line >> ((3 - tile_idx) * 4) & 0xf);
+        tiles
+    });
+    tiles
 }
 
 pub fn is_game_over(board: Board) -> bool {
     for direction in vec![Move::Up, Move::Down, Move::Left, Move::Right] {
-        let new_board;
-        match direction {
-            Move::Up => new_board = move_up_or_down(board, Move::Up),
-            Move::Down => new_board = move_up_or_down(board, Move::Down),
-            Move::Left => new_board = move_left_or_right(board, Move::Left),
-            Move::Right => new_board = move_left_or_right(board, Move::Right),
-        }
+        let new_board = shift(board, direction);
         if new_board != board {
             return false;
         }
     }
     true
+}
+
+// https://stackoverflow.com/questions/38225571/count-number-of-zero-nibbles-in-an-unsigned-64-bit-integer
+pub fn count_empty(board: Board) -> u64 {
+    16 - count_non_empty(board)
 }
 
 pub fn to_str(board: Board) -> String {
@@ -400,35 +126,120 @@ pub fn to_str(board: Board) -> String {
     )
 }
 
-fn format_val(val: &Option<u64>) -> String {
-    match val {
-        None => return String::from("       "),
-        Some(x) => {
-            let mut x = x.to_string();
-            while x.len() < 7 {
-                match x.len() {
-                    6 => x = format!(" {}", x),
-                    _ => x = format!(" {} ", x),
-                }
-            }
-            x
-        }
+static mut STORES: Stores = Stores {
+    shift_left: [0; 0xffff],
+    shift_right: [0; 0xffff],
+    shift_up: [0; 0xffff],
+    shift_down: [0; 0xffff],
+    score: [0; 0xffff],
+};
+
+unsafe fn create_stores() {
+    let mut val = 0;
+    while val < 0xffff {
+        STORES.shift_left[val] = shift_line(val as u64, Move::Left);
+        STORES.shift_right[val] = shift_line(val as u64, Move::Right);
+
+        STORES.shift_up[val] = shift_line(val as u64, Move::Up);
+        STORES.shift_down[val] = shift_line(val as u64, Move::Down);
+
+        STORES.score[val] = calc_score(val as u64);
+
+        val += 1;
     }
 }
 
-fn shift_vec_right(vec: Vec<u64>) -> Vec<u64> {
-    let rev_vec: Vec<u64> = vec.into_iter().rev().collect();
+// Credit to Nneonneo
+fn insert_random_tile(board: Board) -> Board {
+    let mut rng = rand::thread_rng();
+    let mut index = rng.gen_range(0, count_empty(board));
+    let mut tmp = board;
+    let mut tile = generate_random_tile();
+    loop {
+        while (tmp & 0xf) != 0 {
+            tmp >>= 4;
+            tile <<= 4;
+        }
+        if index == 0 {
+            break;
+        }
+        index -= 1;
+        tmp >>= 4;
+        tile <<= 4;
+    }
+    return board | tile;
+}
+
+fn generate_random_tile() -> Tile {
+    let mut rng = rand::thread_rng();
+    if rng.gen_range(0, 10) < 9 {
+        1
+    } else {
+        2
+    }
+}
+
+fn shift_rows(board: Board, move_dir: Move) -> Board {
+    (0..4).fold(0, |new_board, row_idx| {
+        let row_val = extract_line(board, row_idx);
+        let new_row_val = match move_dir {
+            Move::Left => unsafe { STORES.shift_left.get_unchecked(row_val as usize) },
+            Move::Right => unsafe { STORES.shift_right.get_unchecked(row_val as usize) },
+            _ => panic!("Trying to move up or down in shift rows"),
+        };
+        new_board | (new_row_val << (48 - (16 * row_idx)))
+    })
+}
+
+fn shift_cols(board: Board, move_dir: Move) -> Board {
+    let transpose_board = transpose(board);
+    (0..4).fold(0, |new_board, col_idx| {
+        let col_val = extract_line(transpose_board, col_idx);
+        let new_col_val = match move_dir {
+            Move::Up => unsafe { STORES.shift_up.get_unchecked(col_val as usize) },
+            Move::Down => unsafe { STORES.shift_down.get_unchecked(col_val as usize) },
+            _ => panic!("Trying to move left or right in shift cols"),
+        };
+        new_board | (new_col_val << (12 - (4 * col_idx)))
+    })
+}
+
+fn shift_line(line: Line, direction: Move) -> Line {
+    let tiles = line_to_vec(line);
+    match direction {
+        Move::Left | Move::Right => vec_to_row(shift_vec(tiles, direction)),
+        Move::Up | Move::Down => vec_to_col(shift_vec(tiles, direction)),
+    }
+}
+
+fn vec_to_row(tiles: Vec<Tile>) -> Line {
+    tiles[0] << 12 | tiles[1] << 8 | tiles[2] << 4 | tiles[3]
+}
+
+fn vec_to_col(tiles: Vec<Tile>) -> Line {
+    tiles[0] << 48 | tiles[1] << 32 | tiles[2] << 16 | tiles[3]
+}
+
+fn shift_vec(vec: Vec<Tile>, direction: Move) -> Vec<Tile> {
+    match direction {
+        Move::Left | Move::Up => shift_vec_left(vec),
+        Move::Right | Move::Down => shift_vec_right(vec),
+    }
+}
+
+fn shift_vec_right(vec: Vec<Tile>) -> Vec<Tile> {
+    let rev_vec: Vec<Tile> = vec.into_iter().rev().collect();
     shift_vec_left(rev_vec).iter().rev().map(|&x| x).collect()
 }
 
-fn shift_vec_left(mut vec: Vec<u64>) -> Vec<u64> {
+fn shift_vec_left(mut vec: Vec<Tile>) -> Vec<Tile> {
     for i in 0..4 {
         calculate_left_shift(&mut vec[i..]);
     }
     vec
 }
 
-fn calculate_left_shift(slice: &mut [u64]) {
+fn calculate_left_shift(slice: &mut [Tile]) {
     let mut acc = 0;
     for idx in 0..slice.len() {
         let val = slice[idx];
@@ -444,6 +255,62 @@ fn calculate_left_shift(slice: &mut [u64]) {
         };
     }
     slice[0] = acc;
+}
+
+// Credit to Nneonneo
+fn calc_score(line: Line) -> Score {
+    let mut score = 0;
+    let tiles = line_to_vec(line);
+    for i in 0..4 {
+        let tile_val = tiles[i];
+        if tile_val >= 2 {
+            // the score is the total sum of the tile and all intermediate merged tiles
+            score += (tile_val - 1) * (1 << tile_val);
+        }
+    }
+    score
+}
+
+fn count_non_empty(board: Board) -> u64 {
+    let mut board_copy = board;
+    board_copy |= board_copy >> 1;
+    board_copy |= board_copy >> 2;
+    board_copy &= 0x1111111111111111;
+    board_copy.popcnt()
+}
+
+fn to_vec(board: Board) -> Vec<Option<Tile>> {
+    (0..16).fold(Vec::new(), |mut vec, idx| {
+        let num = extract_tile(board, idx);
+
+        if num == 0 {
+            vec.push(None)
+        } else {
+            vec.push(Some((2 as u64).pow(num as u32)))
+        }
+
+        vec
+    })
+}
+
+fn extract_tile(board: Board, idx: usize) -> Tile {
+    (board >> ((15 - idx) * 4)) & 0xf
+}
+
+fn format_val(val: &Option<Tile>) -> String {
+    match val {
+        None => return String::from("       "),
+        Some(x) => {
+            let mut x = x.to_string();
+            while x.len() < 7 {
+                match x.len() {
+                    6 => x = format!(" {}", x),
+                    _ => x = format!(" {} ", x),
+                }
+            }
+            x
+        }
+    }
 }
 
 #[cfg(test)]
@@ -468,20 +335,6 @@ mod tests {
     }
 
     #[test]
-    fn it_test_update_state_by_idx() {
-        let game = 0;
-        let game = update_state_by_idx(game, 15, 2);
-        let game = update_state_by_idx(game, 12, 3);
-        assert_eq!(game, 0x0000000000003002);
-    }
-
-    #[test]
-    fn it_test_get_empty_tile_idxs() {
-        let game = 0x0000111122220000;
-        assert_eq!(get_empty_tile_idxs(game), vec![0, 1, 2, 3, 12, 13, 14, 15]);
-    }
-
-    #[test]
     fn it_test_insert_random_tile() {
         let mut game = 0;
         for _ in 0..16 {
@@ -492,31 +345,31 @@ mod tests {
 
     #[test]
     fn test_shift_left() {
-        assert_eq!(shift_left_or_right(0x0000, Move::Left), 0x0000);
-        assert_eq!(shift_left_or_right(0x0002, Move::Left), 0x2000);
-        assert_eq!(shift_left_or_right(0x2020, Move::Left), 0x3000);
-        assert_eq!(shift_left_or_right(0x1332, Move::Left), 0x1420);
-        assert_eq!(shift_left_or_right(0x1234, Move::Left), 0x1234);
-        assert_eq!(shift_left_or_right(0x1002, Move::Left), 0x1200);
-        assert_ne!(shift_left_or_right(0x1210, Move::Left), 0x2200);
+        assert_eq!(shift(0x0000, Move::Left), 0x0000);
+        assert_eq!(shift(0x0002, Move::Left), 0x2000);
+        assert_eq!(shift(0x2020, Move::Left), 0x3000);
+        assert_eq!(shift(0x1332, Move::Left), 0x1420);
+        assert_eq!(shift(0x1234, Move::Left), 0x1234);
+        assert_eq!(shift(0x1002, Move::Left), 0x1200);
+        assert_ne!(shift(0x1210, Move::Left), 0x2200);
     }
 
     #[test]
     fn test_shift_right() {
-        assert_eq!(shift_left_or_right(0x0000, Move::Right), 0x0000);
-        assert_eq!(shift_left_or_right(0x2000, Move::Right), 0x0002);
-        assert_eq!(shift_left_or_right(0x2020, Move::Right), 0x0003);
-        assert_eq!(shift_left_or_right(0x1332, Move::Right), 0x0142);
-        assert_eq!(shift_left_or_right(0x1234, Move::Right), 0x1234);
-        assert_eq!(shift_left_or_right(0x1002, Move::Right), 0x0012);
-        assert_ne!(shift_left_or_right(0x0121, Move::Right), 0x0022);
+        assert_eq!(shift(0x0000, Move::Right), 0x0000);
+        assert_eq!(shift(0x2000, Move::Right), 0x0002);
+        assert_eq!(shift(0x2020, Move::Right), 0x0003);
+        assert_eq!(shift(0x1332, Move::Right), 0x0142);
+        assert_eq!(shift(0x1234, Move::Right), 0x1234);
+        assert_eq!(shift(0x1002, Move::Right), 0x0012);
+        assert_ne!(shift(0x0121, Move::Right), 0x0022);
     }
 
     #[test]
     fn test_move_left() {
         new_game();
         let game = 0x1234133220021002;
-        let game = move_left_or_right(game, Move::Left);
+        let game = shift(game, Move::Left);
         assert_eq!(game, 0x1234142030001200);
     }
 
@@ -524,7 +377,7 @@ mod tests {
     fn test_move_up() {
         new_game();
         let game = 0x1121230033004222;
-        let game = move_up_or_down(game, Move::Up);
+        let game = shift(game, Move::Up);
         assert_eq!(game, 0x1131240232004000);
     }
 
@@ -532,7 +385,7 @@ mod tests {
     fn test_move_right() {
         new_game();
         let game = 0x1234133220021002;
-        let game = move_left_or_right(game, Move::Right);
+        let game = shift(game, Move::Right);
         assert_eq!(game, 0x1234014200030012);
     }
 
@@ -540,7 +393,7 @@ mod tests {
     fn test_move_down() {
         new_game();
         let game = 0x1121230033004222;
-        let game = move_up_or_down(game, Move::Down);
+        let game = shift(game, Move::Down);
         assert_eq!(game, 0x1000210034014232);
     }
 
@@ -554,27 +407,19 @@ mod tests {
         assert_eq!(game, 0x1100000000000000);
     }
 
-    #[test]
-    fn it_calc_score() {
-        assert_eq!(calc_score(0x1100), 201918.);
-        assert_eq!(
-            calc_score(0x4321),
-            200000.
-                - (11. * ((4 as f64).powf(3.5) + (3 as f64).powf(3.5) + (2 as f64).powf(3.5) + 1.))
-        );
-    }
+    //#[test]
+    //fn it_calc_score() {
+    //    assert_eq!(calc_score(0x1100), 201918.);
+    //    assert_eq!(
+    //        calc_score(0x4321),
+    //        200000.
+    //            - (11. * ((4 as f64).powf(3.5) + (3 as f64).powf(3.5) + (2 as f64).powf(3.5) + 1.))
+    //    );
+    //}
 
     #[test]
     fn it_count_non_empty() {
         let game = 0x1134000000000000;
         assert_eq!(count_non_empty(game), 4);
-    }
-
-    #[test]
-    fn it_count_unique() {
-        let game = 0x1134000000000000;
-        assert_eq!(count_unique(game), 3);
-        let game = 0x0000010000000010;
-        assert_eq!(count_unique(game), 1);
     }
 }

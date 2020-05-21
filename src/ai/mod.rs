@@ -21,26 +21,26 @@ pub trait AI: Clone + Copy {
 }
 
 pub fn evaluate(ai: impl AI, num_iters: u64) {
-    let average_score = (0..num_iters).fold(0., |acc, _| {
+    let average_score = (0..num_iters).fold(0, |acc, _| {
+        let ai = ai.restart();
         let score = run(ai);
-        acc + (score / num_iters as f64)
+        acc + (score / num_iters)
     });
     println!("Average score: {}", average_score);
 }
 
-pub fn run(ai: impl AI) -> f64 {
-    let mut ai = ai.restart();
+fn run(mut ai: impl AI) -> u64 {
     let mut num_moves = 0;
     let start_time = SystemTime::now();
     loop {
         let best_move = ai.get_next_move();
         match best_move {
-            Some(Move::Left) => ai = ai.update_board(GameEngine::move_left(ai.get_board())),
-            Some(Move::Right) => ai = ai.update_board(GameEngine::move_right(ai.get_board())),
-            Some(Move::Up) => ai = ai.update_board(GameEngine::move_up(ai.get_board())),
-            Some(Move::Down) => ai = ai.update_board(GameEngine::move_down(ai.get_board())),
+            Some(direction) => {
+                ai = ai.update_board(GameEngine::make_move(ai.get_board(), direction));
+            }
             None => break,
         }
+        println!("Score: {}", GameEngine::get_score(ai.get_board()));
         println!("{}", GameEngine::to_str(ai.get_board()));
         num_moves += 1;
     }
@@ -58,25 +58,4 @@ pub fn run(ai: impl AI) -> f64 {
     );
     println!("Final board: {}", GameEngine::to_str(ai.get_board()));
     GameEngine::get_score(ai.get_board())
-}
-
-pub fn debug(ai: impl AI) {
-    let mut ai = ai;
-    loop {
-        println!("{}", GameEngine::to_str(ai.get_board()));
-        let best_move = ai.get_next_move();
-        match best_move {
-            Some(Move::Left) => ai = ai.update_board(GameEngine::move_left(ai.get_board())),
-            Some(Move::Right) => ai = ai.update_board(GameEngine::move_right(ai.get_board())),
-            Some(Move::Up) => ai = ai.update_board(GameEngine::move_up(ai.get_board())),
-            Some(Move::Down) => ai = ai.update_board(GameEngine::move_down(ai.get_board())),
-            None => break,
-        }
-        if GameEngine::is_game_over(ai.get_board()) {
-            println!("{}", GameEngine::to_str(ai.get_board()));
-            break;
-        }
-
-        //std::thread::sleep(std::time::Duration::from_millis(100));
-    }
 }

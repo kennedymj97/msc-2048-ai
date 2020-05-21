@@ -4,6 +4,7 @@ use termion::input::TermRead;
 use termion::raw::IntoRawMode;
 
 use crate::engine as GameEngine;
+use crate::engine::Move;
 
 pub fn start_game_in_ui() {
     let mut board = GameEngine::new_game();
@@ -34,10 +35,10 @@ pub fn start_game_in_ui() {
 
         match c.unwrap() {
             Key::Ctrl('c') => break,
-            Key::Left => board = GameEngine::move_left(board),
-            Key::Right => board = GameEngine::move_right(board),
-            Key::Up => board = GameEngine::move_up(board),
-            Key::Down => board = GameEngine::move_down(board),
+            Key::Left => board = GameEngine::make_move(board, Move::Left),
+            Key::Right => board = GameEngine::make_move(board, Move::Right),
+            Key::Up => board = GameEngine::make_move(board, Move::Up),
+            Key::Down => board = GameEngine::make_move(board, Move::Down),
             _ => (),
         }
 
