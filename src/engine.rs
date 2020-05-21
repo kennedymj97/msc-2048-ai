@@ -51,9 +51,8 @@ pub fn new_game() -> Board {
 }
 
 pub fn start_new_game() -> Board {
-    let board = 0;
-    let board = generate_random_tile(board);
-    generate_random_tile(board)
+    let board = insert_random_tile(0);
+    insert_random_tile(board)
 }
 
 pub fn update_state_by_idx(board: Board, idx: usize, new_value: u64) -> Board {
@@ -84,7 +83,7 @@ fn execute_move(board: Board, dir: Move) -> Board {
         Move::Up | Move::Down => new_board = move_up_or_down(board, dir),
     }
     if board != new_board {
-        new_board = generate_random_tile(new_board)
+        new_board = insert_random_tile(new_board)
     }
     new_board
 }
@@ -126,16 +125,34 @@ pub fn move_up_or_down(board: Board, move_dir: Move) -> Board {
     new_board
 }
 
-fn generate_random_tile(board: Board) -> Board {
-    let zero_tiles = get_empty_tile_idxs(board);
-    let num_zero_tiles = zero_tiles.len();
-    if num_zero_tiles == 0 {
-        return board;
-    }
+// Credit to Nneonneo
+fn insert_random_tile(board: Board) -> Board {
     let mut rng = rand::thread_rng();
-    let rand_idx = rng.gen_range(0, zero_tiles.len());
-    let rand_val = if rng.gen_range(0, 10) < 9 { 1 } else { 2 };
-    update_state_by_idx(board, zero_tiles[rand_idx], rand_val)
+    let mut index = rng.gen_range(0, count_empty(board));
+    let mut tmp = board;
+    let mut tile = generate_random_tile();
+    loop {
+        while (tmp & 0xf) != 0 {
+            tmp >>= 4;
+            tile <<= 4;
+        }
+        if index == 0 {
+            break;
+        }
+        index -= 1;
+        tmp >>= 4;
+        tile <<= 4;
+    }
+    return board | tile;
+}
+
+fn generate_random_tile() -> u64 {
+    let mut rng = rand::thread_rng();
+    if rng.gen_range(0, 10) < 9 {
+        1
+    } else {
+        2
+    }
 }
 
 pub fn get_empty_tile_idxs(board: Board) -> Vec<usize> {
@@ -237,16 +254,12 @@ fn extract_row(board: Board, row_num: u64) -> u64 {
     (board >> ((3 - row_num) * 16)) & 0xffff
 }
 
-fn extract_col(board: Board, col_num: u64) -> u64 {
-    board.pext(0xf000f000f000f000 >> (col_num * 4))
-}
-
 // https://stackoverflow.com/questions/38225571/count-number-of-zero-nibbles-in-an-unsigned-64-bit-integer
 pub fn count_empty(board: Board) -> u64 {
     16 - count_non_empty(board)
 }
 
-pub fn count_non_empty(board: Board) -> u64 {
+fn count_non_empty(board: Board) -> u64 {
     let mut board_copy = board;
     board_copy |= board_copy >> 1;
     board_copy |= board_copy >> 2;
@@ -254,6 +267,7 @@ pub fn count_non_empty(board: Board) -> u64 {
     board_copy.popcnt()
 }
 
+// Credit to Nneonneo
 pub fn count_unique(board: Board) -> i32 {
     let mut bitset = 0;
     let mut board_copy = board;
@@ -468,12 +482,12 @@ mod tests {
     }
 
     #[test]
-    fn it_test_generate_random_tile() {
+    fn it_test_insert_random_tile() {
         let mut game = 0;
         for _ in 0..16 {
-            game = generate_random_tile(game);
+            game = insert_random_tile(game);
         }
-        assert_eq!(get_empty_tile_idxs(game).len(), 0);
+        assert_eq!(count_empty(game), 0);
     }
 
     #[test]
