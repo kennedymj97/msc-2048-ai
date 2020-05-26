@@ -12,7 +12,7 @@ impl AI for Random {
     }
 
     fn restart(self) -> Self {
-        Random(GameEngine::start_new_game())
+        Random::new()
     }
 
     fn get_board(self) -> GameEngine::Board {
@@ -24,6 +24,9 @@ impl AI for Random {
     }
 
     fn get_next_move(self) -> Option<Move> {
+        if GameEngine::is_game_over(self.get_board()) {
+            return None;
+        }
         let mut rng = rand::thread_rng();
         let num = rng.gen_range(0, 4);
         match num {

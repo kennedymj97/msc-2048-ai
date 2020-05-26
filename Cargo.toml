@@ -13,7 +13,6 @@ crate-type = ["cdylib", "rlib"]
 rand="0.7"
 #termion="*"
 bitintr="0.3"
-once_cell = "1.4.0"
 wasm-bindgen = "0.2"
 
 [dev-dependencies]
