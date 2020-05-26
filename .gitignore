@@ -4,3 +4,5 @@
 *.data.old
 *.svg
 /flamegraphs
+node_modules
+dist
