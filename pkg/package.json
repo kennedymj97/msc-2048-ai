@@ -1,0 +1,15 @@
+{
+  "name": "msc-2048-ai",
+  "collaborators": [
+    "Matthew Kennedy <kennedymj97@gmail.com>"
+  ],
+  "version": "0.1.0",
+  "files": [
+    "msc_2048_ai_bg.wasm",
+    "msc_2048_ai.js",
+    "msc_2048_ai.d.ts"
+  ],
+  "module": "msc_2048_ai.js",
+  "types": "msc_2048_ai.d.ts",
+  "sideEffects": false
+}
