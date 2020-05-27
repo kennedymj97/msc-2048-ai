@@ -28,11 +28,11 @@ impl AI for Expectimax {
     }
 
     fn get_next_move(self) -> Option<Move> {
-        //let mut map = HashMap::new();
+        let mut map = HashMap::new();
         let depth = 3.max(count_unique(self.get_board()) - 2) as u64;
-        //let depth = depth.min(6);
-        //expectimax(self, Node::Max, depth, 1., &mut map).move_dir
-        evaluate_multithread(self, depth, 1.).move_dir
+        let depth = depth.min(6);
+        expectimax(self, Node::Max, depth, 1., &mut map).move_dir
+        //evaluate_multithread(self, depth, 1.).move_dir
     }
 }
 
@@ -52,7 +52,7 @@ enum Node {
 }
 
 #[derive(Debug)]
-pub struct ExpectimaxResult {
+struct ExpectimaxResult {
     score: f64,
     move_dir: Option<Move>,
 }

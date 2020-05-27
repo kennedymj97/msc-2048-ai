@@ -72,6 +72,10 @@ pub fn extract_line(board: Board, line_idx: u64) -> Line {
     (board >> ((3 - line_idx) * 16)) & 0xffff
 }
 
+pub fn get_tile_val(board: Board, idx: usize) -> u16 {
+    2_u16.pow(((board >> (60 - (4 * idx))) & 0xf) as u32)
+}
+
 pub fn line_to_vec(line: Line) -> Vec<Tile> {
     let tiles = (0..4).fold(Vec::new(), |mut tiles, tile_idx| {
         tiles.push(line >> ((3 - tile_idx) * 4) & 0xf);
@@ -279,16 +283,10 @@ fn count_non_empty(board: Board) -> u64 {
     board_copy.popcnt()
 }
 
-fn to_vec(board: Board) -> Vec<Option<Tile>> {
+pub fn to_vec(board: Board) -> Vec<u8> {
     (0..16).fold(Vec::new(), |mut vec, idx| {
         let num = extract_tile(board, idx);
-
-        if num == 0 {
-            vec.push(None)
-        } else {
-            vec.push(Some((2 as u64).pow(num as u32)))
-        }
-
+        vec.push(num as u8);
         vec
     })
 }
@@ -297,11 +295,11 @@ fn extract_tile(board: Board, idx: usize) -> Tile {
     (board >> ((15 - idx) * 4)) & 0xf
 }
 
-fn format_val(val: &Option<Tile>) -> String {
+fn format_val(val: &u8) -> String {
     match val {
-        None => return String::from("       "),
-        Some(x) => {
-            let mut x = x.to_string();
+        0 => return String::from("       "),
+        &x => {
+            let mut x = (2_i32.pow(x as u32)).to_string();
             while x.len() < 7 {
                 match x.len() {
                     6 => x = format!(" {}", x),
@@ -421,5 +419,13 @@ mod tests {
     fn it_count_non_empty() {
         let game = 0x1134000000000000;
         assert_eq!(count_non_empty(game), 4);
+    }
+
+    #[test]
+    fn it_get_tile_val() {
+        let game = 0x123456789abcdef;
+        assert_eq!(get_tile_val(game, 3), 8);
+        assert_eq!(get_tile_val(game, 10), 1024);
+        assert_eq!(get_tile_val(game, 15), 32768);
     }
 }
