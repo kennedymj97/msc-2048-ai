@@ -25,9 +25,8 @@ function main() {
 const animate = (game) => {
 	if (game.is_game_over()) {
 		let finishTime = new Date();
-		let timeTaken = new Date();
-		timeTaken.setTime(finishTime.getTime() - startTime.getTime());
-		console.log("Time taken: " + timeTaken.getSeconds() + " seconds");
+		let millisecondsElapsed = finishTime - startTime;
+		console.log("Time taken: " + (millisecondsElapsed / 1000) + " seconds");
 		console.log("Number of moves made: " + numMoves);
 		alert("Game over!");
 		cancelAnimationFrame(animationId);

@@ -31,3 +31,8 @@ Optimised: 6.22s
 15/05/2020
 1. Added a transposition table.
     1. Average move time down to 0.1-0.2ms (at depth 3).
+
+
+## Platform performance
+WSL2 - 17.3 moves/sec at max depth 6
+Firefox (windows) - 14.4 moves/sec at max depth 6
