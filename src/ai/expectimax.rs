@@ -1,4 +1,5 @@
 use crate::ai::AI;
+use crate::ai::AII;
 use crate::engine as GameEngine;
 use crate::engine::Move;
 use std::collections::HashMap;
@@ -354,6 +355,123 @@ fn calc_monotonicity(line: &Vec<u64>) -> f64 {
     monotonicity_left.min(monotonicity_right) * MONOTONICITY_WEIGHT
 }
 
+pub struct Expectimaxx;
+
+impl Expectimaxx {
+    pub fn new() {
+        unsafe { create_heuristic_score_table() };
+    }
+}
+
+impl AII for Expectimaxx {
+    fn get_next_move(&self, board: GameEngine::Board) -> Option<Move> {
+        let mut map = HashMap::new();
+        let depth = 3.max(count_unique(board) - 2) as u64;
+        let depth = depth.min(6);
+        expectimaxx(board, Node::Max, depth, 1., &mut map).move_dir
+    }
+}
+
+fn expectimaxx(
+    board: GameEngine::Board,
+    node: Node,
+    move_depth: u64,
+    cum_prob: f32,
+    map: &mut TranspositionTable,
+) -> ExpectimaxResult {
+    match node {
+        Node::Max => return evaluate_maxx(board, move_depth, cum_prob, map),
+        Node::Chance => return evaluate_chancee(board, move_depth, cum_prob, map),
+    }
+}
+
+fn evaluate_maxx(
+    board: GameEngine::Board,
+    move_depth: u64,
+    cum_prob: f32,
+    map: &mut TranspositionTable,
+) -> ExpectimaxResult {
+    let mut best_score = 0.;
+    let mut best_move = None;
+    for &direction in &[Move::Up, Move::Down, Move::Left, Move::Right] {
+        let new_board;
+        match direction {
+            Move::Up => new_board = GameEngine::shift(board, Move::Up),
+            Move::Down => new_board = GameEngine::shift(board, Move::Down),
+            Move::Left => new_board = GameEngine::shift(board, Move::Left),
+            Move::Right => new_board = GameEngine::shift(board, Move::Right),
+        }
+        if new_board != board {
+            let score = expectimaxx(new_board, Node::Chance, move_depth, cum_prob, map).score;
+            if score > best_score {
+                best_score = score;
+                best_move = Some(direction);
+            }
+        }
+    }
+    ExpectimaxResult {
+        score: best_score,
+        move_dir: best_move,
+    }
+}
+
+fn evaluate_chancee(
+    board: GameEngine::Board,
+    move_depth: u64,
+    cum_prob: f32,
+    map: &mut TranspositionTable,
+) -> ExpectimaxResult {
+    if move_depth == 0 || cum_prob < 0.0001 {
+        return ExpectimaxResult {
+            score: get_heurisitic_score(board) as f64,
+            move_dir: None,
+        };
+    }
+
+    // Check if board has already been seen
+    if let Some(entry) = map.get(&board) {
+        // need to check depth is greater than or equal to current depth
+        // if depth is less then the score will not be accurate enough
+        if entry.move_depth >= move_depth {
+            return ExpectimaxResult {
+                score: entry.score,
+                move_dir: None,
+            };
+        }
+    }
+
+    let num_empty_tiles = GameEngine::count_empty(board);
+    let mut tiles_searched = 0;
+    let mut tmp = board;
+    let mut insert_tile = 1;
+    let mut score = 0.;
+    let cum_prob = cum_prob / num_empty_tiles as f32;
+
+    while tiles_searched < num_empty_tiles {
+        if (tmp & 0xf) == 0 {
+            let new_board = board | insert_tile;
+            score +=
+                expectimaxx(new_board, Node::Max, move_depth - 1, cum_prob * 0.9, map).score * 0.9;
+
+            let new_board = board | (insert_tile << 1);
+            score +=
+                expectimaxx(new_board, Node::Max, move_depth - 1, cum_prob * 0.1, map).score * 0.1;
+
+            tiles_searched += 1;
+        }
+        tmp >>= 4;
+        insert_tile <<= 4;
+    }
+
+    score = score / num_empty_tiles as f64;
+
+    map.insert(board, TranspositionEntry { score, move_depth });
+
+    ExpectimaxResult {
+        score,
+        move_dir: None,
+    }
+}
 #[cfg(test)]
 mod tests {
     use super::*;
