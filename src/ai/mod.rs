@@ -15,6 +15,8 @@ pub fn run_ai(mut ai: Box<dyn AI>) {
     let start_time = SystemTime::now();
     let mut board = GameEngine::new_game();
     loop {
+        println!("Score: {}", GameEngine::get_score(board));
+        println!("{}", GameEngine::to_str(board));
         let best_move = ai.get_next_move(board);
         match best_move {
             Some(direction) => {
@@ -22,8 +24,6 @@ pub fn run_ai(mut ai: Box<dyn AI>) {
             }
             None => break,
         }
-        println!("Score: {}", GameEngine::get_score(board));
-        println!("{}", GameEngine::to_str(board));
         num_moves += 1;
     }
     let time_elapsed = match start_time.elapsed() {
