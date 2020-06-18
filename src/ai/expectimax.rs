@@ -49,7 +49,7 @@ impl Expectimax {
 }
 
 impl AI for Expectimax {
-    fn get_next_move(&self, board: GameEngine::Board) -> Option<Move> {
+    fn get_next_move(&mut self, board: GameEngine::Board) -> Option<Move> {
         let depth = 3.max(count_unique(board) - 2) as u64;
         let depth = depth.min(6);
         expectimax(board, Node::Max, depth, 1., &mut HashMap::new()).move_dir
@@ -166,7 +166,7 @@ impl ExpectimaxMultithread {
 }
 
 impl AI for ExpectimaxMultithread {
-    fn get_next_move(&self, board: GameEngine::Board) -> Option<Move> {
+    fn get_next_move(&mut self, board: GameEngine::Board) -> Option<Move> {
         let depth = 3.max(count_unique(board) - 2) as u64;
         let depth = depth.min(6);
         evaluate_multithread(board, depth, 1.).move_dir
