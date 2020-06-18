@@ -3,28 +3,11 @@ use crate::engine as GameEngine;
 use crate::engine::Move;
 use rand::Rng;
 
-#[derive(Clone, Copy)]
-pub struct Random(GameEngine::Board);
+pub struct Random;
 
 impl AI for Random {
-    fn new() -> Self {
-        Random(GameEngine::new_game())
-    }
-
-    fn restart(self) -> Self {
-        Random::new()
-    }
-
-    fn get_board(self) -> GameEngine::Board {
-        self.0
-    }
-
-    fn update_board(self, new_board: GameEngine::Board) -> Self {
-        Random(new_board)
-    }
-
-    fn get_next_move(self) -> Option<Move> {
-        if GameEngine::is_game_over(self.get_board()) {
+    fn get_next_move(&self, board: GameEngine::Board) -> Option<Move> {
+        if GameEngine::is_game_over(board) {
             return None;
         }
         let mut rng = rand::thread_rng();
