@@ -1,7 +1,7 @@
 use bitintr::Popcnt;
 use rand::Rng;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Move {
     Up,
     Down,
