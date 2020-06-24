@@ -1,5 +1,7 @@
 use crate::engine as GameEngine;
 use crate::engine::Move;
+use std::fs::File;
+use std::io::Write;
 use std::time::SystemTime;
 
 pub mod expectimax;
@@ -56,4 +58,29 @@ pub fn run_ai_with_delay(mut ai: Box<dyn AI>, delay: u64) {
         std::thread::sleep(std::time::Duration::from_millis(delay));
     }
     println!("Final board: {}", GameEngine::to_str(board));
+}
+
+pub fn record_ai_game(mut ai: Box<dyn AI>, filename: &str) {
+    let mut file = File::create(format!("./{}.txt", filename)).expect("failed to create file");
+    let mut board = GameEngine::new_game();
+    loop {
+        if GameEngine::get_score(board) > 25000 {
+            break;
+        }
+        println!("Score: {}", GameEngine::get_score(board));
+        println!("{}", GameEngine::to_str(board));
+        let best_move = ai.get_next_move(board);
+        match best_move {
+            Some(direction) => {
+                file.write_fmt(format_args!(
+                    "Board: {}Move: {:?}\n\n",
+                    GameEngine::to_str(board),
+                    direction
+                ))
+                .expect("failed to write to file");
+                board = GameEngine::make_move(board, direction);
+            }
+            None => break,
+        }
+    }
 }
