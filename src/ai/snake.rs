@@ -2,8 +2,13 @@
  * TODO:
  * [x] is_move_possible
  * [x] is_left_column_locked
- * [] does move produce left merge
+ * [x] does move produce left merge
+ * [] improve evaluation framework for ai
+ * [] automate generation of strategies
+ * [] does left merge harm monotonicity
+ * [] how to deal with a move right/up when not wanted
  */
+
 use crate::ai::AI;
 use crate::engine as GameEngine;
 use crate::engine::shift;
