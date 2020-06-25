@@ -7,6 +7,7 @@ use std::time::SystemTime;
 pub mod expectimax;
 pub mod random;
 pub mod sequence;
+pub mod snake;
 
 pub trait AI {
     fn get_next_move(&mut self, board: GameEngine::Board) -> Option<Move>;

@@ -295,6 +295,11 @@ fn extract_tile(board: Board, idx: usize) -> Tile {
     (board >> ((15 - idx) * 4)) & 0xf
 }
 
+pub fn get_tile(board: Board, row_idx: usize, col_idx: usize) -> Tile {
+    let idx = (4 * row_idx) + col_idx;
+    extract_tile(board, idx)
+}
+
 fn format_val(val: &u8) -> String {
     match val {
         0 => return String::from("       "),
@@ -321,6 +326,7 @@ mod tests {
         assert_eq!(shift_vec_left(vec![1, 2, 1, 2]), vec![1, 2, 1, 2]);
         assert_eq!(shift_vec_left(vec![1, 1, 2, 2]), vec![2, 3, 0, 0]);
         assert_eq!(shift_vec_left(vec![1, 0, 0, 1]), vec![2, 0, 0, 0]);
+        assert_eq!(shift_vec_left(vec![1, 2, 3, 4]), vec![1, 2, 3, 4]);
     }
 
     #[test]
@@ -339,6 +345,11 @@ mod tests {
             game = insert_random_tile(game);
         }
         assert_eq!(count_empty(game), 0);
+    }
+
+    #[test]
+    fn test_shift() {
+        assert_eq!(shift(0x1234123412341234, Move::Left), 0x1234123412341234);
     }
 
     #[test]
