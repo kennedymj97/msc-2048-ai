@@ -4,7 +4,9 @@
  * [x] is_left_column_locked
  * [x] does move produce left merge
  * [] improve evaluation framework for ai
- *      [] need to be able to print rules for a record
+ *      [x] need to be able to print rules for a record
+ *      [] make a rule trait, must implement fmt::Display, each rule will then be a struct that
+ *      takes whatever, snake will be a list of things that implement rule trait
  * [] automate generation of strategies
  * [] does left merge harm monotonicity
  * [] how to deal with a move right/up when not wanted
