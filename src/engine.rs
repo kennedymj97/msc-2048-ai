@@ -1,5 +1,6 @@
 use bitintr::Popcnt;
 use rand::Rng;
+use std::fmt;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Move {
@@ -7,6 +8,17 @@ pub enum Move {
     Down,
     Left,
     Right,
+}
+
+impl fmt::Display for Move {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Move::Up => write!(f, "Up"),
+            Move::Down => write!(f, "Down"),
+            Move::Left => write!(f, "Left"),
+            Move::Right => write!(f, "Right"),
+        }
+    }
 }
 
 struct Stores {
@@ -72,8 +84,18 @@ pub fn extract_line(board: Board, line_idx: u64) -> Line {
     (board >> ((3 - line_idx) * 16)) & 0xffff
 }
 
+pub fn get_tile(board: Board, idx: usize) -> Tile {
+    (board >> ((15 - idx) * 4)) & 0xf
+}
+
 pub fn get_tile_val(board: Board, idx: usize) -> u16 {
     2_u16.pow(((board >> (60 - (4 * idx))) & 0xf) as u32)
+}
+
+pub fn get_largest_tile(board: Board) -> u16 {
+    let mut max_tile = 0;
+    (0..16).for_each(|idx| max_tile = max_tile.max(get_tile_val(board, idx)));
+    max_tile
 }
 
 pub fn line_to_vec(line: Line) -> Vec<Tile> {
@@ -283,21 +305,12 @@ fn count_non_empty(board: Board) -> u64 {
     board_copy.popcnt()
 }
 
-pub fn to_vec(board: Board) -> Vec<u8> {
+fn to_vec(board: Board) -> Vec<u8> {
     (0..16).fold(Vec::new(), |mut vec, idx| {
-        let num = extract_tile(board, idx);
+        let num = get_tile(board, idx);
         vec.push(num as u8);
         vec
     })
-}
-
-fn extract_tile(board: Board, idx: usize) -> Tile {
-    (board >> ((15 - idx) * 4)) & 0xf
-}
-
-pub fn get_tile(board: Board, row_idx: usize, col_idx: usize) -> Tile {
-    let idx = (4 * row_idx) + col_idx;
-    extract_tile(board, idx)
 }
 
 fn format_val(val: &u8) -> String {

@@ -74,7 +74,7 @@ pub fn record_ai_game(mut ai: Box<dyn AI>, filename: &str) {
         match best_move {
             Some(direction) => {
                 file.write_fmt(format_args!(
-                    "Board: {}Move: {:?}\n\n",
+                    "Board: {}Move: {}\n\n",
                     GameEngine::to_str(board),
                     direction
                 ))
