@@ -18,23 +18,23 @@ use crate::engine as GameEngine;
 use crate::engine::Move;
 
 #[derive(PartialEq)]
-pub enum RuleResult {
+pub enum Result {
     Try(Move),
     Ban(Move),
     Force(Move),
     Proceed,
 }
 
-impl RuleResult {
+impl Result {
     fn handle(self, moves_allowed: Vec<Move>) -> (Vec<Move>, Option<Move>) {
         match self {
-            RuleResult::Try(direction) => match moves_allowed.contains(&direction) {
+            Result::Try(direction) => match moves_allowed.contains(&direction) {
                 true => (moves_allowed, Some(direction)),
                 false => (moves_allowed, None),
             },
-            RuleResult::Ban(direction) => (remove_item(moves_allowed, direction), None),
-            RuleResult::Force(direction) => (moves_allowed, Some(direction)),
-            RuleResult::Proceed => (moves_allowed, None),
+            Result::Ban(direction) => (remove_item(moves_allowed, direction), None),
+            Result::Force(direction) => (moves_allowed, Some(direction)),
+            Result::Proceed => (moves_allowed, None),
         }
     }
 }
@@ -46,37 +46,7 @@ fn remove_item(vec: Vec<Move>, direction: Move) -> Vec<Move> {
         .collect()
 }
 
-pub struct Rule {
-    rule: fn(GameEngine::Board, Move) -> RuleResult,
-    direction: Move,
-    name: String,
-}
-
-impl Rule {
-    pub fn new(
-        rule: fn(GameEngine::Board, Move) -> RuleResult,
-        direction: Move,
-        name: String,
-    ) -> Self {
-        Rule {
-            rule,
-            direction,
-            name,
-        }
-    }
-
-    fn execute(&self, board: GameEngine::Board) -> RuleResult {
-        (self.rule)(board, self.direction)
-    }
-}
-
-impl fmt::Display for Rule {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}(board, {})", self.name, self.direction)
-    }
-}
-
-type Rules = Vec<Rule>;
+type Rules = Vec<Box<dyn rules::Rule>>;
 
 pub struct Snake {
     rules: Rules,
@@ -260,34 +230,119 @@ pub mod rules {
     // What is a rule composed of
     use super::*;
 
-    pub fn force_move_if_possible(board: GameEngine::Board, direction: Move) -> RuleResult {
-        if attributes::is_move_possible(board, direction) {
-            return RuleResult::Force(direction);
-        }
-        RuleResult::Ban(direction)
+    pub trait Rule: fmt::Display {
+        fn execute(&self, board: GameEngine::Board) -> Result;
     }
 
-    pub fn ban_move_if_left_column_locked(board: GameEngine::Board, direction: Move) -> RuleResult {
-        if attributes::is_column_locked(board, 0) {
-            return RuleResult::Proceed;
-        }
-        RuleResult::Ban(direction)
-    }
-
-    pub fn try_move_if_produces_left_merge(
-        board: GameEngine::Board,
+    pub struct ForceMoveIfPossible {
         direction: Move,
-    ) -> RuleResult {
-        if attributes::does_move_produce_merge_in_direction(board, direction, Move::Left) {
-            return RuleResult::Try(direction);
-        }
-        RuleResult::Proceed
     }
 
-    pub fn try_move_if_merge_possible(board: GameEngine::Board, direction: Move) -> RuleResult {
-        if attributes::is_merge_possible(board, direction) {
-            return RuleResult::Try(direction);
+    impl ForceMoveIfPossible {
+        pub fn new(direction: Move) -> Box<Self> {
+            Box::new(ForceMoveIfPossible { direction })
         }
-        RuleResult::Proceed
+    }
+
+    impl fmt::Display for ForceMoveIfPossible {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            write!(f, "Force move in direction: {} if possible", self.direction)
+        }
+    }
+
+    impl Rule for ForceMoveIfPossible {
+        fn execute(&self, board: GameEngine::Board) -> Result {
+            if attributes::is_move_possible(board, self.direction) {
+                return Result::Force(self.direction);
+            }
+            Result::Ban(self.direction)
+        }
+    }
+
+    pub struct BanMoveIfLeftColumnLocked {
+        direction: Move,
+    }
+
+    impl BanMoveIfLeftColumnLocked {
+        pub fn new(direction: Move) -> Box<Self> {
+            Box::new(BanMoveIfLeftColumnLocked { direction })
+        }
+    }
+
+    impl fmt::Display for BanMoveIfLeftColumnLocked {
+        fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+            write!(
+                f,
+                "Ban move in direction: {} if left column locked",
+                self.direction
+            )
+        }
+    }
+
+    impl Rule for BanMoveIfLeftColumnLocked {
+        fn execute(&self, board: GameEngine::Board) -> Result {
+            if attributes::is_column_locked(board, 0) {
+                return Result::Proceed;
+            }
+            Result::Ban(self.direction)
+        }
+    }
+
+    pub struct TryMoveIfProducesLeftMerge {
+        direction: Move,
+    }
+
+    impl TryMoveIfProducesLeftMerge {
+        pub fn new(direction: Move) -> Box<Self> {
+            Box::new(TryMoveIfProducesLeftMerge { direction })
+        }
+    }
+
+    impl fmt::Display for TryMoveIfProducesLeftMerge {
+        fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+            write!(
+                f,
+                "Try move in direction: {} if produces a left merge",
+                self.direction
+            )
+        }
+    }
+
+    impl Rule for TryMoveIfProducesLeftMerge {
+        fn execute(&self, board: GameEngine::Board) -> Result {
+            if attributes::does_move_produce_merge_in_direction(board, self.direction, Move::Left) {
+                return Result::Try(self.direction);
+            }
+            Result::Proceed
+        }
+    }
+
+    pub struct TryMoveIfMergePossible {
+        direction: Move,
+    }
+
+    impl TryMoveIfMergePossible {
+        pub fn new(direction: Move) -> Box<Self> {
+            Box::new(TryMoveIfMergePossible { direction })
+        }
+    }
+
+    impl fmt::Display for TryMoveIfMergePossible {
+        fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+            write!(
+                f,
+                "Try move in direction: {} if merge possible",
+                self.direction
+            )
+        }
+    }
+
+    impl Rule for TryMoveIfMergePossible {
+        fn execute(&self, board: GameEngine::Board) -> Result {
+            if attributes::is_merge_possible(board, self.direction) {
+                return Result::Try(self.direction);
+            }
+            Result::Proceed
+        }
     }
 }
