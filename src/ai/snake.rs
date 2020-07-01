@@ -5,8 +5,11 @@
  * [x] does move produce left merge
  * [] improve evaluation framework for ai
  *      [x] need to be able to print rules for a record
- *      [] make a rule trait, must implement fmt::Display, each rule will then be a struct that
+ *      [x] make a rule trait, must implement fmt::Display, each rule will then be a struct that
  *      takes whatever, snake will be a list of things that implement rule trait
+ *      [] adapt the sequence code so there is a generic function that takes a list of inputs and
+ *      generates all possible mutations
+ *      [] change snake ai to have field for the backup case
  * [] automate generation of strategies
  * [] does left merge harm monotonicity
  * [] how to deal with a move right/up when not wanted
