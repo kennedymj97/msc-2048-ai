@@ -291,6 +291,7 @@ version = "0.1.0"
 dependencies = [
  "bitintr",
  "criterion",
+ "permutohedron",
  "rand",
  "wasm-bindgen",
 ]
@@ -319,6 +320,12 @@ name = "oorandom"
 version = "11.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ebcec7c9c2a95cacc7cd0ecb89d8a8454eca13906f6deb55258ffff0adeb9405"
+
+[[package]]
+name = "permutohedron"
+version = "0.2.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b687ff7b5da449d39e418ad391e5e08da53ec334903ddbb921db208908fc372c"
 
 [[package]]
 name = "plotters"

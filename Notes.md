@@ -36,3 +36,10 @@ Optimised: 6.22s
 ## Platform performance
 WSL2 - 17.3 moves/sec at max depth 6
 Firefox (windows) - 14.4 moves/sec at max depth 6
+
+# Day Notes
+### 02/07/2020
+TODO:
+[x] Create function to generate all possible permutations of a given vector
+[x] Function to test all of the permutations of a strategy
+[] Change snake AI to have fallback sequnce outside of rules

@@ -7,7 +7,7 @@
  *      [x] need to be able to print rules for a record
  *      [x] make a rule trait, must implement fmt::Display, each rule will then be a struct that
  *      takes whatever, snake will be a list of things that implement rule trait
- *      [] adapt the sequence code so there is a generic function that takes a list of inputs and
+ *      [x] adapt the sequence code so there is a generic function that takes a list of inputs and
  *      generates all possible mutations
  *      [] change snake ai to have field for the backup case
  * [] automate generation of strategies
@@ -49,22 +49,27 @@ fn remove_item(vec: Vec<Move>, direction: Move) -> Vec<Move> {
         .collect()
 }
 
-type Rules = Vec<Box<dyn rules::Rule>>;
+pub type Rules = Vec<Box<dyn rules::Rule>>;
 
+#[derive(Debug)]
 pub struct Snake {
     rules: Rules,
+    fallback: Rules,
 }
 
 impl Snake {
-    pub fn new(rules: Rules) -> Self {
-        Snake { rules }
+    pub fn new(rules: Rules, fallback: Rules) -> Box<Self> {
+        Box::new(Snake { rules, fallback })
     }
 }
 
 impl AI for Snake {
     fn get_next_move(&mut self, board: GameEngine::Board) -> Option<Move> {
         let mut moves_allowed = vec![Move::Up, Move::Down, Move::Left, Move::Right];
-        for rule in self.rules.iter() {
+        let mut rules = self.rules.clone();
+        let mut fallback = self.fallback.clone();
+        rules.append(&mut fallback);
+        for rule in rules.iter() {
             let res = rule.execute(board).handle(moves_allowed.clone());
             moves_allowed = res.0;
             if res.1 != None {
@@ -72,17 +77,6 @@ impl AI for Snake {
             }
         }
         None
-    }
-}
-
-impl fmt::Display for Snake {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut out = "[".to_string();
-        for rule in self.rules.iter() {
-            out.push_str(format!(" {},", rule).as_str());
-        }
-        out.push(']');
-        write!(f, "{}", out)
     }
 }
 
@@ -233,10 +227,30 @@ pub mod rules {
     // What is a rule composed of
     use super::*;
 
-    pub trait Rule: fmt::Display {
+    pub trait Rule: fmt::Debug + RuleClone {
         fn execute(&self, board: GameEngine::Board) -> Result;
     }
 
+    pub trait RuleClone {
+        fn clone_box(&self) -> Box<dyn Rule>;
+    }
+
+    impl<T> RuleClone for T
+    where
+        T: 'static + Rule + Clone,
+    {
+        fn clone_box(&self) -> Box<dyn Rule> {
+            Box::new(self.clone())
+        }
+    }
+
+    impl Clone for Box<dyn Rule> {
+        fn clone(&self) -> Box<dyn Rule> {
+            self.clone_box()
+        }
+    }
+
+    #[derive(Clone)]
     pub struct ForceMoveIfPossible {
         direction: Move,
     }
@@ -247,7 +261,7 @@ pub mod rules {
         }
     }
 
-    impl fmt::Display for ForceMoveIfPossible {
+    impl fmt::Debug for ForceMoveIfPossible {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
             write!(f, "Force move in direction: {} if possible", self.direction)
         }
@@ -262,6 +276,7 @@ pub mod rules {
         }
     }
 
+    #[derive(Clone)]
     pub struct BanMoveIfLeftColumnLocked {
         direction: Move,
     }
@@ -272,7 +287,7 @@ pub mod rules {
         }
     }
 
-    impl fmt::Display for BanMoveIfLeftColumnLocked {
+    impl fmt::Debug for BanMoveIfLeftColumnLocked {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             write!(
                 f,
@@ -291,6 +306,7 @@ pub mod rules {
         }
     }
 
+    #[derive(Clone)]
     pub struct TryMoveIfProducesLeftMerge {
         direction: Move,
     }
@@ -301,7 +317,7 @@ pub mod rules {
         }
     }
 
-    impl fmt::Display for TryMoveIfProducesLeftMerge {
+    impl fmt::Debug for TryMoveIfProducesLeftMerge {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             write!(
                 f,
@@ -320,6 +336,7 @@ pub mod rules {
         }
     }
 
+    #[derive(Clone)]
     pub struct TryMoveIfMergePossible {
         direction: Move,
     }
@@ -330,7 +347,7 @@ pub mod rules {
         }
     }
 
-    impl fmt::Display for TryMoveIfMergePossible {
+    impl fmt::Debug for TryMoveIfMergePossible {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             write!(
                 f,
