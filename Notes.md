@@ -42,4 +42,15 @@ Firefox (windows) - 14.4 moves/sec at max depth 6
 TODO:
 [x] Create function to generate all possible permutations of a given vector
 [x] Function to test all of the permutations of a strategy
-[] Change snake AI to have fallback sequnce outside of rules
+[x] Change snake AI to have fallback sequnce outside of rules
+
+**Notes on ranking of strategies:**
+It is not good enough to simply just sample a random number of times of my choice and then look at the median. Need to be more thorough in my analyses of the strategies.
+
+Options:
+1. Mann-Whitney U-test, this can compare 2 strategies and work out if there is a difference in performance. Useful resources: [wikipedia](https://en.wikipedia.org/wiki/Mann%E2%80%93Whitney_U_test#cite_note-Pearce-1), [paper](https://reinventionjournal.org/article/view/339/416).
+2. Shapiro-Wilk test. This is used to determine if the data has a normal distribution. If it does can then do calculations based on normal distribution to determine tests.
+3. Other distribution tests. Might be worth exploring a bit more and seeing what the distributions normally are and then doing test for that/those.
+
+### 03/07/2020
+
