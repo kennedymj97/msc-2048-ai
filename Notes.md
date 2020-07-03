@@ -53,4 +53,30 @@ Options:
 3. Other distribution tests. Might be worth exploring a bit more and seeing what the distributions normally are and then doing test for that/those.
 
 ### 03/07/2020
+**TODO:**
+[x] Check if data is normally distributed
+[x] Decide what method I will use to rank strategies
+[] Start work on implementing the ranking code
 
+**Notes:**
+- Tested a strategy and the data was not normally distributed.
+- Also tested for a lognormal distribution which it did not fit.
+- This paper is essential to the decision of test: [see here](https://reinventionjournal.org/article/view/339/416).
+- Can probably use either the Mann-Whitney U Test or the Yuen-Welch test, both seem to give good data.
+	- Do whichever is easiest to implement first, if not suitable implement the other.
+	- [Mann-Whitney U test info](https://www.lboro.ac.uk/media/wwwlboroacuk/content/mlsc/downloads/2.3_mann_whitney.pdf)
+	- [Critical value tables (for if nx or ny is under 20)](https://www.real-statistics.com/statistics-tables/mann-whitney-table/)
+	- Other useful resources:
+		- [rustats](https://docs.rs/crate/rustats/0.1.0)
+		- [statrs](https://docs.rs/statrs/0.7.0/statrs/distribution/trait.Univariate.html)
+
+**How to check if data is normally distibuted:**
+- Run the strategy saving the scores in a comma delimited text file.
+- Open this file in excel copying the data and pasting it with transpose option (to convert from cols to rows)
+- Make sure I have the shapiro-wilk testing installed [(Real statistics resource pack)](https://www.real-statistics.com/free-download/real-statistics-resource-pack/).
+- Press ctrl+m whilst highlighting where you want the results to be output to.
+- Select the relevant cells, and checkboxes and carry out tests
+
+**Notes on implementing test:**
+- Use resources to help
+- Use excel to help produce test cases

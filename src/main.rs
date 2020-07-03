@@ -17,11 +17,5 @@ fn main() {
         ForceMoveIfPossible::new(Move::Up),
         ForceMoveIfPossible::new(Move::Right),
     ];
-    //run_ai(Snake::new(strategy, fallback_rules));
-    evaluate_strategies(
-        &strategy[..],
-        |strategyy| Snake::new(strategyy, fallback_rules.clone()),
-        50,
-        "small.txt",
-    );
+    get_strategy_data(Snake::new(strategy, fallback_rules), 1000, "strategy5.txt");
 }

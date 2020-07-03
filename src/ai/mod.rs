@@ -127,6 +127,24 @@ where
     });
 }
 
+pub fn get_strategy_data(mut ai: Box<dyn AI>, n: u32, filename: &str) {
+    let mut f = File::create(format!("{}", filename)).expect("Failed to create file");
+    (0..n).for_each(|_| {
+        let mut board = GameEngine::new_game();
+        loop {
+            let best_move = ai.get_next_move(board);
+            match best_move {
+                Some(direction) => {
+                    board = GameEngine::make_move(board, direction);
+                }
+                None => break,
+            }
+        }
+        f.write_fmt(format_args!("{},", GameEngine::get_score(board)))
+            .expect("failed to write data to file");
+    });
+}
+
 fn evaluate_strategy(mut ai: Box<dyn AI>, n: u32) -> (u64, f32) {
     let scores = (0..n).fold(vec![], |mut results, _| {
         let mut board = GameEngine::new_game();
