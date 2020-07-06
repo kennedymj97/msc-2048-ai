@@ -1,5 +1,6 @@
 pub mod ai;
 pub mod engine;
+pub mod mann_whitney;
 pub mod wasm;
 //pub mod ui;
 

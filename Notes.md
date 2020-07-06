@@ -80,3 +80,32 @@ Options:
 **Notes on implementing test:**
 - Use resources to help
 - Use excel to help produce test cases
+
+## 06/07/2020
+**TODO:**
+[x] Do draft 2 of project plan
+[x] Decide on how to implement statistical performance analysis
+[] Implement statistical performance analysis
+
+**Project plan changes:**
+[x] Sec1 Para1 - change goal of the project
+[x] Sec1 Para2 - need to add some bit about previous student attempts
+[x] Sec1 Para2 - add other ways the project may be interesting/important from a research perspective
+[x] Sec2 Para1 - need to place project in context, talk about other games, chess and games where simple winning strategies exist
+[x] Sec2 - Do I have the word count to add something about interpretability.
+[x] Sec3.1 - Add a bit more detail (if word count allows)
+	- Already over word count, leave out additional detail for now
+[x] Sec3.2 - change description of how strategies will be compared for performance
+[x] Sec4 - Edit developing strategies WP
+[x] Sec4 - Add optional WP for writing journal paper?
+[x] Sec5 - Update gantt chart
+
+**How to do statistical analysis of strategies:**
+1. When running the strategies always save the data and conduct analysis seperately. This will make the seperation of tasks clearer and will also ensure a record of the raw data is kept.
+2. Not sure of the exact details of how to do the comparison and keep best strategies so this may have to be adapted. At first use the following approach:
+	1. Keep a list of the top strategies.
+	2. When a new strategy is evaluated compare it to the first element. This will result in 3 scenarios:
+		1. If the strategy is clearly worse simply move on.
+		2. If there is no confidence of difference append to the top strategies.
+		3. If the strategy is better, create a new list with the strategy as the first element. Compare every strategy in the previous top strategies to the new strategy using the same logic.
+3. Hopefully this will always result in a small number of strategies that can then be further tested manually. If there are too many strategies a method of parsing them for further evaluation may need to be developed.
