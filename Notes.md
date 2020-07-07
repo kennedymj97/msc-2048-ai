@@ -109,3 +109,10 @@ Options:
 		2. If there is no confidence of difference append to the top strategies.
 		3. If the strategy is better, create a new list with the strategy as the first element. Compare every strategy in the previous top strategies to the new strategy using the same logic.
 3. Hopefully this will always result in a small number of strategies that can then be further tested manually. If there are too many strategies a method of parsing them for further evaluation may need to be developed.
+
+# 07/07/2020
+**TODO:**
+[] Fully implement statistical performance analysis
+[] Do some research into better search methods to find strategies
+
+
