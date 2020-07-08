@@ -19,8 +19,8 @@ pub fn run_ai(mut ai: Box<dyn AI>) {
     let start_time = SystemTime::now();
     let mut board = GameEngine::new_game();
     loop {
-        println!("Score: {}", GameEngine::get_score(board));
-        println!("{}", GameEngine::to_str(board));
+        //println!("Score: {}", GameEngine::get_score(board));
+        //println!("{}", GameEngine::to_str(board));
         let best_move = ai.get_next_move(board);
         match best_move {
             Some(direction) => {
@@ -115,16 +115,45 @@ where
     F: Fn(Vec<T>) -> Box<dyn AI>,
 {
     let strategies = generate_strategies(set);
+    assert!(strategies.len() == 65);
     let mut f = File::create(format!("{}", filename)).expect("Failed to create file");
     strategies.iter().for_each(|strategy| {
         println!("Evaluating strategy: {:?}", strategy);
-        let result = evaluate_strategy(create_ai(strategy.clone()), n);
-        f.write_fmt(format_args!(
-            "Median: {} Average: {} Strategy: {:?}\n",
-            result.0, result.1, strategy
-        ))
-        .expect("Failed to write sequence information to file");
+        f.write_fmt(format_args!("{:?}->", strategy))
+            .expect("Failed to write strategy information to file");
+        let results = evaluate_strategy(create_ai(strategy.clone()), n);
+        results.iter().enumerate().for_each(|(idx, score)| {
+            if idx == results.len() - 1 {
+                f.write_fmt(format_args!("{}", score))
+                    .expect("failed to write final score");
+            } else {
+                f.write_fmt(format_args!("{};", score))
+                    .expect("Failed to write score");
+            }
+        });
+        f.write("\n".as_bytes()).expect("Failed to write new line");
     });
+}
+
+fn evaluate_strategy(mut ai: Box<dyn AI>, n: u32) -> Vec<u64> {
+    (0..n).fold(vec![], |mut results, _| {
+        let mut board = GameEngine::new_game();
+        loop {
+            let best_move = ai.get_next_move(board);
+            match best_move {
+                Some(direction) => {
+                    board = GameEngine::make_move(board, direction);
+                }
+                None => break,
+            }
+        }
+        results.push(GameEngine::get_score(board));
+        results
+    })
+}
+
+fn average(items: &Vec<u64>) -> f32 {
+    (items.iter().sum::<u64>() as f32) / (items.len() as f32)
 }
 
 pub fn get_strategy_data(mut ai: Box<dyn AI>, n: u32, filename: &str) {
@@ -143,34 +172,6 @@ pub fn get_strategy_data(mut ai: Box<dyn AI>, n: u32, filename: &str) {
         f.write_fmt(format_args!("{},", GameEngine::get_score(board)))
             .expect("failed to write data to file");
     });
-}
-
-fn evaluate_strategy(mut ai: Box<dyn AI>, n: u32) -> (u64, f32) {
-    let scores = (0..n).fold(vec![], |mut results, _| {
-        let mut board = GameEngine::new_game();
-        loop {
-            let best_move = ai.get_next_move(board);
-            match best_move {
-                Some(direction) => {
-                    board = GameEngine::make_move(board, direction);
-                }
-                None => break,
-            }
-        }
-        results.push(GameEngine::get_score(board));
-        results
-    });
-    (median(&scores), average(&scores))
-}
-
-fn median<T: Ord + Copy>(items: &Vec<T>) -> T {
-    let mut items = items.clone();
-    items.sort();
-    items[items.len() / 2]
-}
-
-fn average(items: &Vec<u64>) -> f32 {
-    (items.iter().sum::<u64>() as f32) / (items.len() as f32)
 }
 
 #[cfg(test)]

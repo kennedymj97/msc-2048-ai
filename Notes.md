@@ -112,7 +112,24 @@ Options:
 
 # 07/07/2020
 **TODO:**
-[] Fully implement statistical performance analysis
+[x] Fully implement statistical performance analysis
 [] Do some research into better search methods to find strategies
 
+# 08/07/2020
+**TODO:**
+[x] Edit way strategy data is saved
+[x] Create function to parse strategy data
+[x] Implement function to find top strategies
 
+**Thoughts on the next steps:**
+- Snake AI does seem to be running slowly
+	- Profile to see if improvements possible, if so:
+		- Set up benchmark
+		- Profile and optimise
+- Expand language to include many more rules and brute force limiting max size
+	- Automated method of generating all possible moves (maybe have a trait that will generate all possible variations of a rule? Or expand rule trait)
+	- Test the workflow of finding best strategies
+	- Produce some nice plots
+	- Histograms for best strategies
+	- Histograms of medians of all strategies
+- Once I have a robust set up for brute force and designing a language and testing it start using more advanced search methods
