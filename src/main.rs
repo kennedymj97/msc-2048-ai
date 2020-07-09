@@ -22,7 +22,7 @@ fn main() {
     //evaluate_strategies(
     //    &strategy_rules,
     //    |strategy| Snake::new(strategy, fallback_rules.clone()),
-    //    40,
+    //    1000,
     //    "data.txt",
     //);
     //

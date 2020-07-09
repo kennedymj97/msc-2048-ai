@@ -5,6 +5,7 @@ use std::fs::File;
 use std::io::Write;
 use std::time::SystemTime;
 
+pub mod default;
 pub mod expectimax;
 pub mod random;
 pub mod sequence;
@@ -17,7 +18,7 @@ pub trait AI {
 pub fn run_ai(mut ai: Box<dyn AI>) {
     let mut num_moves = 0;
     let start_time = SystemTime::now();
-    let mut board = GameEngine::new_game();
+    let mut board = GameEngine::new_board();
     loop {
         //println!("Score: {}", GameEngine::get_score(board));
         //println!("{}", GameEngine::to_str(board));
@@ -46,7 +47,7 @@ pub fn run_ai(mut ai: Box<dyn AI>) {
 }
 
 pub fn run_ai_with_delay(mut ai: Box<dyn AI>, delay: u64) {
-    let mut board = GameEngine::new_game();
+    let mut board = GameEngine::new_board();
     loop {
         let best_move = ai.get_next_move(board);
         match best_move {
@@ -64,7 +65,7 @@ pub fn run_ai_with_delay(mut ai: Box<dyn AI>, delay: u64) {
 
 pub fn record_ai_game(mut ai: Box<dyn AI>, filename: &str) {
     let mut file = File::create(format!("./{}.txt", filename)).expect("failed to create file");
-    let mut board = GameEngine::new_game();
+    let mut board = GameEngine::new_board();
     loop {
         if GameEngine::get_score(board) > 25000 {
             break;
@@ -137,7 +138,7 @@ where
 
 fn evaluate_strategy(mut ai: Box<dyn AI>, n: u32) -> Vec<u64> {
     (0..n).fold(vec![], |mut results, _| {
-        let mut board = GameEngine::new_game();
+        let mut board = GameEngine::new_board();
         loop {
             let best_move = ai.get_next_move(board);
             match best_move {
@@ -159,7 +160,7 @@ fn average(items: &Vec<u64>) -> f32 {
 pub fn get_strategy_data(mut ai: Box<dyn AI>, n: u32, filename: &str) {
     let mut f = File::create(format!("{}", filename)).expect("Failed to create file");
     (0..n).for_each(|_| {
-        let mut board = GameEngine::new_game();
+        let mut board = GameEngine::new_board();
         loop {
             let best_move = ai.get_next_move(board);
             match best_move {
@@ -177,12 +178,6 @@ pub fn get_strategy_data(mut ai: Box<dyn AI>, n: u32, filename: &str) {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn it_median() {
-        assert_eq!(median(&vec![5, 1, 1, 3, 4]), 3);
-        assert_eq!(median(&vec![5, 1, 2, 4, 1, 2, 3, 5, 8, 7, 6, 5]), 5);
-    }
 
     #[test]
     fn it_average() {

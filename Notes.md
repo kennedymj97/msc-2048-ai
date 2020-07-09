@@ -81,7 +81,7 @@ Options:
 - Use resources to help
 - Use excel to help produce test cases
 
-## 06/07/2020
+### 06/07/2020
 **TODO:**
 [x] Do draft 2 of project plan
 [x] Decide on how to implement statistical performance analysis
@@ -110,12 +110,12 @@ Options:
 		3. If the strategy is better, create a new list with the strategy as the first element. Compare every strategy in the previous top strategies to the new strategy using the same logic.
 3. Hopefully this will always result in a small number of strategies that can then be further tested manually. If there are too many strategies a method of parsing them for further evaluation may need to be developed.
 
-# 07/07/2020
+### 07/07/2020
 **TODO:**
 [x] Fully implement statistical performance analysis
 [] Do some research into better search methods to find strategies
 
-# 08/07/2020
+### 08/07/2020
 **TODO:**
 [x] Edit way strategy data is saved
 [x] Create function to parse strategy data
@@ -133,3 +133,7 @@ Options:
 	- Histograms for best strategies
 	- Histograms of medians of all strategies
 - Once I have a robust set up for brute force and designing a language and testing it start using more advanced search methods
+
+### 09/07/2020
+**TODO:**
+[] Work on optimising snake AI

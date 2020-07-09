@@ -22,10 +22,8 @@ sudo opannotate --source
 ## Installing FlameGraph
 ```shell
 cd ~
-mkdir Tools
-cd Tools
+mkdir tools
+cd tools
 git clone https://github.com/brendangregg/FlameGraph
-cd ~
-echo "PATH=~/Tools/FlameGraph:$PATH" >> ~/.profile
-source ~/.profile
+source ~/.config/fish/config.fish
 ```

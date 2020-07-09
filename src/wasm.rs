@@ -10,7 +10,8 @@ pub struct WasmInterface(GameEngine::Board);
 impl WasmInterface {
     pub fn new() -> Self {
         Expectimax::new();
-        WasmInterface(GameEngine::new_game())
+        GameEngine::create_stores();
+        WasmInterface(GameEngine::new_board())
     }
 
     pub fn make_move(&mut self) {

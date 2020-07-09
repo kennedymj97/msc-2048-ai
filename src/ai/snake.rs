@@ -59,6 +59,7 @@ pub struct Snake {
 
 impl Snake {
     pub fn new(rules: Rules, fallback: Rules) -> Box<Self> {
+        GameEngine::create_stores();
         Box::new(Snake { rules, fallback })
     }
 }
@@ -159,7 +160,7 @@ pub mod attributes {
 
         #[test]
         fn it_is_move_possible() {
-            GameEngine::new_game();
+            GameEngine::create_stores();
             assert_eq!(is_move_possible(0x1111222233334444, Move::Left), true);
             assert_eq!(is_move_possible(0x1234123412341234, Move::Left), false);
             assert_eq!(is_move_possible(0x1111123412341234, Move::Right), true);
@@ -214,7 +215,7 @@ pub mod attributes {
 
         #[test]
         fn it_does_move_produce_merge_in_direction() {
-            GameEngine::new_game();
+            GameEngine::create_stores();
             assert_eq!(
                 does_move_produce_merge_in_direction(0x1234234000000000, Move::Right, Move::Up),
                 true

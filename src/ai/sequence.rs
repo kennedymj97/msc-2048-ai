@@ -15,6 +15,7 @@ pub struct Sequence {
 
 impl Sequence {
     pub fn new(move_sequence: MoveSequence) -> Self {
+        GameEngine::create_stores();
         Sequence {
             move_sequence,
             sequence_idx: 0,
@@ -96,7 +97,7 @@ fn get_average_score(sequence: MoveSequence, runs: u32) -> f32 {
 }
 
 fn run_sequence(sequence: MoveSequence) -> u64 {
-    let mut board = GameEngine::new_game();
+    let mut board = GameEngine::new_board();
     let mut sequence_ai = Sequence::new(sequence);
     loop {
         let next_move = sequence_ai.get_next_move(board);

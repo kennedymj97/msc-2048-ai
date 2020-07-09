@@ -11,12 +11,12 @@ pub enum Move {
 }
 
 impl fmt::Display for Move {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Move::Up => write!(f, "Up"),
-            Move::Down => write!(f, "Down"),
             Move::Left => write!(f, "Left"),
             Move::Right => write!(f, "Right"),
+            Move::Up => write!(f, "Up"),
+            Move::Down => write!(f, "Down"),
         }
     }
 }
@@ -34,10 +34,7 @@ type Line = u64;
 type Tile = u64;
 type Score = u64;
 
-pub fn new_game() -> Board {
-    unsafe {
-        create_stores();
-    }
+pub fn new_board() -> Board {
     let board = insert_random_tile(0);
     insert_random_tile(board)
 }
@@ -85,17 +82,11 @@ pub fn extract_line(board: Board, line_idx: u64) -> Line {
 }
 
 pub fn get_tile(board: Board, idx: usize) -> Tile {
-    (board >> ((15 - idx) * 4)) & 0xf
+    (board >> (60 - (4 * idx))) & 0xf
 }
 
 pub fn get_tile_val(board: Board, idx: usize) -> u16 {
     2_u16.pow(((board >> (60 - (4 * idx))) & 0xf) as u32)
-}
-
-pub fn get_largest_tile(board: Board) -> u16 {
-    let mut max_tile = 0;
-    (0..16).for_each(|idx| max_tile = max_tile.max(get_tile_val(board, idx)));
-    max_tile
 }
 
 pub fn line_to_vec(line: Line) -> Vec<Tile> {
@@ -125,14 +116,14 @@ pub fn to_str(board: Board) -> String {
     let board: Vec<_> = to_vec(board).iter().map(|x| format_val(x)).collect();
     format!(
         "\r
-{}|{}|{}|{}\r
---------------------------------\r
-{}|{}|{}|{}\r
---------------------------------\r
-{}|{}|{}|{}\r
---------------------------------\r
-{}|{}|{}|{}\r
-",
+        {}|{}|{}|{}\r
+        --------------------------------\r
+        {}|{}|{}|{}\r
+        --------------------------------\r
+        {}|{}|{}|{}\r
+        --------------------------------\r
+        {}|{}|{}|{}\r
+        ",
         board[0],
         board[1],
         board[2],
@@ -160,18 +151,20 @@ static mut STORES: Stores = Stores {
     score: [0; 0xffff],
 };
 
-unsafe fn create_stores() {
-    let mut val = 0;
-    while val < 0xffff {
-        STORES.shift_left[val] = shift_line(val as u64, Move::Left);
-        STORES.shift_right[val] = shift_line(val as u64, Move::Right);
+pub fn create_stores() {
+    unsafe {
+        let mut val = 0;
+        while val < 0xffff {
+            STORES.shift_left[val] = shift_line(val as u64, Move::Left);
+            STORES.shift_right[val] = shift_line(val as u64, Move::Right);
 
-        STORES.shift_up[val] = shift_line(val as u64, Move::Up);
-        STORES.shift_down[val] = shift_line(val as u64, Move::Down);
+            STORES.shift_up[val] = shift_line(val as u64, Move::Up);
+            STORES.shift_down[val] = shift_line(val as u64, Move::Down);
 
-        STORES.score[val] = calc_score(val as u64);
+            STORES.score[val] = calc_score(val as u64);
 
-        val += 1;
+            val += 1;
+        }
     }
 }
 
@@ -305,12 +298,16 @@ fn count_non_empty(board: Board) -> u64 {
     board_copy.popcnt()
 }
 
-fn to_vec(board: Board) -> Vec<u8> {
+pub fn to_vec(board: Board) -> Vec<u8> {
     (0..16).fold(Vec::new(), |mut vec, idx| {
-        let num = get_tile(board, idx);
+        let num = extract_tile(board, idx);
         vec.push(num as u8);
         vec
     })
+}
+
+fn extract_tile(board: Board, idx: usize) -> Tile {
+    (board >> ((15 - idx) * 4)) & 0xf
 }
 
 fn format_val(val: &u8) -> String {
@@ -339,7 +336,6 @@ mod tests {
         assert_eq!(shift_vec_left(vec![1, 2, 1, 2]), vec![1, 2, 1, 2]);
         assert_eq!(shift_vec_left(vec![1, 1, 2, 2]), vec![2, 3, 0, 0]);
         assert_eq!(shift_vec_left(vec![1, 0, 0, 1]), vec![2, 0, 0, 0]);
-        assert_eq!(shift_vec_left(vec![1, 2, 3, 4]), vec![1, 2, 3, 4]);
     }
 
     #[test]
@@ -361,12 +357,8 @@ mod tests {
     }
 
     #[test]
-    fn test_shift() {
-        assert_eq!(shift(0x1234123412341234, Move::Left), 0x1234123412341234);
-    }
-
-    #[test]
     fn test_shift_left() {
+        create_stores();
         assert_eq!(shift(0x0000, Move::Left), 0x0000);
         assert_eq!(shift(0x0002, Move::Left), 0x2000);
         assert_eq!(shift(0x2020, Move::Left), 0x3000);
@@ -378,6 +370,7 @@ mod tests {
 
     #[test]
     fn test_shift_right() {
+        create_stores();
         assert_eq!(shift(0x0000, Move::Right), 0x0000);
         assert_eq!(shift(0x2000, Move::Right), 0x0002);
         assert_eq!(shift(0x2020, Move::Right), 0x0003);
@@ -389,7 +382,8 @@ mod tests {
 
     #[test]
     fn test_move_left() {
-        new_game();
+        create_stores();
+        new_board();
         let game = 0x1234133220021002;
         let game = shift(game, Move::Left);
         assert_eq!(game, 0x1234142030001200);
@@ -397,7 +391,8 @@ mod tests {
 
     #[test]
     fn test_move_up() {
-        new_game();
+        create_stores();
+        new_board();
         let game = 0x1121230033004222;
         let game = shift(game, Move::Up);
         assert_eq!(game, 0x1131240232004000);
@@ -405,7 +400,8 @@ mod tests {
 
     #[test]
     fn test_move_right() {
-        new_game();
+        create_stores();
+        new_board();
         let game = 0x1234133220021002;
         let game = shift(game, Move::Right);
         assert_eq!(game, 0x1234014200030012);
@@ -413,7 +409,8 @@ mod tests {
 
     #[test]
     fn test_move_down() {
-        new_game();
+        create_stores();
+        new_board();
         let game = 0x1121230033004222;
         let game = shift(game, Move::Down);
         assert_eq!(game, 0x1000210034014232);

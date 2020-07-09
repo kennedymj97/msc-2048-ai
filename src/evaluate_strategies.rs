@@ -70,3 +70,14 @@ fn parse_data(filename: &str) -> Vec<(String, Vec<u64>)> {
         data
     })
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn it_median() {
+        assert_eq!(median(&vec![5, 1, 1, 3, 4]), 3);
+        assert_eq!(median(&vec![5, 1, 2, 4, 1, 2, 3, 5, 8, 7, 6, 5]), 5);
+    }
+}
