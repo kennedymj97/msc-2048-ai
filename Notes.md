@@ -136,4 +136,5 @@ Options:
 
 ### 09/07/2020
 **TODO:**
-[] Work on optimising snake AI
+[x] Work on optimising snake AI
+	- All AIs now optimised, was previously creating the stores every time I ran the AI... Just need to make sure to create stores... Can change implementation if needed to force creation of stores.
