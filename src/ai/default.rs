@@ -6,7 +6,6 @@ pub struct Default;
 
 impl Default {
     pub fn new() -> Self {
-        GameEngine::create_stores();
         Default
     }
 }

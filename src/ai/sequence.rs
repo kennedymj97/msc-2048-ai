@@ -15,7 +15,6 @@ pub struct Sequence {
 
 impl Sequence {
     pub fn new(move_sequence: MoveSequence) -> Self {
-        GameEngine::create_stores();
         Sequence {
             move_sequence,
             sequence_idx: 0,

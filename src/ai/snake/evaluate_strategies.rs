@@ -1,16 +1,17 @@
-use crate::mann_whitney::mann_whitney_u_test;
+use super::mann_whitney::mann_whitney_u_test;
 use std::cmp::Ordering;
 use std::fs;
+use std::path::Path;
 
 pub fn find_best_strategies(filename: &str) {
-    let strategies = parse_data(filename);
+    let path = Path::new(filename);
+    let strategies = parse_data(path);
     let best_strategies = compare_strategies(strategies);
     let best_strategies_info = best_strategies
         .iter()
         .map(|(strategy_info, scores)| (strategy_info, median(scores)))
         .collect::<Vec<_>>();
     println!("{:#?}", best_strategies_info);
-    println!("{}", best_strategies_info.len());
 }
 
 fn median<T: Ord + Copy>(items: &Vec<T>) -> T {
@@ -48,8 +49,8 @@ fn compare_strategies(data: Strategies) -> Strategies {
 /// [STRATEGY RULES]->score1;score2;score3...
 /// This function will parse the strategy data and return a vector of tuples, the first item in the
 /// tuple is the strategy and the second is a vector of the scores
-fn parse_data(filename: &str) -> Vec<(String, Vec<u64>)> {
-    let text = fs::read_to_string(filename).expect("Failed to read file");
+fn parse_data(path: &Path) -> Vec<(String, Vec<u64>)> {
+    let text = fs::read_to_string(path).expect("Failed to read file");
     text.lines().fold(Vec::new(), |mut data, line| {
         let mut line_data = Vec::new();
         line.split("->").for_each(|sec| line_data.push(sec));
