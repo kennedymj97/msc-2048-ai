@@ -1,36 +1,18 @@
+use super::rules::Rules;
 use permutohedron::Heap;
 
-//pub fn generate_strategies<T: Clone>(set: &[T]) -> Vec<Vec<T>> {
-//    let power_set = set.iter().fold(vec![vec![]], |mut power_set, set_item| {
-//        let i = power_set.clone().into_iter().map(|mut sub_set| {
-//            sub_set.push(set_item.clone());
-//            sub_set
-//        });
-//        power_set.extend(i);
-//        power_set
-//    });
-//
-//    let mut all_strategies = Vec::new();
-//    for mut set in power_set {
-//        let heap = Heap::new(&mut set);
-//        for data in heap {
-//            all_strategies.push(data.clone());
-//        }
-//    }
-//    all_strategies
-//}
-use super::rules::Rules;
-
-pub fn generate_strategies(generators: &[Variations]) -> Vec<Rules> {
+pub fn generate_strategies(generators: &[Variations], max_length: usize) -> Vec<Rules> {
     // Takes in a list of generators
     // Need to generate all variations of each generator and concat them together
+    let mut n = 0;
     let set = generators.iter().fold(Vec::new(), |mut set, subset| {
+        n += subset.len();
         let mut subset = subset.clone();
         set.append(&mut subset);
         set
     });
 
-    let power_set = set.iter().fold(vec![vec![]], |mut power_set, set_item| {
+    let power_set: Vec<Rules> = set.iter().fold(vec![vec![]], |mut power_set, set_item| {
         let i = power_set.clone().into_iter().map(|mut sub_set| {
             sub_set.push(set_item.clone());
             sub_set
@@ -39,6 +21,11 @@ pub fn generate_strategies(generators: &[Variations]) -> Vec<Rules> {
         power_set
     });
 
+    let power_set = power_set
+        .into_iter()
+        .filter(|item| item.len() <= max_length)
+        .collect::<Vec<Rules>>();
+
     let mut all_strategies = Vec::new();
     for mut item in power_set {
         let heap = Heap::new(&mut item);
@@ -46,7 +33,23 @@ pub fn generate_strategies(generators: &[Variations]) -> Vec<Rules> {
             all_strategies.push(data.clone());
         }
     }
+    assert!(all_strategies.len() as u64 == num_of_possible_strategies(n, max_length));
     all_strategies
+}
+
+fn num_of_possible_strategies(n: usize, k: usize) -> u64 {
+    assert!(n >= k);
+    (0..k + 1).fold(0, |acc, size_of_subset| {
+        acc + (factorial(n) / factorial(n - size_of_subset))
+    })
+}
+
+fn factorial(n: usize) -> u64 {
+    match n {
+        0 => 1,
+        1 => 1,
+        _ => factorial(n - 1) * n as u64,
+    }
 }
 
 use super::rules::Rule;

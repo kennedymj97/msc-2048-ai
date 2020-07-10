@@ -8,9 +8,18 @@ use msc_2048_ai::engine::Move;
 
 fn main() {
     let generators: &[Variations] = &[
-        generate_rule_variations(TryMoveIfProducesLeftMerge::new, &[Move::Up, Move::Down]),
-        generate_rule_variations(BanMoveIfLeftColumnLocked::new, &[Move::Up]),
-        generate_rule_variations(TryMoveIfMergePossible::new, &[Move::Left]),
+        generate_rule_variations(
+            TryMoveIfProducesLeftMerge::new,
+            &[Move::Up, Move::Down, Move::Left, Move::Right],
+        ),
+        generate_rule_variations(
+            BanMoveIfLeftColumnLocked::new,
+            &[Move::Up, Move::Down, Move::Left, Move::Right],
+        ),
+        generate_rule_variations(
+            TryMoveIfMergePossible::new,
+            &[Move::Up, Move::Down, Move::Left, Move::Right],
+        ),
     ];
 
     let fallback_rules: Rules = vec![
@@ -22,6 +31,7 @@ fn main() {
     run_strategies::run_strategies_save_results(
         generators,
         |strategy| Snake::new(strategy, fallback_rules.clone()),
+        4,
         1000,
         "./data.txt",
     );

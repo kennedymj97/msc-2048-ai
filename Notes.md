@@ -144,3 +144,14 @@ Options:
 [x] Check create stores not being done more than once
 [x] Refactor snake AI and related
 [x] Work on generating all possible rule variations
+
+**Next steps for brute force:**
+- Ensure the data is being saved in a format that can be loaded into excel
+- Implement a progressive brute force, gradually increase number of runs, saving a data file for every number of runs, only run strategies remaining based of Mann-Whtiney
+	- Check the progressive brute force is faster and produces equivalent results
+- Add more rules
+- Produce some nice plots
+
+**Brute force vs progressive brute force:**
+Time taken at max strategy size 4, 12 possible rules (13345 strategies), 1000 runs brute force: 25.54mins, usr time: 1509.18s, sys time: 29.25s (100 microseconds per game!)
+Time taken at max strategy size 4, 12 possible rules (13345 strategies), 1000 runs progressive brute force: 

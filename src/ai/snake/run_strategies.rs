@@ -7,19 +7,26 @@ use std::fs::File;
 use std::io::Write;
 use std::path::Path;
 
-pub fn run_strategies_save_results<F>(set: &[Variations], create_ai: F, n: u32, filename: &str)
-where
+pub fn run_strategies_save_results<F>(
+    set: &[Variations],
+    create_ai: F,
+    max_length: usize,
+    runs: u32,
+    filename: &str,
+) where
     F: Fn(Rules) -> Box<dyn AI>,
 {
     GameEngine::create_stores();
-    let strategies = generate_strategies(set);
-    assert!(strategies.len() == 65);
+    let strategies = generate_strategies(set, max_length);
     let mut f = File::create(Path::new(filename)).expect("Failed to create file");
+    let mut count = 0;
+    let total_count = strategies.len();
     strategies.iter().for_each(|strategy| {
-        println!("Evaluating strategy: {:?}", strategy);
+        count += 1;
+        println!("{}/{}", count, total_count);
         f.write_fmt(format_args!("{:?}->", strategy))
             .expect("Failed to write strategy information to file");
-        let results = run_strategy(create_ai(strategy.clone()), n);
+        let results = run_strategy(create_ai(strategy.clone()), runs);
         results.iter().enumerate().for_each(|(idx, score)| {
             if idx == results.len() - 1 {
                 f.write_fmt(format_args!("{}", score))
