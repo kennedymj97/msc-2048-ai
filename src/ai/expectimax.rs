@@ -43,8 +43,9 @@ struct TranspositionEntry {
 pub struct Expectimax;
 
 impl Expectimax {
-    pub fn new() {
+    pub fn new() -> Self {
         unsafe { create_heuristic_score_table() };
+        Expectimax
     }
 }
 
@@ -160,8 +161,9 @@ fn evaluate_chance(
 pub struct ExpectimaxMultithread;
 
 impl ExpectimaxMultithread {
-    pub fn new() {
+    pub fn new() -> Self {
         unsafe { create_heuristic_score_table() };
+        ExpectimaxMultithread
     }
 }
 

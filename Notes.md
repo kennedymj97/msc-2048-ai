@@ -155,3 +155,25 @@ Options:
 **Brute force vs progressive brute force:**
 Time taken at max strategy size 4, 12 possible rules (13345 strategies), 1000 runs brute force: 25.54mins, usr time: 1509.18s, sys time: 29.25s (100 microseconds per game!)
 Time taken at max strategy size 4, 12 possible rules (13345 strategies), 1000 runs progressive brute force: 
+
+# 11/07/2020
+**TODO:**
+[x] Implement progressive brute force
+
+**Progressive brute force:**
+- Top level function:
+	- Create folder
+	- Generate all strategies
+	- Call aux function giving strategies and folder name
+- Aux function
+	- Run all the strategies given storing the results in a data structure
+	- Save the results to a file
+	- Perform Mann-Whitney U test on results
+	- Recursively call aux function to get results
+- When running strategies instead of just writing to a file, store the data in a vec
+- Recursively call the function until a certain number of strategies is reached
+
+# 12/07/2020
+**TODO:**
+[] Time progressive brute force on pc
+

@@ -20,12 +20,16 @@ fn median<T: Ord + Copy>(items: &Vec<T>) -> T {
     items[items.len() / 2]
 }
 
-type Strategy = (String, Vec<u64>);
-type Strategies = Vec<Strategy>;
+type StrategyData<T> = (T, Vec<u64>);
+pub type StrategyDataStore<T> = Vec<StrategyData<T>>;
 
-fn compare_strategies(data: Strategies) -> Strategies {
-    let mut top_strategies = vec![(String::from("dummy strategy"), vec![0; 20])];
-    data.iter().for_each(|strategy| {
+pub fn compare_strategies<T: Clone>(data: StrategyDataStore<T>) -> StrategyDataStore<T> {
+    let mut top_strategies = Vec::new();
+    for strategy in data {
+        if top_strategies.len() == 0 {
+            top_strategies.push(strategy.clone());
+            continue;
+        }
         match mann_whitney_u_test(strategy.1.clone(), top_strategies[0].1.clone()) {
             Ordering::Equal => top_strategies.push(strategy.clone()),
             Ordering::Greater => {
@@ -41,7 +45,7 @@ fn compare_strategies(data: Strategies) -> Strategies {
             }
             Ordering::Less => (),
         }
-    });
+    }
     top_strategies
 }
 

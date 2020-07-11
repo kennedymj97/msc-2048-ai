@@ -17,10 +17,11 @@ pub trait AI {
 pub fn run_ai(mut ai: Box<dyn AI>) {
     let mut num_moves = 0;
     let start_time = SystemTime::now();
+    GameEngine::create_stores();
     let mut board = GameEngine::new_board();
     loop {
-        //println!("Score: {}", GameEngine::get_score(board));
-        //println!("{}", GameEngine::to_str(board));
+        println!("Score: {}", GameEngine::get_score(board));
+        println!("{}", GameEngine::to_str(board));
         let best_move = ai.get_next_move(board);
         match best_move {
             Some(direction) => {
