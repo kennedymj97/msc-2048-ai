@@ -157,7 +157,7 @@ Time taken at max strategy size 4, 12 possible rules (13345 strategies), 1000 ru
 Time taken at max strategy size 4, 12 possible rules (13345 strategies), 1000 runs progressive brute force: 33.72s, usr time: 32.04s, sys time: 1.67s
 Both the brute force and progressive brute force produced the same results.
 
-# 11/07/2020
+### 11/07/2020
 **TODO:**
 [x] Implement progressive brute force
 
@@ -174,14 +174,16 @@ Both the brute force and progressive brute force produced the same results.
 - When running strategies instead of just writing to a file, store the data in a vec
 - Recursively call the function until a certain number of strategies is reached
 
-# 12/07/2020
+### 12/07/2020
 **TODO:**
 [x] Time progressive brute force on pc
-[] Save files as csvs
-[] Add another rule
+[x] Save files as csvs
 
 **Saving files as csvs:**
 - Comma delimited, need to make the strategies print in a different way somehow
+
+### 13/07/2020
+[] Add another rule
 
 **Add another rule:**
 - Collect a 2 games that get 2048 and 2 games that do not, what is the key failure point, can an extra rule help?

@@ -32,9 +32,21 @@ fn remove_item(vec: Vec<Move>, direction: Move) -> Vec<Move> {
         .collect()
 }
 
-pub type Rules = Vec<Box<dyn Rule>>;
+pub type Strategy = Vec<Box<dyn Rule>>;
 
-pub trait Rule: fmt::Debug + RuleClone {
+pub fn strategy_to_str(strategy: &Strategy) -> String {
+    let mut strategy_str = String::new();
+    let mut strategy_iter = strategy.iter().peekable();
+    while let Some(rule) = strategy_iter.next() {
+        strategy_str.push_str(&format!("{}", rule));
+        if strategy_iter.peek().is_some() {
+            strategy_str.push_str(" -> ");
+        }
+    }
+    strategy_str
+}
+
+pub trait Rule: fmt::Display + RuleClone {
     fn execute(&self, board: GameEngine::Board) -> Result;
 }
 
@@ -68,7 +80,7 @@ impl ForceMoveIfPossible {
     }
 }
 
-impl fmt::Debug for ForceMoveIfPossible {
+impl fmt::Display for ForceMoveIfPossible {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "Force move in direction: {} if possible", self.direction)
     }
@@ -94,7 +106,7 @@ impl BanMoveIfLeftColumnLocked {
     }
 }
 
-impl fmt::Debug for BanMoveIfLeftColumnLocked {
+impl fmt::Display for BanMoveIfLeftColumnLocked {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
@@ -124,7 +136,7 @@ impl TryMoveIfProducesLeftMerge {
     }
 }
 
-impl fmt::Debug for TryMoveIfProducesLeftMerge {
+impl fmt::Display for TryMoveIfProducesLeftMerge {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
@@ -154,7 +166,7 @@ impl TryMoveIfMergePossible {
     }
 }
 
-impl fmt::Debug for TryMoveIfMergePossible {
+impl fmt::Display for TryMoveIfMergePossible {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,

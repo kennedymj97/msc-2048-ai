@@ -1,7 +1,7 @@
-use super::rules::Rules;
+use super::rules::Strategy;
 use permutohedron::Heap;
 
-pub fn generate_strategies(generators: &[Variations], max_length: usize) -> Vec<Rules> {
+pub fn generate_strategies(generators: &[Variations], max_length: usize) -> Vec<Strategy> {
     // Takes in a list of generators
     // Need to generate all variations of each generator and concat them together
     let mut n = 0;
@@ -12,7 +12,7 @@ pub fn generate_strategies(generators: &[Variations], max_length: usize) -> Vec<
         set
     });
 
-    let power_set: Vec<Rules> = set.iter().fold(vec![vec![]], |mut power_set, set_item| {
+    let power_set: Vec<Strategy> = set.iter().fold(vec![vec![]], |mut power_set, set_item| {
         let i = power_set.clone().into_iter().map(|mut sub_set| {
             sub_set.push(set_item.clone());
             sub_set
@@ -24,7 +24,7 @@ pub fn generate_strategies(generators: &[Variations], max_length: usize) -> Vec<
     let power_set = power_set
         .into_iter()
         .filter(|item| item.len() <= max_length)
-        .collect::<Vec<Rules>>();
+        .collect::<Vec<Strategy>>();
 
     let mut all_strategies = Vec::new();
     for mut item in power_set {
@@ -65,56 +65,3 @@ pub fn generate_rule_variations(f: fn(Move) -> Box<dyn Rule>, move_dirs: &[Move]
             variations
         })
 }
-
-//pub trait Generator {
-//    fn get_all_variations(&self) -> Variations;
-//}
-//
-//pub struct BanMoveIfLeftColumnLockedGenerator(Vec<Box<dyn Rule>>);
-//
-//impl BanMoveIfLeftColumnLockedGenerator {
-//    pub fn new() -> Box<Self> {
-//        Box::new(BanMoveIfLeftColumnLockedGenerator(vec![
-//            BanMoveIfLeftColumnLocked::new(Move::Up),
-//        ]))
-//    }
-//}
-//
-//impl Generator for BanMoveIfLeftColumnLockedGenerator {
-//    fn get_all_variations(&self) -> Variations {
-//        self.0.clone()
-//    }
-//}
-//
-//pub struct TryMoveIfMergePossibleGenerator(Vec<Box<dyn Rule>>);
-//
-//impl TryMoveIfMergePossibleGenerator {
-//    pub fn new() -> Box<Self> {
-//        Box::new(TryMoveIfMergePossibleGenerator(vec![
-//            TryMoveIfMergePossible::new(Move::Left),
-//        ]))
-//    }
-//}
-//
-//impl Generator for TryMoveIfMergePossibleGenerator {
-//    fn get_all_variations(&self) -> Variations {
-//        self.0.clone()
-//    }
-//}
-//
-//pub struct TryMoveIfProducesLeftMergeGenerator(Vec<Box<dyn Rule>>);
-//
-//impl TryMoveIfProducesLeftMergeGenerator {
-//    pub fn new() -> Box<Self> {
-//        Box::new(TryMoveIfProducesLeftMergeGenerator(vec![
-//            TryMoveIfProducesLeftMerge::new(Move::Down),
-//            TryMoveIfProducesLeftMerge::new(Move::Up),
-//        ]))
-//    }
-//}
-//
-//impl Generator for TryMoveIfProducesLeftMergeGenerator {
-//    fn get_all_variations(&self) -> Variations {
-//        self.0.clone()
-//    }
-//}

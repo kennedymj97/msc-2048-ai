@@ -25,7 +25,7 @@ fn main() {
         ),
     ];
 
-    let fallback_rules: Rules = vec![
+    let fallback_rules: Strategy = vec![
         ForceMoveIfPossible::new(Move::Left),
         ForceMoveIfPossible::new(Move::Down),
         ForceMoveIfPossible::new(Move::Up),

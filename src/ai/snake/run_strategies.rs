@@ -2,7 +2,8 @@ use super::evaluate_strategies::compare_strategies;
 use super::evaluate_strategies::StrategyDataStore;
 use super::generate_strategies::generate_strategies;
 use super::generate_strategies::Variations;
-use super::rules::Rules;
+use super::rules::strategy_to_str;
+use super::rules::Strategy;
 use crate::ai::AI;
 use crate::engine as GameEngine;
 use std::fs::DirBuilder;
@@ -16,7 +17,7 @@ pub fn progressive_brute_force<F>(
     max_length: usize,
     foldername: &str,
 ) where
-    F: Fn(Rules) -> Box<dyn AI>,
+    F: Fn(Strategy) -> Box<dyn AI>,
 {
     GameEngine::create_stores();
     let path = Path::new(foldername);
@@ -26,13 +27,15 @@ pub fn progressive_brute_force<F>(
     let strategies = strategies
         .into_iter()
         .map(|strategy| (strategy, Vec::new()))
-        .collect::<StrategyDataStore<Rules>>();
+        .collect::<StrategyDataStore<Strategy>>();
     let best_strategies = progressive_brute_force_aux(strategies, create_ai, 10, path);
     let best_strategies_info = best_strategies
         .iter()
         .map(|(strategy_info, scores)| (strategy_info, median(scores)))
         .collect::<Vec<_>>();
-    println!("{:#?}", best_strategies_info);
+    best_strategies_info
+        .iter()
+        .for_each(|(strategy, median)| println!("{}: {}", strategy_to_str(strategy), median));
 }
 
 fn median<T: Ord + Copy>(items: &Vec<T>) -> T {
@@ -42,13 +45,13 @@ fn median<T: Ord + Copy>(items: &Vec<T>) -> T {
 }
 
 fn progressive_brute_force_aux<F>(
-    strategies_data: StrategyDataStore<Rules>,
+    strategies_data: StrategyDataStore<Strategy>,
     create_ai: F,
     runs: usize,
     foldername: &Path,
-) -> StrategyDataStore<Rules>
+) -> StrategyDataStore<Strategy>
 where
-    F: Fn(Rules) -> Box<dyn AI>,
+    F: Fn(Strategy) -> Box<dyn AI>,
 {
     if runs > 1000 {
         return strategies_data;
@@ -66,7 +69,7 @@ where
                 run_strategy(create_ai(strategy.clone()), results.clone(), runs),
             )
         })
-        .collect::<StrategyDataStore<Rules>>();
+        .collect::<StrategyDataStore<Strategy>>();
     save_results(&strategies_data, foldername, runs);
     progressive_brute_force_aux(
         compare_strategies(strategies_data),
@@ -76,22 +79,21 @@ where
     )
 }
 
-fn save_results(strategies_data: &StrategyDataStore<Rules>, foldername: &Path, runs: usize) {
+fn save_results(strategies_data: &StrategyDataStore<Strategy>, foldername: &Path, runs: usize) {
     println!("Saving data @ {} runs...", runs);
-    let path = foldername.join(format!("{}_runs.txt", runs));
+    let path = foldername.join(format!("{}_runs.csv", runs));
     let mut f = File::create(path).expect("Failed to create file");
     strategies_data.iter().for_each(|(strategy, results)| {
-        f.write_fmt(format_args!("{:?}->", strategy))
+        f.write_fmt(format_args!("{},", strategy_to_str(strategy)))
             .expect("Failed to write strategy information to file");
-        results.iter().enumerate().for_each(|(idx, score)| {
-            if idx == results.len() - 1 {
-                f.write_fmt(format_args!("{}", score))
-                    .expect("failed to write final score");
-            } else {
-                f.write_fmt(format_args!("{};", score))
-                    .expect("Failed to write score");
+        let mut results_iter = results.iter().peekable();
+        while let Some(score) = results_iter.next() {
+            f.write_fmt(format_args!("{}", score))
+                .expect("Failed to write score");
+            if results_iter.peek().is_some() {
+                f.write(",".as_bytes()).expect("Failed to write comma");
             }
-        });
+        }
         f.write("\n".as_bytes()).expect("Failed to write new line");
     });
 }
@@ -103,7 +105,7 @@ pub fn run_strategies_save_results<F>(
     runs: usize,
     filename: &str,
 ) where
-    F: Fn(Rules) -> Box<dyn AI>,
+    F: Fn(Strategy) -> Box<dyn AI>,
 {
     GameEngine::create_stores();
     let strategies = generate_strategies(set, max_length);
@@ -113,18 +115,17 @@ pub fn run_strategies_save_results<F>(
     strategies.iter().for_each(|strategy| {
         count += 1;
         println!("{}/{}", count, total_count);
-        f.write_fmt(format_args!("{:?}->", strategy))
+        f.write_fmt(format_args!("{},", strategy_to_str(strategy)))
             .expect("Failed to write strategy information to file");
         let results = run_strategy(create_ai(strategy.clone()), Vec::new(), runs);
-        results.iter().enumerate().for_each(|(idx, score)| {
-            if idx == results.len() - 1 {
-                f.write_fmt(format_args!("{}", score))
-                    .expect("failed to write final score");
-            } else {
-                f.write_fmt(format_args!("{};", score))
-                    .expect("Failed to write score");
+        let mut results_iter = results.iter().peekable();
+        while let Some(score) = results_iter.next() {
+            f.write_fmt(format_args!("{}", score))
+                .expect("failed to write final score");
+            if results_iter.peek().is_some() {
+                f.write(",".as_bytes()).expect("Failed to write comma");
             }
-        });
+        }
         f.write("\n".as_bytes()).expect("Failed to write new line");
     });
 }

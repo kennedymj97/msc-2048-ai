@@ -14,7 +14,7 @@
  * [] does left merge harm monotonicity
  * [] how to deal with a move right/up when not wanted
  */
-use self::rules::Rules;
+use self::rules::Strategy;
 use crate::ai::AI;
 use crate::engine as GameEngine;
 use crate::engine::Move;
@@ -26,14 +26,13 @@ pub mod mann_whitney;
 pub mod rules;
 pub mod run_strategies;
 
-#[derive(Debug)]
 pub struct Snake {
-    rules: Rules,
-    fallback: Rules,
+    rules: Strategy,
+    fallback: Strategy,
 }
 
 impl Snake {
-    pub fn new(rules: Rules, fallback: Rules) -> Box<Self> {
+    pub fn new(rules: Strategy, fallback: Strategy) -> Box<Self> {
         Box::new(Snake { rules, fallback })
     }
 }
