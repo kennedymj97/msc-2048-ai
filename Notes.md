@@ -183,8 +183,9 @@ Both the brute force and progressive brute force produced the same results.
 - Comma delimited, need to make the strategies print in a different way somehow
 
 ### 13/07/2020
+**TODO:**
 [x] Refactor engine for safety, ensure stores are created
-[] Get detailed statistics on best current strategy
+[x] Get detailed statistics on best current strategy
 [] Add another rule
 
 **Detailed statistics:**
@@ -195,3 +196,16 @@ Both the brute force and progressive brute force produced the same results.
 
 **Add another rule:**
 - Collect a 2 games that get 2048 and 2 games that do not, what is the key failure point, can an extra rule help?
+
+**New rule ideas:**
+- How do I handle a right move?? If get bad placement can you do up move?
+- Add sequences (length 2) to force moves
+- Merge down when possible in left column
+
+### 14/07/2020
+**TODO:**
+[] Work out which has more possibilities, including force move in main, or splitting
+[] Test the strategies with different fallback rules
+[] Split snake up into 3 stages: Ban -> Try -> Force?
+
+

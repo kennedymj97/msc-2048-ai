@@ -27,18 +27,21 @@ pub mod mann_whitney;
 pub mod rules;
 pub mod run_strategies;
 
-pub struct Snake<'a> {
-    rules: &'a Strategy,
-    fallback: &'a Strategy,
+pub struct Snake {
+    rules: Strategy,
+    fallback: Strategy,
 }
 
-impl<'a> Snake<'a> {
-    pub fn new(rules: &'a Strategy, fallback: &'a Strategy) -> Box<Self> {
-        Box::new(Snake { rules, fallback })
+impl Snake {
+    pub fn new(rules: &Strategy, fallback: &Strategy) -> Box<Self> {
+        Box::new(Snake {
+            rules: rules.clone(),
+            fallback: fallback.clone(),
+        })
     }
 }
 
-impl<'a> AI for Snake<'a> {
+impl AI for Snake {
     fn get_next_move(&mut self, engine: &GameEngine, board: Board) -> Option<Move> {
         let mut moves_allowed = vec![Move::Up, Move::Down, Move::Left, Move::Right];
         let mut rules = self.rules.clone();

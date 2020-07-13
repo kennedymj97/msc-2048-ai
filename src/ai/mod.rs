@@ -70,9 +70,6 @@ pub fn record_ai_game(mut ai: Box<dyn AI>, filename: &str) {
     let engine = GameEngine::new();
     let mut board = GameEngine::new_board();
     loop {
-        if engine.get_score(board) > 25000 {
-            break;
-        }
         println!("Score: {}", engine.get_score(board));
         println!("{}", GameEngine::to_str(board));
         let best_move = ai.get_next_move(&engine, board);
@@ -89,4 +86,9 @@ pub fn record_ai_game(mut ai: Box<dyn AI>, filename: &str) {
             None => break,
         }
     }
+    println!(
+        "\nFinal state:\nScore: {}\n{}",
+        engine.get_score(board),
+        GameEngine::to_str(board)
+    );
 }

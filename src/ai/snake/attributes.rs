@@ -3,7 +3,8 @@ use crate::engine::GameEngine;
 use crate::engine::Move;
 
 pub fn is_move_possible(engine: &GameEngine, board: Board, direction: Move) -> bool {
-    board != engine.shift(board, direction)
+    let new_board = engine.shift(board, direction);
+    board != new_board
 }
 
 pub fn is_column_locked(board: Board, col_idx: usize) -> bool {
@@ -53,8 +54,12 @@ pub fn is_merge_possible(board: Board, direction: Move) -> bool {
                     }
                 }
             }
-            previous_val_row = val_row;
-            previous_val_col = val_col;
+            if val_row != 0 {
+                previous_val_row = val_row;
+            }
+            if val_col != 0 {
+                previous_val_col = val_col;
+            }
         }
     }
     false
@@ -154,6 +159,7 @@ mod tests {
         assert_eq!(is_merge_possible(0x1234123412341234, Move::Down), true);
         assert_eq!(is_merge_possible(0x1111222233334444, Move::Down), false);
         assert_eq!(is_merge_possible(0x0000205450262035, Move::Down), false);
+        assert_eq!(is_merge_possible(0x2100101052008531, Move::Left), true);
     }
 
     #[test]
@@ -166,6 +172,10 @@ mod tests {
                 Move::Right,
                 Move::Up
             ),
+            true
+        );
+        assert_eq!(
+            does_move_produce_merge_in_direction(&engine, 0x5320752186105400, Move::Up, Move::Left,),
             true
         );
     }
