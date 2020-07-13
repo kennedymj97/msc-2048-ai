@@ -183,7 +183,14 @@ Both the brute force and progressive brute force produced the same results.
 - Comma delimited, need to make the strategies print in a different way somehow
 
 ### 13/07/2020
+[] Get detailed statistics on best current strategy
 [] Add another rule
+
+**Detailed statistics:**
+- run for 10000 games
+- data to record for each run:
+	- score
+	- highest tile reached
 
 **Add another rule:**
 - Collect a 2 games that get 2048 and 2 games that do not, what is the key failure point, can an extra rule help?
