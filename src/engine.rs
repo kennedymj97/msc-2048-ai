@@ -133,6 +133,14 @@ impl GameEngine {
         (board >> (60 - (4 * idx))) & 0xf
     }
 
+    pub fn get_highest_tile_val(board: Board) -> Tile {
+        let max_tile = (0..16)
+            .map(|idx| Self::get_tile(board, idx))
+            .max()
+            .expect("Could not extract max tile");
+        2_u64.pow(max_tile as u32)
+    }
+
     pub fn get_tile_val(board: Board, idx: usize) -> u16 {
         2_u16.pow(((board >> (60 - (4 * idx))) & 0xf) as u32)
     }
