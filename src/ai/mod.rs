@@ -1,4 +1,5 @@
-use crate::engine as GameEngine;
+use crate::engine::Board;
+use crate::engine::GameEngine;
 use crate::engine::Move;
 use std::fs::File;
 use std::io::Write;
@@ -11,21 +12,21 @@ pub mod sequence;
 pub mod snake;
 
 pub trait AI {
-    fn get_next_move(&mut self, board: GameEngine::Board) -> Option<Move>;
+    fn get_next_move(&mut self, engine: &GameEngine, board: Board) -> Option<Move>;
 }
 
 pub fn run_ai(mut ai: Box<dyn AI>) {
     let mut num_moves = 0;
     let start_time = SystemTime::now();
-    GameEngine::create_stores();
+    let engine = GameEngine::new();
     let mut board = GameEngine::new_board();
     loop {
-        println!("Score: {}", GameEngine::get_score(board));
+        println!("Score: {}", engine.get_score(board));
         println!("{}", GameEngine::to_str(board));
-        let best_move = ai.get_next_move(board);
+        let best_move = ai.get_next_move(&engine, board);
         match best_move {
             Some(direction) => {
-                board = GameEngine::make_move(board, direction);
+                board = engine.make_move(board, direction);
             }
             None => break,
         }
@@ -47,16 +48,17 @@ pub fn run_ai(mut ai: Box<dyn AI>) {
 }
 
 pub fn run_ai_with_delay(mut ai: Box<dyn AI>, delay: u64) {
+    let engine = GameEngine::new();
     let mut board = GameEngine::new_board();
     loop {
-        let best_move = ai.get_next_move(board);
+        let best_move = ai.get_next_move(&engine, board);
         match best_move {
             Some(direction) => {
-                board = GameEngine::make_move(board, direction);
+                board = engine.make_move(board, direction);
             }
             None => break,
         }
-        println!("Score: {}", GameEngine::get_score(board));
+        println!("Score: {}", engine.get_score(board));
         println!("{}", GameEngine::to_str(board));
         std::thread::sleep(std::time::Duration::from_millis(delay));
     }
@@ -65,14 +67,15 @@ pub fn run_ai_with_delay(mut ai: Box<dyn AI>, delay: u64) {
 
 pub fn record_ai_game(mut ai: Box<dyn AI>, filename: &str) {
     let mut file = File::create(format!("./{}.txt", filename)).expect("failed to create file");
+    let engine = GameEngine::new();
     let mut board = GameEngine::new_board();
     loop {
-        if GameEngine::get_score(board) > 25000 {
+        if engine.get_score(board) > 25000 {
             break;
         }
-        println!("Score: {}", GameEngine::get_score(board));
+        println!("Score: {}", engine.get_score(board));
         println!("{}", GameEngine::to_str(board));
-        let best_move = ai.get_next_move(board);
+        let best_move = ai.get_next_move(&engine, board);
         match best_move {
             Some(direction) => {
                 file.write_fmt(format_args!(
@@ -81,7 +84,7 @@ pub fn record_ai_game(mut ai: Box<dyn AI>, filename: &str) {
                     direction
                 ))
                 .expect("failed to write to file");
-                board = GameEngine::make_move(board, direction);
+                board = engine.make_move(board, direction);
             }
             None => break,
         }

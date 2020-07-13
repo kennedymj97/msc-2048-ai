@@ -1,13 +1,14 @@
 use crate::ai::AI;
-use crate::engine as GameEngine;
+use crate::engine::Board;
+use crate::engine::GameEngine;
 use crate::engine::Move;
 use rand::Rng;
 
 pub struct Random;
 
 impl AI for Random {
-    fn get_next_move(&mut self, board: GameEngine::Board) -> Option<Move> {
-        if GameEngine::is_game_over(board) {
+    fn get_next_move(&mut self, engine: &GameEngine, board: Board) -> Option<Move> {
+        if engine.is_game_over(board) {
             return None;
         }
         let mut rng = rand::thread_rng();

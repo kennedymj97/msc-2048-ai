@@ -2,15 +2,14 @@ use std::fs::File;
 use std::io::prelude::Write;
 
 use crate::ai::AI;
-use crate::engine as GameEngine;
-use crate::engine::Move;
+use crate::engine::{Board, GameEngine, Move, Score};
 
 type MoveSequence = Vec<Move>;
 
 pub struct Sequence {
     move_sequence: MoveSequence,
     sequence_idx: usize,
-    starting_board: GameEngine::Board,
+    starting_board: Board,
 }
 
 impl Sequence {
@@ -24,8 +23,8 @@ impl Sequence {
 }
 
 impl AI for Sequence {
-    fn get_next_move(&mut self, board: GameEngine::Board) -> Option<Move> {
-        if GameEngine::is_game_over(board) {
+    fn get_next_move(&mut self, engine: &GameEngine, board: Board) -> Option<Move> {
+        if engine.is_game_over(board) {
             return None;
         }
 
@@ -59,20 +58,27 @@ impl AI for Sequence {
 
 pub fn evaluate_sequences(length: u32, runs: u32) {
     // create file buffer with information about length and runs
+    let engine = GameEngine::new();
     let mut f = File::create("results.txt").expect("Failed to create file");
     f.write_fmt(format_args!(
         "Sequence length: {}. Number of test runs for each sequence: {}\n",
         length, runs
     ))
     .expect("Failed to write to file");
-    evaluate_sequences_aux(length, runs, vec![], &mut f);
+    evaluate_sequences_aux(&engine, length, runs, vec![], &mut f);
 }
 
-fn evaluate_sequences_aux(length: u32, runs: u32, sequence: MoveSequence, f: &mut File) {
+fn evaluate_sequences_aux(
+    engine: &GameEngine,
+    length: u32,
+    runs: u32,
+    sequence: MoveSequence,
+    f: &mut File,
+) {
     if length == 0 {
         // run sequence for that number of runs
         println!("Testing sequence: {:?}", sequence);
-        let average_score = get_average_score(sequence.clone(), runs);
+        let average_score = get_average_score(sequence.clone(), engine, runs);
         // add entry to the file
         f.write_fmt(format_args!(
             "Score: {}, Sequence: {:?}\n",
@@ -87,23 +93,25 @@ fn evaluate_sequences_aux(length: u32, runs: u32, sequence: MoveSequence, f: &mu
         .for_each(|&move_dir| {
             let mut new_sequence = sequence.clone();
             new_sequence.push(move_dir);
-            evaluate_sequences_aux(length - 1, runs, new_sequence, f);
+            evaluate_sequences_aux(engine, length - 1, runs, new_sequence, f);
         })
 }
 
-fn get_average_score(sequence: MoveSequence, runs: u32) -> f32 {
-    (0..runs).fold(0., |score, _| score + run_sequence(sequence.clone()) as f32) / runs as f32
+fn get_average_score(sequence: MoveSequence, engine: &GameEngine, runs: u32) -> f32 {
+    (0..runs).fold(0., |score, _| {
+        score + run_sequence(sequence.clone(), engine) as f32
+    }) / runs as f32
 }
 
-fn run_sequence(sequence: MoveSequence) -> u64 {
+fn run_sequence(sequence: MoveSequence, engine: &GameEngine) -> Score {
     let mut board = GameEngine::new_board();
     let mut sequence_ai = Sequence::new(sequence);
     loop {
-        let next_move = sequence_ai.get_next_move(board);
+        let next_move = sequence_ai.get_next_move(engine, board);
         match next_move {
-            Some(move_dir) => board = GameEngine::make_move(board, move_dir),
+            Some(move_dir) => board = engine.make_move(board, move_dir),
             None => break,
         }
     }
-    GameEngine::get_score(board)
+    engine.get_score(board)
 }

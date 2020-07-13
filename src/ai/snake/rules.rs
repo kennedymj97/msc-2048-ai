@@ -1,5 +1,6 @@
 use super::attributes;
-use crate::engine as GameEngine;
+use crate::engine::Board;
+use crate::engine::GameEngine;
 use crate::engine::Move;
 use std::fmt;
 
@@ -47,7 +48,7 @@ pub fn strategy_to_str(strategy: &Strategy) -> String {
 }
 
 pub trait Rule: fmt::Display + RuleClone {
-    fn execute(&self, board: GameEngine::Board) -> Result;
+    fn execute(&self, engine: &GameEngine, board: Board) -> Result;
 }
 
 pub trait RuleClone {
@@ -87,8 +88,8 @@ impl fmt::Display for ForceMoveIfPossible {
 }
 
 impl Rule for ForceMoveIfPossible {
-    fn execute(&self, board: GameEngine::Board) -> Result {
-        if attributes::is_move_possible(board, self.direction) {
+    fn execute(&self, engine: &GameEngine, board: Board) -> Result {
+        if attributes::is_move_possible(engine, board, self.direction) {
             return Result::Force(self.direction);
         }
         Result::Ban(self.direction)
@@ -117,7 +118,7 @@ impl fmt::Display for BanMoveIfLeftColumnLocked {
 }
 
 impl Rule for BanMoveIfLeftColumnLocked {
-    fn execute(&self, board: GameEngine::Board) -> Result {
+    fn execute(&self, _engine: &GameEngine, board: Board) -> Result {
         if attributes::is_column_locked(board, 0) {
             return Result::Proceed;
         }
@@ -147,8 +148,13 @@ impl fmt::Display for TryMoveIfProducesLeftMerge {
 }
 
 impl Rule for TryMoveIfProducesLeftMerge {
-    fn execute(&self, board: GameEngine::Board) -> Result {
-        if attributes::does_move_produce_merge_in_direction(board, self.direction, Move::Left) {
+    fn execute(&self, engine: &GameEngine, board: Board) -> Result {
+        if attributes::does_move_produce_merge_in_direction(
+            engine,
+            board,
+            self.direction,
+            Move::Left,
+        ) {
             return Result::Try(self.direction);
         }
         Result::Proceed
@@ -177,7 +183,7 @@ impl fmt::Display for TryMoveIfMergePossible {
 }
 
 impl Rule for TryMoveIfMergePossible {
-    fn execute(&self, board: GameEngine::Board) -> Result {
+    fn execute(&self, _engine: &GameEngine, board: Board) -> Result {
         if attributes::is_merge_possible(board, self.direction) {
             return Result::Try(self.direction);
         }

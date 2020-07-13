@@ -16,7 +16,8 @@
  */
 use self::rules::Strategy;
 use crate::ai::AI;
-use crate::engine as GameEngine;
+use crate::engine::Board;
+use crate::engine::GameEngine;
 use crate::engine::Move;
 
 pub mod attributes;
@@ -38,13 +39,13 @@ impl Snake {
 }
 
 impl AI for Snake {
-    fn get_next_move(&mut self, board: GameEngine::Board) -> Option<Move> {
+    fn get_next_move(&mut self, engine: &GameEngine, board: Board) -> Option<Move> {
         let mut moves_allowed = vec![Move::Up, Move::Down, Move::Left, Move::Right];
         let mut rules = self.rules.clone();
         let mut fallback = self.fallback.clone();
         rules.append(&mut fallback);
         for rule in rules.iter() {
-            let res = rule.execute(board).handle(moves_allowed.clone());
+            let res = rule.execute(engine, board).handle(moves_allowed.clone());
             moves_allowed = res.0;
             if res.1 != None {
                 return res.1;

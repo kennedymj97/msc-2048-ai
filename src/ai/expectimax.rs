@@ -1,8 +1,9 @@
 use crate::ai::AI;
-use crate::engine as GameEngine;
+use crate::engine::Board;
+use crate::engine::GameEngine;
 use crate::engine::Move;
 use std::collections::HashMap;
-use std::thread;
+//use std::thread;
 
 static mut HEURISTIC_SCORES: [f64; 0xffff] = [0.; 0xffff];
 
@@ -27,7 +28,7 @@ enum Node {
     Chance,
 }
 
-type TranspositionTable = HashMap<GameEngine::Board, TranspositionEntry>;
+type TranspositionTable = HashMap<Board, TranspositionEntry>;
 
 #[derive(Debug)]
 struct ExpectimaxResult {
@@ -50,28 +51,30 @@ impl Expectimax {
 }
 
 impl AI for Expectimax {
-    fn get_next_move(&mut self, board: GameEngine::Board) -> Option<Move> {
+    fn get_next_move(&mut self, engine: &GameEngine, board: Board) -> Option<Move> {
         let depth = 3.max(count_unique(board) - 2) as u64;
         let depth = depth.min(6);
-        expectimax(board, Node::Max, depth, 1., &mut HashMap::new()).move_dir
+        expectimax(engine, board, Node::Max, depth, 1., &mut HashMap::new()).move_dir
     }
 }
 
 fn expectimax(
-    board: GameEngine::Board,
+    engine: &GameEngine,
+    board: Board,
     node: Node,
     move_depth: u64,
     cum_prob: f32,
     map: &mut TranspositionTable,
 ) -> ExpectimaxResult {
     match node {
-        Node::Max => return evaluate_max(board, move_depth, cum_prob, map),
-        Node::Chance => return evaluate_chance(board, move_depth, cum_prob, map),
+        Node::Max => return evaluate_max(engine, board, move_depth, cum_prob, map),
+        Node::Chance => return evaluate_chance(engine, board, move_depth, cum_prob, map),
     }
 }
 
 fn evaluate_max(
-    board: GameEngine::Board,
+    engine: &GameEngine,
+    board: Board,
     move_depth: u64,
     cum_prob: f32,
     map: &mut TranspositionTable,
@@ -81,13 +84,14 @@ fn evaluate_max(
     for &direction in &[Move::Up, Move::Down, Move::Left, Move::Right] {
         let new_board;
         match direction {
-            Move::Up => new_board = GameEngine::shift(board, Move::Up),
-            Move::Down => new_board = GameEngine::shift(board, Move::Down),
-            Move::Left => new_board = GameEngine::shift(board, Move::Left),
-            Move::Right => new_board = GameEngine::shift(board, Move::Right),
+            Move::Up => new_board = engine.shift(board, Move::Up),
+            Move::Down => new_board = engine.shift(board, Move::Down),
+            Move::Left => new_board = engine.shift(board, Move::Left),
+            Move::Right => new_board = engine.shift(board, Move::Right),
         }
         if new_board != board {
-            let score = expectimax(new_board, Node::Chance, move_depth, cum_prob, map).score;
+            let score =
+                expectimax(engine, new_board, Node::Chance, move_depth, cum_prob, map).score;
             if score > best_score {
                 best_score = score;
                 best_move = Some(direction);
@@ -101,7 +105,8 @@ fn evaluate_max(
 }
 
 fn evaluate_chance(
-    board: GameEngine::Board,
+    engine: &GameEngine,
+    board: Board,
     move_depth: u64,
     cum_prob: f32,
     map: &mut TranspositionTable,
@@ -135,12 +140,28 @@ fn evaluate_chance(
     while tiles_searched < num_empty_tiles {
         if (tmp & 0xf) == 0 {
             let new_board = board | insert_tile;
-            score +=
-                expectimax(new_board, Node::Max, move_depth - 1, cum_prob * 0.9, map).score * 0.9;
+            score += expectimax(
+                engine,
+                new_board,
+                Node::Max,
+                move_depth - 1,
+                cum_prob * 0.9,
+                map,
+            )
+            .score
+                * 0.9;
 
             let new_board = board | (insert_tile << 1);
-            score +=
-                expectimax(new_board, Node::Max, move_depth - 1, cum_prob * 0.1, map).score * 0.1;
+            score += expectimax(
+                engine,
+                new_board,
+                Node::Max,
+                move_depth - 1,
+                cum_prob * 0.1,
+                map,
+            )
+            .score
+                * 0.1;
 
             tiles_searched += 1;
         }
@@ -158,87 +179,90 @@ fn evaluate_chance(
     }
 }
 
-pub struct ExpectimaxMultithread;
-
-impl ExpectimaxMultithread {
-    pub fn new() -> Self {
-        unsafe { create_heuristic_score_table() };
-        ExpectimaxMultithread
-    }
-}
-
-impl AI for ExpectimaxMultithread {
-    fn get_next_move(&mut self, board: GameEngine::Board) -> Option<Move> {
-        let depth = 3.max(count_unique(board) - 2) as u64;
-        let depth = depth.min(6);
-        evaluate_multithread(board, depth, 1.).move_dir
-    }
-}
-
-fn evaluate_multithread(
-    board: GameEngine::Board,
-    move_depth: u64,
-    cum_prob: f32,
-) -> ExpectimaxResult {
-    let mut threads = vec![];
-    for &direction in &[Move::Up, Move::Down, Move::Left, Move::Right] {
-        // spawn computation threads using function and push to vec
-        let board_copy = board;
-        threads.push(spawn_move_computation(
-            board_copy, move_depth, cum_prob, direction,
-        ));
-    }
-
-    let mut best_result = ExpectimaxResult {
-        score: 0.,
-        move_dir: None,
-    };
-    for thread in threads {
-        let result = thread.join().unwrap();
-        if result.score > best_result.score {
-            best_result = result;
-        }
-    }
-    best_result
-}
-
-fn spawn_move_computation(
-    board: GameEngine::Board,
-    move_depth: u64,
-    cum_prob: f32,
-    direction: Move,
-) -> thread::JoinHandle<ExpectimaxResult> {
-    thread::spawn(move || {
-        let new_board;
-        match direction {
-            Move::Up => new_board = GameEngine::shift(board, Move::Up),
-            Move::Down => new_board = GameEngine::shift(board, Move::Down),
-            Move::Left => new_board = GameEngine::shift(board, Move::Left),
-            Move::Right => new_board = GameEngine::shift(board, Move::Right),
-        }
-        if new_board != board {
-            return ExpectimaxResult {
-                score: expectimax(
-                    new_board,
-                    Node::Chance,
-                    move_depth,
-                    cum_prob,
-                    &mut HashMap::new(),
-                )
-                .score,
-                move_dir: Some(direction),
-            };
-        }
-
-        ExpectimaxResult {
-            score: 0.,
-            move_dir: None,
-        }
-    })
-}
+//pub struct ExpectimaxMultithread;
+//
+//impl ExpectimaxMultithread {
+//    pub fn new() -> Self {
+//        unsafe { create_heuristic_score_table() };
+//        ExpectimaxMultithread
+//    }
+//}
+//
+//impl AI for ExpectimaxMultithread {
+//    fn get_next_move(&mut self, engine: &'static GameEngine, board: Board) -> Option<Move> {
+//        let depth = 3.max(count_unique(board) - 2) as u64;
+//        let depth = depth.min(6);
+//        evaluate_multithread(engine, board, depth, 1.).move_dir
+//    }
+//}
+//
+//fn evaluate_multithread(
+//    engine: &'static GameEngine,
+//    board: Board,
+//    move_depth: u64,
+//    cum_prob: f32,
+//) -> ExpectimaxResult {
+//    let mut threads = vec![];
+//    for &direction in &[Move::Up, Move::Down, Move::Left, Move::Right] {
+//        // spawn computation threads using function and push to vec
+//        let board_copy = board;
+//        threads.push(spawn_move_computation(
+//            engine, board_copy, move_depth, cum_prob, direction,
+//        ));
+//    }
+//
+//    let mut best_result = ExpectimaxResult {
+//        score: 0.,
+//        move_dir: None,
+//    };
+//    for thread in threads {
+//        let result = thread.join().unwrap();
+//        if result.score > best_result.score {
+//            best_result = result;
+//        }
+//    }
+//    best_result
+//}
+//
+//fn spawn_move_computation(
+//    engine: &'static GameEngine,
+//    board: Board,
+//    move_depth: u64,
+//    cum_prob: f32,
+//    direction: Move,
+//) -> thread::JoinHandle<ExpectimaxResult> {
+//    thread::spawn(move || {
+//        let new_board;
+//        match direction {
+//            Move::Up => new_board = engine.shift(board, Move::Up),
+//            Move::Down => new_board = engine.shift(board, Move::Down),
+//            Move::Left => new_board = engine.shift(board, Move::Left),
+//            Move::Right => new_board = engine.shift(board, Move::Right),
+//        }
+//        if new_board != board {
+//            return ExpectimaxResult {
+//                score: expectimax(
+//                    engine,
+//                    new_board,
+//                    Node::Chance,
+//                    move_depth,
+//                    cum_prob,
+//                    &mut HashMap::new(),
+//                )
+//                .score,
+//                move_dir: Some(direction),
+//            };
+//        }
+//
+//        ExpectimaxResult {
+//            score: 0.,
+//            move_dir: None,
+//        }
+//    })
+//}
 
 // Credit to Nneonneo
-fn count_unique(board: GameEngine::Board) -> i32 {
+fn count_unique(board: Board) -> i32 {
     let mut bitset = 0;
     let mut board_copy = board;
     while board_copy != 0 {
@@ -257,7 +281,7 @@ fn count_unique(board: GameEngine::Board) -> i32 {
     return count;
 }
 
-fn get_heurisitic_score(board: GameEngine::Board) -> f64 {
+fn get_heurisitic_score(board: Board) -> f64 {
     let transpose_board = GameEngine::transpose(board);
     (0..4).fold(0., |score, line_idx| {
         let row_val = GameEngine::extract_line(board, line_idx);

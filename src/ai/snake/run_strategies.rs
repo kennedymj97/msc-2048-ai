@@ -5,7 +5,8 @@ use super::generate_strategies::Variations;
 use super::rules::strategy_to_str;
 use super::rules::Strategy;
 use crate::ai::AI;
-use crate::engine as GameEngine;
+use crate::engine::GameEngine;
+use crate::engine::Score;
 use std::fs::DirBuilder;
 use std::fs::File;
 use std::io::Write;
@@ -19,7 +20,7 @@ pub fn progressive_brute_force<F>(
 ) where
     F: Fn(Strategy) -> Box<dyn AI>,
 {
-    GameEngine::create_stores();
+    let engine = GameEngine::new();
     let path = Path::new(foldername);
     let dir_builder = DirBuilder::new();
     dir_builder.create(path).expect("Failed to create folder");
@@ -28,7 +29,7 @@ pub fn progressive_brute_force<F>(
         .into_iter()
         .map(|strategy| (strategy, Vec::new()))
         .collect::<StrategyDataStore<Strategy>>();
-    let best_strategies = progressive_brute_force_aux(strategies, create_ai, 10, path);
+    let best_strategies = progressive_brute_force_aux(strategies, create_ai, &engine, 10, path);
     let best_strategies_info = best_strategies
         .iter()
         .map(|(strategy_info, scores)| (strategy_info, median(scores)))
@@ -47,6 +48,7 @@ fn median<T: Ord + Copy>(items: &Vec<T>) -> T {
 fn progressive_brute_force_aux<F>(
     strategies_data: StrategyDataStore<Strategy>,
     create_ai: F,
+    engine: &GameEngine,
     runs: usize,
     foldername: &Path,
 ) -> StrategyDataStore<Strategy>
@@ -66,7 +68,7 @@ where
             println!("{}/{}", count, total_count);
             (
                 strategy.clone(),
-                run_strategy(create_ai(strategy.clone()), results.clone(), runs),
+                run_strategy(create_ai(strategy.clone()), engine, results.clone(), runs),
             )
         })
         .collect::<StrategyDataStore<Strategy>>();
@@ -74,6 +76,7 @@ where
     progressive_brute_force_aux(
         compare_strategies(strategies_data),
         create_ai,
+        engine,
         runs * 10,
         foldername,
     )
@@ -107,7 +110,7 @@ pub fn run_strategies_save_results<F>(
 ) where
     F: Fn(Strategy) -> Box<dyn AI>,
 {
-    GameEngine::create_stores();
+    let engine = GameEngine::new();
     let strategies = generate_strategies(set, max_length);
     let mut f = File::create(Path::new(filename)).expect("Failed to create file");
     let mut count = 0;
@@ -117,7 +120,7 @@ pub fn run_strategies_save_results<F>(
         println!("{}/{}", count, total_count);
         f.write_fmt(format_args!("{},", strategy_to_str(strategy)))
             .expect("Failed to write strategy information to file");
-        let results = run_strategy(create_ai(strategy.clone()), Vec::new(), runs);
+        let results = run_strategy(create_ai(strategy.clone()), &engine, Vec::new(), runs);
         let mut results_iter = results.iter().peekable();
         while let Some(score) = results_iter.next() {
             f.write_fmt(format_args!("{}", score))
@@ -130,39 +133,44 @@ pub fn run_strategies_save_results<F>(
     });
 }
 
-fn run_strategy(mut ai: Box<dyn AI>, mut current_results: Vec<u64>, runs: usize) -> Vec<u64> {
+fn run_strategy(
+    mut ai: Box<dyn AI>,
+    engine: &GameEngine,
+    mut current_results: Vec<u64>,
+    runs: usize,
+) -> Vec<Score> {
     let mut current_runs = current_results.len();
     while current_runs <= runs {
         let mut board = GameEngine::new_board();
         loop {
-            let best_move = ai.get_next_move(board);
+            let best_move = ai.get_next_move(engine, board);
             match best_move {
                 Some(direction) => {
-                    board = GameEngine::make_move(board, direction);
+                    board = engine.make_move(board, direction);
                 }
                 None => break,
             }
         }
-        current_results.push(GameEngine::get_score(board));
+        current_results.push(engine.get_score(board));
         current_runs += 1;
     }
     current_results
 }
 
-pub fn run_strategy_save_results(mut ai: Box<dyn AI>, n: u32, filename: &str) {
+pub fn run_strategy_save_results(mut ai: Box<dyn AI>, engine: &GameEngine, n: u32, filename: &str) {
     let mut f = File::create(Path::new(filename)).expect("Failed to create file");
     (0..n).for_each(|_| {
         let mut board = GameEngine::new_board();
         loop {
-            let best_move = ai.get_next_move(board);
+            let best_move = ai.get_next_move(engine, board);
             match best_move {
                 Some(direction) => {
-                    board = GameEngine::make_move(board, direction);
+                    board = engine.make_move(board, direction);
                 }
                 None => break,
             }
         }
-        f.write_fmt(format_args!("{},", GameEngine::get_score(board)))
+        f.write_fmt(format_args!("{},", engine.get_score(board)))
             .expect("failed to write data to file");
     });
 }

@@ -1,11 +1,12 @@
-use crate::engine as GameEngine;
+use crate::engine::Board;
+use crate::engine::GameEngine;
 use crate::engine::Move;
 
-pub fn is_move_possible(board: GameEngine::Board, direction: Move) -> bool {
-    board != GameEngine::shift(board, direction)
+pub fn is_move_possible(engine: &GameEngine, board: Board, direction: Move) -> bool {
+    board != engine.shift(board, direction)
 }
 
-pub fn is_column_locked(board: GameEngine::Board, col_idx: usize) -> bool {
+pub fn is_column_locked(board: Board, col_idx: usize) -> bool {
     let mut previous_val = 0;
     for i in 0..4 {
         let idx = (i * 4) + col_idx;
@@ -18,7 +19,7 @@ pub fn is_column_locked(board: GameEngine::Board, col_idx: usize) -> bool {
     true
 }
 
-pub fn is_row_locked(board: GameEngine::Board, row_idx: usize) -> bool {
+pub fn is_row_locked(board: Board, row_idx: usize) -> bool {
     let mut previous_val = 0;
     for i in 0..4 {
         let idx = (row_idx * 4) + i;
@@ -31,7 +32,7 @@ pub fn is_row_locked(board: GameEngine::Board, row_idx: usize) -> bool {
     true
 }
 
-pub fn is_merge_possible(board: GameEngine::Board, direction: Move) -> bool {
+pub fn is_merge_possible(board: Board, direction: Move) -> bool {
     for i in 0..4 {
         let mut previous_val_row = 0;
         let mut previous_val_col = 0;
@@ -60,11 +61,12 @@ pub fn is_merge_possible(board: GameEngine::Board, direction: Move) -> bool {
 }
 
 pub fn does_move_produce_merge_in_direction(
-    board: GameEngine::Board,
+    engine: &GameEngine,
+    board: Board,
     direction: Move,
     merge_direction: Move,
 ) -> bool {
-    let new_board = GameEngine::shift(board, direction);
+    let new_board = engine.shift(board, direction);
     if board == new_board {
         return false;
     }
@@ -77,15 +79,39 @@ mod tests {
 
     #[test]
     fn it_is_move_possible() {
-        GameEngine::create_stores();
-        assert_eq!(is_move_possible(0x1111222233334444, Move::Left), true);
-        assert_eq!(is_move_possible(0x1234123412341234, Move::Left), false);
-        assert_eq!(is_move_possible(0x1111123412341234, Move::Right), true);
-        assert_eq!(is_move_possible(0x1234123412341234, Move::Right), false);
-        assert_eq!(is_move_possible(0x1111123423452345, Move::Down), true);
-        assert_eq!(is_move_possible(0x1111123423452345, Move::Up), true);
-        assert_eq!(is_move_possible(0x1234432112344321, Move::Up), false);
-        assert_eq!(is_move_possible(0x1234432112344321, Move::Down), false);
+        let engine = GameEngine::new();
+        assert_eq!(
+            is_move_possible(&engine, 0x1111222233334444, Move::Left),
+            true
+        );
+        assert_eq!(
+            is_move_possible(&engine, 0x1234123412341234, Move::Left),
+            false
+        );
+        assert_eq!(
+            is_move_possible(&engine, 0x1111123412341234, Move::Right),
+            true
+        );
+        assert_eq!(
+            is_move_possible(&engine, 0x1234123412341234, Move::Right),
+            false
+        );
+        assert_eq!(
+            is_move_possible(&engine, 0x1111123423452345, Move::Down),
+            true
+        );
+        assert_eq!(
+            is_move_possible(&engine, 0x1111123423452345, Move::Up),
+            true
+        );
+        assert_eq!(
+            is_move_possible(&engine, 0x1234432112344321, Move::Up),
+            false
+        );
+        assert_eq!(
+            is_move_possible(&engine, 0x1234432112344321, Move::Down),
+            false
+        );
     }
 
     #[test]
@@ -132,9 +158,14 @@ mod tests {
 
     #[test]
     fn it_does_move_produce_merge_in_direction() {
-        GameEngine::create_stores();
+        let engine = GameEngine::new();
         assert_eq!(
-            does_move_produce_merge_in_direction(0x1234234000000000, Move::Right, Move::Up),
+            does_move_produce_merge_in_direction(
+                &engine,
+                0x1234234000000000,
+                Move::Right,
+                Move::Up
+            ),
             true
         );
     }

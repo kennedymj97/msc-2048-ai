@@ -183,6 +183,7 @@ Both the brute force and progressive brute force produced the same results.
 - Comma delimited, need to make the strategies print in a different way somehow
 
 ### 13/07/2020
+[x] Refactor engine for safety, ensure stores are created
 [] Get detailed statistics on best current strategy
 [] Add another rule
 
