@@ -1,6 +1,4 @@
 # Notes
-
-## Useful Benchmarking Resources
 [RustConf 2018 - Benchmarking and Optimization of Rust Libraries by Paul Mason](https://www.youtube.com/watch?v=d2ZQ9-4ZJmQ)  
 [RustConf 2017 - Improving Rust Performance Through Profiling and Benchmarking by Steve Jenson](https://www.youtube.com/watch?v=hTHp0gjWMLQ)
 
@@ -70,8 +68,6 @@ Options:
 		- [rustats](https://docs.rs/crate/rustats/0.1.0)
 		- [statrs](https://docs.rs/statrs/0.7.0/statrs/distribution/trait.Univariate.html)
 
-**How to check if data is normally distibuted:**
-- Run the strategy saving the scores in a comma delimited text file.
 - Open this file in excel copying the data and pasting it with transpose option (to convert from cols to rows)
 - Make sure I have the shapiro-wilk testing installed [(Real statistics resource pack)](https://www.real-statistics.com/free-download/real-statistics-resource-pack/).
 - Press ctrl+m whilst highlighting where you want the results to be output to.
@@ -139,6 +135,8 @@ Options:
 [x] Work on optimising snake AI
 	- All AIs now optimised, was previously creating the stores every time I ran the AI... Just need to make sure to create stores... Can change implementation if needed to force creation of stores.
 
+	- All AIs now optimised, was previously creating the stores every time I ran the AI... Just need to make sure to create stores... Can change implementation if needed to force creation of stores.
+
 ### 10/07/2020
 **TODO:**
 [x] Check create stores not being done more than once
@@ -202,10 +200,17 @@ Both the brute force and progressive brute force produced the same results.
 - Add sequences (length 2) to force moves
 - Merge down when possible in left column
 
-### 14/07/2020
+### 21/07/2020
 **TODO:**
-[] Work out which has more possibilities, including force move in main, or splitting
-[] Test the strategies with different fallback rules
-[] Split snake up into 3 stages: Ban -> Try -> Force?
+[x] Work out which has more possibilities, including force move in main, or splitting
+[x] Test the strategies with different fallback rules
+[x] Split snake up into 3 stages: Ban -> Try -> Force
+
+### 22/07/2020
+**TODO:**
+[] Add new attributes: is column monotonic, is largest tile in corner
+[] Start looking into and planning diss
+[] Add the option of 99% confidence interval to Mann Whitney U test
+[] Fix evaluation of strategies from file
 
 

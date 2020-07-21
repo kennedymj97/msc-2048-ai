@@ -14,11 +14,13 @@
  * [] does left merge harm monotonicity
  * [] how to deal with a move right/up when not wanted
  */
-use self::rules::Strategy;
+use self::rules::BanRules;
+use self::rules::TryRules;
 use crate::ai::AI;
 use crate::engine::Board;
 use crate::engine::GameEngine;
 use crate::engine::Move;
+use std::fmt;
 
 pub mod attributes;
 pub mod evaluate_strategies;
@@ -27,33 +29,63 @@ pub mod mann_whitney;
 pub mod rules;
 pub mod run_strategies;
 
+#[derive(Clone)]
 pub struct Snake {
-    rules: Strategy,
-    fallback: Strategy,
+    ban_rules: BanRules,
+    try_rules: TryRules,
+    fallback_moves: Vec<Move>,
 }
 
 impl Snake {
-    pub fn new(rules: &Strategy, fallback: &Strategy) -> Box<Self> {
+    pub fn new(
+        ban_rules: &BanRules,
+        try_rules: &TryRules,
+        fallback_moves: &Vec<Move>,
+    ) -> Box<Self> {
         Box::new(Snake {
-            rules: rules.clone(),
-            fallback: fallback.clone(),
+            ban_rules: ban_rules.clone(),
+            try_rules: try_rules.clone(),
+            fallback_moves: fallback_moves.clone(),
         })
     }
 }
 
 impl AI for Snake {
     fn get_next_move(&mut self, engine: &GameEngine, board: Board) -> Option<Move> {
-        let mut moves_allowed = vec![Move::Up, Move::Down, Move::Left, Move::Right];
-        let mut rules = self.rules.clone();
-        let mut fallback = self.fallback.clone();
-        rules.append(&mut fallback);
-        for rule in rules.iter() {
-            let res = rule.execute(engine, board).handle(moves_allowed.clone());
-            moves_allowed = res.0;
-            if res.1 != None {
-                return res.1;
+        let mut banned_moves = Vec::new();
+        for ban_rule in self.ban_rules.iter() {
+            match ban_rule.execute(engine, board) {
+                Some(direction) => banned_moves.push(direction),
+                None => (),
+            }
+        }
+
+        for try_rule in self.try_rules.iter() {
+            match try_rule.execute(engine, board) {
+                Some(direction) => {
+                    if !banned_moves.contains(&direction) {
+                        return Some(direction);
+                    }
+                }
+                None => (),
+            }
+        }
+
+        for &direction in self.fallback_moves.iter() {
+            if attributes::is_move_possible(engine, board, direction) {
+                return Some(direction);
             }
         }
         None
+    }
+}
+
+impl fmt::Display for Snake {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "Ban Rules: {:?}\tTry Rules: {:?}\tFallback: {:?}",
+            self.ban_rules, self.try_rules, self.fallback_moves
+        )
     }
 }

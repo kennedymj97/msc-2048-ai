@@ -4,189 +4,119 @@ use crate::engine::GameEngine;
 use crate::engine::Move;
 use std::fmt;
 
-#[derive(PartialEq)]
-pub enum Result {
-    Try(Move),
-    Ban(Move),
-    Force(Move),
-    Proceed,
+pub type BanRules = Vec<BanMove>;
+pub type TryRules = Vec<TryMove>;
+
+#[derive(Clone, Copy, Debug)]
+pub enum BanMove {
+    IfLeftColumnLocked(Move),
 }
 
-impl Result {
-    pub fn handle(self, moves_allowed: Vec<Move>) -> (Vec<Move>, Option<Move>) {
+impl BanMove {
+    pub fn execute(&self, engine: &GameEngine, board: Board) -> Option<Move> {
         match self {
-            Result::Try(direction) => match moves_allowed.contains(&direction) {
-                true => (moves_allowed, Some(direction)),
-                false => (moves_allowed, None),
-            },
-            Result::Ban(direction) => (remove_item(moves_allowed, direction), None),
-            Result::Force(direction) => (moves_allowed, Some(direction)),
-            Result::Proceed => (moves_allowed, None),
+            BanMove::IfLeftColumnLocked(direction) => {
+                ban_move_if_left_column_locked(engine, board, *direction)
+            }
         }
     }
-}
 
-fn remove_item(vec: Vec<Move>, direction: Move) -> Vec<Move> {
-    vec.iter()
-        .filter(|&&move_dir| move_dir != direction)
-        .copied()
-        .collect()
-}
-
-pub type Strategy = Vec<Box<dyn Rule>>;
-
-pub fn strategy_to_str(strategy: &Strategy) -> String {
-    let mut strategy_str = String::new();
-    let mut strategy_iter = strategy.iter().peekable();
-    while let Some(rule) = strategy_iter.next() {
-        strategy_str.push_str(&format!("{}", rule));
-        if strategy_iter.peek().is_some() {
-            strategy_str.push_str(" -> ");
+    pub fn generate_all_variations() -> Vec<Self> {
+        let mut variations = Vec::new();
+        for &direction in &[Move::Left, Move::Right, Move::Up, Move::Down] {
+            variations.push(BanMove::IfLeftColumnLocked(direction));
         }
-    }
-    strategy_str
-}
-
-pub trait Rule: fmt::Display + RuleClone {
-    fn execute(&self, engine: &GameEngine, board: Board) -> Result;
-}
-
-pub trait RuleClone {
-    fn clone_box(&self) -> Box<dyn Rule>;
-}
-
-impl<T> RuleClone for T
-where
-    T: 'static + Rule + Clone,
-{
-    fn clone_box(&self) -> Box<dyn Rule> {
-        Box::new(self.clone())
+        variations
     }
 }
 
-impl Clone for Box<dyn Rule> {
-    fn clone(&self) -> Box<dyn Rule> {
-        self.clone_box()
-    }
-}
-
-#[derive(Clone)]
-pub struct ForceMoveIfPossible {
-    direction: Move,
-}
-
-impl ForceMoveIfPossible {
-    pub fn new(direction: Move) -> Box<dyn Rule> {
-        Box::new(ForceMoveIfPossible { direction })
-    }
-}
-
-impl fmt::Display for ForceMoveIfPossible {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Force move in direction: {} if possible", self.direction)
-    }
-}
-
-impl Rule for ForceMoveIfPossible {
-    fn execute(&self, engine: &GameEngine, board: Board) -> Result {
-        if attributes::is_move_possible(engine, board, self.direction) {
-            return Result::Force(self.direction);
-        }
-        Result::Ban(self.direction)
-    }
-}
-
-#[derive(Clone)]
-pub struct BanMoveIfLeftColumnLocked {
-    direction: Move,
-}
-
-impl BanMoveIfLeftColumnLocked {
-    pub fn new(direction: Move) -> Box<dyn Rule> {
-        Box::new(BanMoveIfLeftColumnLocked { direction })
-    }
-}
-
-impl fmt::Display for BanMoveIfLeftColumnLocked {
+impl fmt::Display for BanMove {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "Ban move in direction: {} if left column locked",
-            self.direction
-        )
-    }
-}
-
-impl Rule for BanMoveIfLeftColumnLocked {
-    fn execute(&self, _engine: &GameEngine, board: Board) -> Result {
-        if attributes::is_column_locked(board, 0) {
-            return Result::Proceed;
+        match self {
+            BanMove::IfLeftColumnLocked(direction) => {
+                write!(f, "ban move {} if left column locked", direction)
+            }
         }
-        Result::Ban(self.direction)
     }
 }
 
-#[derive(Clone)]
-pub struct TryMoveIfProducesLeftMerge {
-    direction: Move,
+#[derive(Clone, Copy, Debug)]
+pub enum TryMove {
+    ProducesLeftMerge(Move),
+    IfMergePossible(Move),
 }
 
-impl TryMoveIfProducesLeftMerge {
-    pub fn new(direction: Move) -> Box<dyn Rule> {
-        Box::new(TryMoveIfProducesLeftMerge { direction })
+impl TryMove {
+    pub fn execute(&self, engine: &GameEngine, board: Board) -> Option<Move> {
+        match self {
+            TryMove::ProducesLeftMerge(direction) => {
+                try_move_if_produces_left_merge(engine, board, *direction)
+            }
+            TryMove::IfMergePossible(direction) => {
+                try_move_if_merge_possible(engine, board, *direction)
+            }
+        }
+    }
+
+    pub fn generate_all_variations() -> Vec<Self> {
+        let mut variations = Vec::new();
+        for &direction in &[Move::Left, Move::Right, Move::Up, Move::Down] {
+            variations.push(TryMove::ProducesLeftMerge(direction));
+            variations.push(TryMove::IfMergePossible(direction));
+        }
+        variations
     }
 }
 
-impl fmt::Display for TryMoveIfProducesLeftMerge {
+impl fmt::Display for TryMove {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "Try move in direction: {} if produces a left merge",
-            self.direction
-        )
-    }
-}
-
-impl Rule for TryMoveIfProducesLeftMerge {
-    fn execute(&self, engine: &GameEngine, board: Board) -> Result {
-        if attributes::does_move_produce_merge_in_direction(
-            engine,
-            board,
-            self.direction,
-            Move::Left,
-        ) {
-            return Result::Try(self.direction);
+        match self {
+            TryMove::ProducesLeftMerge(direction) => {
+                write!(f, "try move {} if produces left merge", direction)
+            }
+            TryMove::IfMergePossible(direction) => {
+                write!(f, "try move {} if merge possible", direction)
+            }
         }
-        Result::Proceed
     }
 }
 
-#[derive(Clone)]
-pub struct TryMoveIfMergePossible {
+pub fn force_move_if_possible(engine: &GameEngine, board: Board, direction: Move) -> Option<Move> {
+    if attributes::is_move_possible(engine, board, direction) {
+        return Some(direction);
+    }
+    None
+}
+
+pub fn ban_move_if_left_column_locked(
+    engine: &GameEngine,
+    board: Board,
     direction: Move,
+) -> Option<Move> {
+    if attributes::is_column_locked(board, 0) {
+        return None;
+    }
+    Some(direction)
 }
 
-impl TryMoveIfMergePossible {
-    pub fn new(direction: Move) -> Box<dyn Rule> {
-        Box::new(TryMoveIfMergePossible { direction })
+pub fn try_move_if_produces_left_merge(
+    engine: &GameEngine,
+    board: Board,
+    direction: Move,
+) -> Option<Move> {
+    if attributes::does_move_produce_merge_in_direction(engine, board, direction, Move::Left) {
+        return Some(direction);
     }
+    None
 }
 
-impl fmt::Display for TryMoveIfMergePossible {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "Try move in direction: {} if merge possible",
-            self.direction
-        )
+pub fn try_move_if_merge_possible(
+    engine: &GameEngine,
+    board: Board,
+    direction: Move,
+) -> Option<Move> {
+    if attributes::is_merge_possible(board, direction) {
+        return Some(direction);
     }
-}
-
-impl Rule for TryMoveIfMergePossible {
-    fn execute(&self, _engine: &GameEngine, board: Board) -> Result {
-        if attributes::is_merge_possible(board, self.direction) {
-            return Result::Try(self.direction);
-        }
-        Result::Proceed
-    }
+    None
 }
