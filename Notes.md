@@ -208,9 +208,10 @@ Both the brute force and progressive brute force produced the same results.
 
 ### 22/07/2020
 **TODO:**
-[] Add new attributes: is column monotonic, is largest tile in corner
+[x] Add new attributes: is column monotonic, is largest tile in corner
 [] Start looking into and planning diss
-[] Add the option of 99% confidence interval to Mann Whitney U test
+[x] Add the option of 99% confidence interval to Mann Whitney U test
 [] Fix evaluation of strategies from file
-
-
+[] Try using generics instead of trait objects functions that take an AI
+[] Ordering not important for ban rules, don't need to permutate to get all possible orderings
+[] Write formal description of language

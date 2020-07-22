@@ -10,16 +10,67 @@ use std::fs::File;
 use std::io::Write;
 use std::path::Path;
 
-pub fn progressive_brute_force(max_ban_length: usize, max_try_length: usize, foldername: &str) {
+pub fn progressive_brute_force_no_save(max_ban_length: usize, max_try_length: usize) {
+    println!("Creating engine...");
     let engine = GameEngine::new();
-    let path = Path::new(foldername);
-    let dir_builder = DirBuilder::new();
-    dir_builder.create(path).expect("Failed to create folder");
+    println!("Generating snakes...");
     let snakes = generate_snakes(max_ban_length, max_try_length);
+    println!("Creating datastructure...");
     let data = snakes
         .iter()
         .map(|snake| (snake.clone(), Vec::new()))
         .collect::<StrategyDataStore<Box<Snake>>>();
+    let best_strategies = progressive_brute_force_no_save_aux(data, &engine, 10);
+    let best_strategies_info = best_strategies
+        .iter()
+        .map(|(strategy_info, scores)| (strategy_info, median(scores)))
+        .collect::<Vec<_>>();
+    best_strategies_info
+        .iter()
+        .for_each(|(snake, median)| println!("{}: {}", snake, median));
+}
+
+fn progressive_brute_force_no_save_aux(
+    data: StrategyDataStore<Box<Snake>>,
+    engine: &GameEngine,
+    runs: usize,
+) -> StrategyDataStore<Box<Snake>> {
+    if runs > 1000 {
+        return data;
+    }
+    println!("@ {} runs...", runs);
+    let mut count = 0;
+    let total_count = data.len();
+    let data = data
+        .iter()
+        .map(|(snake, results)| {
+            count += 1;
+            if count % 1000 == 0 {
+                println!("{}/{}", count, total_count);
+            }
+            (
+                snake.clone(),
+                run_strategy(snake.clone(), engine, results.clone(), runs),
+            )
+        })
+        .collect::<StrategyDataStore<Box<Snake>>>();
+    progressive_brute_force_no_save_aux(compare_strategies(data), engine, runs * 10)
+}
+
+pub fn progressive_brute_force(max_ban_length: usize, max_try_length: usize, foldername: &str) {
+    println!("engine...");
+    let engine = GameEngine::new();
+    let path = Path::new(foldername);
+    let dir_builder = DirBuilder::new();
+    dir_builder.create(path).expect("Failed to create folder");
+    println!("generating snakes");
+    let snakes = generate_snakes(max_ban_length, max_try_length);
+    println!("creating data");
+    let data = snakes
+        .iter()
+        .map(|snake| (snake.clone(), Vec::new()))
+        .collect::<StrategyDataStore<Box<Snake>>>();
+    println!("calling aux function");
     let best_strategies = progressive_brute_force_aux(data, &engine, 10, path);
     let best_strategies_info = best_strategies
         .iter()

@@ -8,9 +8,9 @@ pub fn generate_snakes(max_ban_length: usize, max_try_length: usize) -> Vec<Box<
     // Generate all possible ban variations
     // power_set and permuations up to certain length
     let ban_variations = BanMove::generate_all_variations();
-    let ban_sets = permuations(power_set(&ban_variations, max_ban_length));
+    let ban_sets = power_set(&ban_variations, max_ban_length);
     assert_eq!(
-        num_of_possible_sets(ban_variations.len(), max_ban_length),
+        num_of_power_sets(ban_variations.len(), max_ban_length),
         ban_sets.len() as u64
     );
     // Generate all possbile try variations
@@ -26,6 +26,11 @@ pub fn generate_snakes(max_ban_length: usize, max_try_length: usize) -> Vec<Box<
     // Only permuations of the 4 moves
     let fallback_sets = permuations(vec![vec![Move::Left, Move::Right, Move::Up, Move::Down]]);
     assert_eq!(factorial(4), fallback_sets.len() as u64);
+
+    println!(
+        "Total number of snakes = {}",
+        ban_sets.len() * try_sets.len() * fallback_sets.len()
+    );
 
     // 3 nest for loops, for each ban variation add every try variation, for every ban and try
     //   variation and every fallback variation
@@ -76,6 +81,13 @@ fn num_of_possible_sets(n: usize, k: usize) -> u64 {
     assert!(n >= k);
     (0..k + 1).fold(0, |acc, size_of_subset| {
         acc + (factorial(n) / factorial(n - size_of_subset))
+    })
+}
+
+fn num_of_power_sets(n: usize, k: usize) -> u64 {
+    assert!(n >= k);
+    (0..k + 1).fold(0, |acc, size_of_subset| {
+        acc + (factorial(n) / (factorial(size_of_subset) * factorial(n - size_of_subset)))
     })
 }
 

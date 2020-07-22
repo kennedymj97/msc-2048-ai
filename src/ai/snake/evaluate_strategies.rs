@@ -1,4 +1,4 @@
-use super::mann_whitney::mann_whitney_u_test;
+use super::mann_whitney::mann_whitney_u_test_01;
 use std::cmp::Ordering;
 use std::fs;
 use std::path::Path;
@@ -30,12 +30,12 @@ pub fn compare_strategies<T: Clone>(data: StrategyDataStore<T>) -> StrategyDataS
             top_strategies.push(strategy.clone());
             continue;
         }
-        match mann_whitney_u_test(strategy.1.clone(), top_strategies[0].1.clone()) {
+        match mann_whitney_u_test_01(strategy.1.clone(), top_strategies[0].1.clone()) {
             Ordering::Equal => top_strategies.push(strategy.clone()),
             Ordering::Greater => {
                 let mut new_top_strategies = vec![strategy.clone()];
                 top_strategies.iter().for_each(|top_strategy| {
-                    match mann_whitney_u_test(top_strategy.1.clone(), strategy.1.clone()) {
+                    match mann_whitney_u_test_01(top_strategy.1.clone(), strategy.1.clone()) {
                         Ordering::Equal => new_top_strategies.push(top_strategy.clone()),
                         Ordering::Greater => panic!("this should be impossible"),
                         Ordering::Less => (),

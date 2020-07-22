@@ -78,9 +78,59 @@ pub fn does_move_produce_merge_in_direction(
     is_merge_possible(new_board, merge_direction)
 }
 
+pub fn is_largest_tile_in_corner(board: Board) -> bool {
+    let mut largest_tile_idx = 0;
+    let mut largest_tile_val = 0;
+    for idx in 0..16 {
+        let tile_val = GameEngine::get_tile(board, idx);
+        if tile_val > largest_tile_val {
+            largest_tile_val = tile_val;
+            largest_tile_idx = idx;
+        }
+        if tile_val == largest_tile_val && idx == 12 {
+            largest_tile_val = tile_val;
+            largest_tile_idx = idx;
+        }
+    }
+    largest_tile_idx == 12
+}
+
+pub fn is_left_column_monotonic(board: Board) -> bool {
+    let tile1 = GameEngine::get_tile(board, 12);
+    let tile2 = GameEngine::get_tile(board, 8);
+    let tile3 = GameEngine::get_tile(board, 4);
+    let tile4 = GameEngine::get_tile(board, 0);
+    if tile1 < tile2 {
+        return false;
+    }
+    if tile2 < tile3 {
+        return false;
+    }
+    if tile3 < tile4 {
+        return false;
+    }
+    true
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn it_is_left_column_monotonic() {
+        assert_eq!(is_left_column_monotonic(0x1234123412341234), true);
+        assert_eq!(is_left_column_monotonic(0x1000200030004000), true);
+        assert_eq!(is_left_column_monotonic(0x4000300050006000), false);
+        assert_eq!(is_left_column_monotonic(0x1000000000001000), false);
+    }
+
+    #[test]
+    fn it_is_largest_tile_in_corner() {
+        assert_eq!(is_largest_tile_in_corner(0x0000000000003000), true);
+        assert_eq!(is_largest_tile_in_corner(0x0000000020002000), true);
+        assert_eq!(is_largest_tile_in_corner(0x1234123412341523), false);
+        assert_eq!(is_largest_tile_in_corner(0x0000000000002222), true);
+    }
 
     #[test]
     fn it_is_move_possible() {
