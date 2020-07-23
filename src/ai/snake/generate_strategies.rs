@@ -4,7 +4,7 @@ use super::Snake;
 use crate::engine::Move;
 use permutohedron::Heap;
 
-pub fn generate_snakes(max_ban_length: usize, max_try_length: usize) -> Vec<Box<Snake>> {
+pub fn generate_snakes(max_ban_length: usize, max_try_length: usize) -> Vec<Snake> {
     // Generate all possible ban variations
     // power_set and permuations up to certain length
     let ban_variations = BanMove::generate_all_variations();

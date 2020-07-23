@@ -37,7 +37,6 @@ Firefox (windows) - 14.4 moves/sec at max depth 6
 
 # Day Notes
 ### 02/07/2020
-TODO:
 [x] Create function to generate all possible permutations of a given vector
 [x] Function to test all of the permutations of a strategy
 [x] Change snake AI to have fallback sequnce outside of rules
@@ -51,7 +50,6 @@ Options:
 3. Other distribution tests. Might be worth exploring a bit more and seeing what the distributions normally are and then doing test for that/those.
 
 ### 03/07/2020
-**TODO:**
 [x] Check if data is normally distributed
 [x] Decide what method I will use to rank strategies
 [] Start work on implementing the ranking code
@@ -78,7 +76,6 @@ Options:
 - Use excel to help produce test cases
 
 ### 06/07/2020
-**TODO:**
 [x] Do draft 2 of project plan
 [x] Decide on how to implement statistical performance analysis
 [] Implement statistical performance analysis
@@ -107,12 +104,10 @@ Options:
 3. Hopefully this will always result in a small number of strategies that can then be further tested manually. If there are too many strategies a method of parsing them for further evaluation may need to be developed.
 
 ### 07/07/2020
-**TODO:**
 [x] Fully implement statistical performance analysis
 [] Do some research into better search methods to find strategies
 
 ### 08/07/2020
-**TODO:**
 [x] Edit way strategy data is saved
 [x] Create function to parse strategy data
 [x] Implement function to find top strategies
@@ -131,14 +126,12 @@ Options:
 - Once I have a robust set up for brute force and designing a language and testing it start using more advanced search methods
 
 ### 09/07/2020
-**TODO:**
 [x] Work on optimising snake AI
 	- All AIs now optimised, was previously creating the stores every time I ran the AI... Just need to make sure to create stores... Can change implementation if needed to force creation of stores.
 
 	- All AIs now optimised, was previously creating the stores every time I ran the AI... Just need to make sure to create stores... Can change implementation if needed to force creation of stores.
 
 ### 10/07/2020
-**TODO:**
 [x] Check create stores not being done more than once
 [x] Refactor snake AI and related
 [x] Work on generating all possible rule variations
@@ -156,7 +149,6 @@ Time taken at max strategy size 4, 12 possible rules (13345 strategies), 1000 ru
 Both the brute force and progressive brute force produced the same results.
 
 ### 11/07/2020
-**TODO:**
 [x] Implement progressive brute force
 
 **Progressive brute force:**
@@ -173,7 +165,6 @@ Both the brute force and progressive brute force produced the same results.
 - Recursively call the function until a certain number of strategies is reached
 
 ### 12/07/2020
-**TODO:**
 [x] Time progressive brute force on pc
 [x] Save files as csvs
 
@@ -181,7 +172,6 @@ Both the brute force and progressive brute force produced the same results.
 - Comma delimited, need to make the strategies print in a different way somehow
 
 ### 13/07/2020
-**TODO:**
 [x] Refactor engine for safety, ensure stores are created
 [x] Get detailed statistics on best current strategy
 [] Add another rule
@@ -201,17 +191,19 @@ Both the brute force and progressive brute force produced the same results.
 - Merge down when possible in left column
 
 ### 21/07/2020
-**TODO:**
 [x] Work out which has more possibilities, including force move in main, or splitting
 [x] Test the strategies with different fallback rules
 [x] Split snake up into 3 stages: Ban -> Try -> Force
 
 ### 22/07/2020
-**TODO:**
 [x] Add new attributes: is column monotonic, is largest tile in corner
-[] Start looking into and planning diss
 [x] Add the option of 99% confidence interval to Mann Whitney U test
+[x] Ordering not important for ban rules, don't need to permutate to get all possible orderings
+
+### 23/07/2020
+[x] Start looking into and planning diss
+[x] Try using generics instead of trait objects functions that take an AI
+[] Implement search for best strategies without storing everything, only store best strategies (this will prevent memory overload for very large search space)
 [] Fix evaluation of strategies from file
-[] Try using generics instead of trait objects functions that take an AI
-[] Ordering not important for ban rules, don't need to permutate to get all possible orderings
 [] Write formal description of language
+

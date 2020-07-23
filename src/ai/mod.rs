@@ -15,7 +15,7 @@ pub trait AI {
     fn get_next_move(&mut self, engine: &GameEngine, board: Board) -> Option<Move>;
 }
 
-pub fn run_ai(mut ai: Box<dyn AI>) {
+pub fn run_ai<T: AI>(ai: &mut T) {
     let mut num_moves = 0;
     let start_time = SystemTime::now();
     let engine = GameEngine::new();
@@ -47,7 +47,7 @@ pub fn run_ai(mut ai: Box<dyn AI>) {
     println!("Final board: {}", GameEngine::to_str(board));
 }
 
-pub fn run_ai_with_delay(mut ai: Box<dyn AI>, delay: u64) {
+pub fn run_ai_with_delay<T: AI>(ai: &mut T, delay: u64) {
     let engine = GameEngine::new();
     let mut board = GameEngine::new_board();
     loop {
@@ -65,7 +65,7 @@ pub fn run_ai_with_delay(mut ai: Box<dyn AI>, delay: u64) {
     println!("Final board: {}", GameEngine::to_str(board));
 }
 
-pub fn record_ai_game(mut ai: Box<dyn AI>, filename: &str) {
+pub fn record_ai_game<T: AI>(ai: &mut T, filename: &str) {
     let mut file = File::create(format!("./{}.txt", filename)).expect("failed to create file");
     let engine = GameEngine::new();
     let mut board = GameEngine::new_board();

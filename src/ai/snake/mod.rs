@@ -37,16 +37,12 @@ pub struct Snake {
 }
 
 impl Snake {
-    pub fn new(
-        ban_rules: &BanRules,
-        try_rules: &TryRules,
-        fallback_moves: &Vec<Move>,
-    ) -> Box<Self> {
-        Box::new(Snake {
+    pub fn new(ban_rules: &BanRules, try_rules: &TryRules, fallback_moves: &Vec<Move>) -> Self {
+        Snake {
             ban_rules: ban_rules.clone(),
             try_rules: try_rules.clone(),
             fallback_moves: fallback_moves.clone(),
-        })
+        }
     }
 }
 
@@ -84,8 +80,22 @@ impl fmt::Display for Snake {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "Ban Rules: {:?}\tTry Rules: {:?}\tFallback: {:?}",
-            self.ban_rules, self.try_rules, self.fallback_moves
+            "Ban Rules: {}\tTry Rules: {}\tFallback: {}",
+            vec_to_string_for_csv(&self.ban_rules),
+            vec_to_string_for_csv(&self.try_rules),
+            vec_to_string_for_csv(&self.fallback_moves),
         )
     }
+}
+
+fn vec_to_string_for_csv<T: fmt::Display>(vec: &[T]) -> String {
+    let mut vec_iter = vec.iter().peekable();
+    let mut result = String::new();
+    while let Some(item) = vec_iter.next() {
+        result.push_str(&item.to_string());
+        if vec_iter.peek().is_some() {
+            result.push_str("->");
+        }
+    }
+    result
 }
