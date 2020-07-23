@@ -17,8 +17,8 @@ pub fn progressive_brute_force_no_save(max_ban_length: usize, max_try_length: us
     let snakes = generate_snakes(max_ban_length, max_try_length);
     println!("Creating datastructure...");
     let data = snakes
-        .iter()
-        .map(|snake| (snake.clone(), Vec::new()))
+        .into_iter()
+        .map(|snake| (snake, Vec::new()))
         .collect::<StrategyDataStore<Snake>>();
     let best_strategies = progressive_brute_force_no_save_aux(data, &engine, 5);
     let best_strategies_info = best_strategies
@@ -42,14 +42,12 @@ fn progressive_brute_force_no_save_aux(
     let mut count = 0;
     let total_count = data.len();
     let data = data
-        .iter()
-        .map(|(snake, results)| {
+        .into_iter()
+        .map(|(mut snake, mut results)| {
             count += 1;
             if count % 1000 == 0 {
                 println!("{}/{}", count, total_count);
             }
-            let mut snake = snake.clone();
-            let mut results = results.clone();
             run_strategy(&mut snake, engine, &mut results, runs);
             (snake, results)
         })
@@ -67,8 +65,8 @@ pub fn progressive_brute_force(max_ban_length: usize, max_try_length: usize, fol
     let snakes = generate_snakes(max_ban_length, max_try_length);
     println!("creating data");
     let data = snakes
-        .iter()
-        .map(|snake| (snake.clone(), Vec::new()))
+        .into_iter()
+        .map(|snake| (snake, Vec::new()))
         .collect::<StrategyDataStore<Snake>>();
     println!("calling aux function");
     let best_strategies = progressive_brute_force_aux(data, &engine, 10, path);
@@ -100,12 +98,10 @@ fn progressive_brute_force_aux(
     let mut count = 0;
     let total_count = data.len();
     let data = data
-        .iter()
-        .map(|(snake, results)| {
+        .into_iter()
+        .map(|(mut snake, mut results)| {
             count += 1;
             println!("{}/{}", count, total_count);
-            let mut snake = snake.clone();
-            let mut results = results.clone();
             run_strategy(&mut snake, engine, &mut results, runs);
             (snake, results)
         })
@@ -139,12 +135,11 @@ pub fn brute_force(max_ban_length: usize, max_try_length: usize, runs: usize, fi
     let mut f = File::create(Path::new(filename)).expect("Failed to create file");
     let mut count = 0;
     let total_count = snakes.len();
-    snakes.iter().for_each(|snake| {
+    snakes.into_iter().for_each(|mut snake| {
         count += 1;
         println!("{}/{}", count, total_count);
         f.write_fmt(format_args!("{},", snake))
             .expect("Failed to write strategy information to file");
-        let mut snake = snake.clone();
         let mut results = Vec::new();
         run_strategy(&mut snake, &engine, &mut results, runs);
         let mut results_iter = results.iter().peekable();
