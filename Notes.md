@@ -216,3 +216,24 @@ Can an iterator be used to go through all the strategies.
 
 Memory used with 2 ban and 4 try currently: starts at 3400M @ 7000000 at 10 runs, about 30% of memory or something
 Memory used with 2 ban and 4 try after changing to iterator implementation is very small: only 0.1% of memory
+
+Resources for local search:
+- [Local search algorithms](https://www.cs.unc.edu/~lazebnik/fall10/lec06_local_search.pdf)
+- [Iterated local search (wikipedia)](https://en.wikipedia.org/wiki/Iterated_local_search)
+- [A good slide on what constitutes a good seach technique](https://www.youtube.com/watch?v=Vye39FMb5vo)
+- [Introduces the idea of using a greedy algorithm as a starting point for local search](https://www.youtube.com/watch?v=XUNGtxoBbPQ)
+
+Steps to get to local search:
+1. Implement greedy algorithm
+	- It will be interesting to see how well it performs
+	- Can be used as a starting point for local search
+2. Decide on local search method
+	- How will a strategy be varied to try and reach the local maxima?
+		1. Try all possible moves for the first try move.
+		2. Try all possible moves for the ban moves (only used moves in try moves).
+		3. Try all possible moves for next try move.
+		4. Repeat step 2 -> 3 until all the try moves have been analysed.
+3. Decide on a perturbation method
+	- If wanting to do iterated local search need to find a way to try and jump out of the local maxima
+		- vary the order of the try moves?
+		- vary the composition fo the try and ban moves?
