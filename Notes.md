@@ -203,104 +203,16 @@ Both the brute force and progressive brute force produced the same results.
 ### 23/07/2020
 [x] Start looking into and planning diss
 [x] Try using generics instead of trait objects functions that take an AI
-[] Implement search for best strategies without storing everything, only store best strategies (this will prevent memory overload for very large search space)
-[] Fix evaluation of strategies from file
-[] Write formal description of language
 
 **On implementing strategies without storing everything:**
 Can an iterator be used to go through all the strategies.
 
-Some experimenting with itertors:
-```rust
-fn main() {
-    let mut counter = Counter::new();
-    for value in counter {
-        println!("{}", value);
-    }
-    counter.reset();
-    for value in counter {
-        println!("{}", value);
-    }
-													    
-    let rabbit = Rabbit::new(Counter::new(), Counter::new(), Counter::new());
-    let count = rabbit.count();
-    println!("{}", count);
-    for value in Rabbit::new(Counter::new(), Counter::new(), Counter::new()) {
-		println!("{}", value);
-    }
-}
+### 27/07/2020
+[x] Implement search for best strategies without storing everything, only store best strategies (this will prevent memory overload for very large search space)
+[] Start looking into and implementing iterative local search
+[] Work on writing diss
+[] Fix evaluation of strategies from file
+[] Write formal description of language
 
-use std::iter::Iterator;
-
-#[derive(Clone, Copy)]
-struct Counter {
-    count: u64,
-}
-
-impl Counter {
-    fn new() -> Self {
-        Counter { count: 0 }
-    }
-						    
-    fn get(&self) -> u64 {
-        self.count
-    }
-											    
-    fn reset(&mut self) {
-        self.count = 0;
-    }
-}
-
-impl Iterator for Counter {
-    type Item = u64;
-	    
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.count < 10 {
-    	    let current_count = self.count;
-    	    self.count += 1;
-    	    return Some(current_count);
-    	}
-    	None
-    }
-}
-
-struct Rabbit {
-    i: Counter,
-    j: Counter,
-    k: Counter,
-}
-
-impl Rabbit {
-    fn new(i: Counter, j: Counter, k: Counter) -> Self {
-        Rabbit{i, j, k}
-    }
-						    
-    fn get(&self) -> (u64, u64, u64) {
-        (self.i.get(), self.j.get(), self.k.get())
-    }
-}
-
-impl Iterator for Rabbit {
-    type Item = u64;
-	    
-    fn next(&mut self) -> Option<Self::Item>{
-        if self.k.get() == 10 {
-            self.j.next();
-            self.k.reset();
-        }
-													        
-        if self.j.get() == 10 {
-            self.i.next();
-            self.j.reset();
-        }
-																												        
-        if self.i.get() == 10 {
-            return None;
-        }
-																																						    
-        let return_value = self.k.get() * self.j.get() * self.i.get();
-        self.k.next();
-        Some(return_value)
-    }
-}
-```
+Memory used with 2 ban and 4 try currently: starts at 3400M @ 7000000 at 10 runs, about 30% of memory or something
+Memory used with 2 ban and 4 try after changing to iterator implementation is very small: only 0.1% of memory

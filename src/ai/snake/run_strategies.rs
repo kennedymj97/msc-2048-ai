@@ -1,6 +1,9 @@
 use super::evaluate_strategies::compare_strategies;
+use super::evaluate_strategies::compare_strategy_to_best;
 use super::evaluate_strategies::StrategyDataStore;
 use super::generate_strategies::generate_snakes;
+use super::generate_strategies::get_snake_iterator;
+use super::generate_strategies::Iter;
 use super::Snake;
 use crate::ai::AI;
 use crate::engine::GameEngine;
@@ -13,14 +16,11 @@ use std::path::Path;
 pub fn progressive_brute_force_no_save(max_ban_length: usize, max_try_length: usize) {
     println!("Creating engine...");
     let engine = GameEngine::new();
-    println!("Generating snakes...");
-    let snakes = generate_snakes(max_ban_length, max_try_length);
-    println!("Creating datastructure...");
-    let data = snakes
-        .into_iter()
-        .map(|snake| (snake, Vec::new()))
-        .collect::<StrategyDataStore<Snake>>();
-    let best_strategies = progressive_brute_force_no_save_aux(data, &engine, 5);
+    println!("Getting snakes iterator");
+    let snakes_iter = get_snake_iterator(max_ban_length, max_try_length);
+    let best_initial_strategies = progressive_brute_force_initial_run(snakes_iter, &engine, 5);
+    let best_strategies =
+        progressive_brute_force_no_save_aux(best_initial_strategies, &engine, 5 * 10);
     let best_strategies_info = best_strategies
         .iter()
         .map(|(strategy_info, scores)| (strategy_info, median(scores)))
@@ -30,29 +30,74 @@ pub fn progressive_brute_force_no_save(max_ban_length: usize, max_try_length: us
         .for_each(|(snake, median)| println!("{}: {}", snake, median));
 }
 
+fn progressive_brute_force_initial_run(
+    snake_iter: Iter,
+    engine: &GameEngine,
+    runs: usize,
+) -> StrategyDataStore<Snake> {
+    println!("Initial @ {} runs", runs);
+    let mut count = 0;
+    let total_count = snake_iter.len();
+    let mut best_strategies = Vec::new();
+    for mut snake in snake_iter {
+        count += 1;
+        if count % get_count_mod(total_count) == 0 {
+            println!("{}/{}", count, total_count);
+        }
+        let mut results = Vec::new();
+        run_strategy(&mut snake, engine, &mut results, runs);
+        best_strategies = compare_strategy_to_best((snake, results), best_strategies);
+    }
+    best_strategies
+}
+
 fn progressive_brute_force_no_save_aux(
-    data: StrategyDataStore<Snake>,
+    current_best: StrategyDataStore<Snake>,
     engine: &GameEngine,
     runs: usize,
 ) -> StrategyDataStore<Snake> {
     if runs >= 100000 {
-        return data;
+        return current_best;
     }
     println!("@ {} runs...", runs);
     let mut count = 0;
-    let total_count = data.len();
-    let data = data
+    let total_count = current_best.len();
+    let best = current_best
         .into_iter()
         .map(|(mut snake, mut results)| {
             count += 1;
-            if count % 1000 == 0 {
+            if count % get_count_mod(total_count) == 0 {
                 println!("{}/{}", count, total_count);
             }
             run_strategy(&mut snake, engine, &mut results, runs);
             (snake, results)
         })
         .collect::<StrategyDataStore<Snake>>();
-    progressive_brute_force_no_save_aux(compare_strategies(data), engine, runs * 10)
+    progressive_brute_force_no_save_aux(compare_strategies(best), engine, runs * 10)
+}
+
+fn get_count_mod(len: usize) -> u64 {
+    if len < 100 {
+        return 1;
+    }
+
+    if len < 1000 {
+        return 10;
+    }
+
+    if len < 10_000 {
+        return 100;
+    }
+
+    if len < 100_000 {
+        return 1000;
+    }
+
+    if len < 1_000_000 {
+        return 10000;
+    }
+
+    100000
 }
 
 pub fn progressive_brute_force(max_ban_length: usize, max_try_length: usize, foldername: &str) {

@@ -26,27 +26,54 @@ pub type StrategyDataStore<T> = Vec<StrategyData<T>>;
 pub fn compare_strategies<T: Clone>(data: StrategyDataStore<T>) -> StrategyDataStore<T> {
     let mut top_strategies = Vec::new();
     for strategy in data {
-        if top_strategies.len() == 0 {
-            top_strategies.push(strategy.clone());
-            continue;
-        }
-        match mann_whitney_u_test_01(strategy.1.clone(), top_strategies[0].1.clone()) {
-            Ordering::Equal => top_strategies.push(strategy.clone()),
-            Ordering::Greater => {
-                let mut new_top_strategies = vec![strategy.clone()];
-                top_strategies.iter().for_each(|top_strategy| {
-                    match mann_whitney_u_test_01(top_strategy.1.clone(), strategy.1.clone()) {
-                        Ordering::Equal => new_top_strategies.push(top_strategy.clone()),
-                        Ordering::Greater => panic!("this should be impossible"),
-                        Ordering::Less => (),
-                    }
-                });
-                top_strategies = new_top_strategies;
-            }
-            Ordering::Less => (),
-        }
+        top_strategies = compare_strategy_to_best(strategy, top_strategies);
+        //if top_strategies.len() == 0 {
+        //    top_strategies.push(strategy.clone());
+        //    continue;
+        //}
+        //match mann_whitney_u_test_01(strategy.1.clone(), top_strategies[0].1.clone()) {
+        //    Ordering::Equal => top_strategies.push(strategy.clone()),
+        //    Ordering::Greater => {
+        //        let mut new_top_strategies = vec![strategy.clone()];
+        //        top_strategies.iter().for_each(|top_strategy| {
+        //            match mann_whitney_u_test_01(top_strategy.1.clone(), strategy.1.clone()) {
+        //                Ordering::Equal => new_top_strategies.push(top_strategy.clone()),
+        //                Ordering::Greater => panic!("this should be impossible"),
+        //                Ordering::Less => (),
+        //            }
+        //        });
+        //        top_strategies = new_top_strategies;
+        //    }
+        //    Ordering::Less => (),
+        //}
     }
     top_strategies
+}
+
+pub fn compare_strategy_to_best<T: Clone>(
+    new_strategy: StrategyData<T>,
+    mut best_strategies: StrategyDataStore<T>,
+) -> StrategyDataStore<T> {
+    if best_strategies.len() == 0 {
+        best_strategies.push(new_strategy.clone());
+        return best_strategies;
+    }
+    match mann_whitney_u_test_01(new_strategy.1.clone(), best_strategies[0].1.clone()) {
+        Ordering::Equal => best_strategies.push(new_strategy.clone()),
+        Ordering::Greater => {
+            let mut new_best_strategies = vec![new_strategy.clone()];
+            best_strategies.iter().for_each(|strategy| {
+                match mann_whitney_u_test_01(strategy.1.clone(), new_strategy.1.clone()) {
+                    Ordering::Equal => new_best_strategies.push(strategy.clone()),
+                    Ordering::Greater => panic!("this should be impossible"),
+                    Ordering::Less => (),
+                }
+            });
+            best_strategies = new_best_strategies;
+        }
+        Ordering::Less => (),
+    }
+    best_strategies
 }
 
 /// Takes a file containing strategy data in the format:

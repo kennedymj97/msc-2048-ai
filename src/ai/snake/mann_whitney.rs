@@ -326,6 +326,6 @@ mod tests {
         assert!((mann_whitney_u_test.sigmau() - 100.0333278) < 0.00000005);
         assert!((mann_whitney_u_test.z() - 2.739087123) < 0.0000000005);
         assert!((mann_whitney_u_test.p() - 0.006161) < 0.0000005);
-        assert_eq!(mann_whitney_u_test.test(), Ordering::Greater);
+        assert_eq!(mann_whitney_u_test.test_05(), Ordering::Greater);
     }
 }
