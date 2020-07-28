@@ -258,5 +258,9 @@ Memory used with 2 ban and 4 try after changing to iterator implementation is ve
 2. Continue finding best try move until a max length has been reached
 3. Repeat for ban moves until max ban length has been reached
 
-**Progressive brute force time @ 2 ban 4 try:** 62 mins -> 5, 50, 500, 5000, 50000 (number of runs of each set)
+**Progressive brute force time:** 
+- Before changing rule generation and not allowing redundant snakes: ~11800000 snakes @ 2 ban 4 try, 62 mins -> 5, 50, 500, 5000, 50000 (number of runs of each set)
+- After changes: ~7800000 snakes @ 2 ban 5 try, -> 5, 50, 500, 5000, 50000 (number of runs of each set)
 **Greedy time:** 107secs
+
+There is some bug in the progressive brute force code where the same strategy is repeated many times. Need to work out what it is and fix it. Execute on smaller number of possibilities to test it.
