@@ -25,9 +25,12 @@ pub fn greedy() {
         &Vec::new(),
         &Vec::new(),
         &vec![Move::Left, Move::Down, Move::Up, Move::Right],
-    );
+    )
+    .expect("Should be a valid snake");
+    let mut try_variants = TryMove::generate_all_variations();
+    let mut ban_variants = BanMove::generate_all_variations();
     loop {
-        match greedy_add_rule(&mut snake, &engine) {
+        match greedy_add_rule(&mut snake, &engine, &mut try_variants, &mut ban_variants) {
             Some(new_snake) => snake = new_snake,
             None => break,
         }
@@ -43,18 +46,27 @@ pub fn greedy() {
     );
 }
 
-fn greedy_add_rule(snake: &mut Snake, engine: &GameEngine) -> Option<Snake> {
-    println!("Adding a try rule...");
+fn greedy_add_rule(
+    snake: &mut Snake,
+    engine: &GameEngine,
+    try_variants: &mut Vec<TryMove>,
+    ban_variants: &mut Vec<BanMove>,
+) -> Option<Snake> {
+    println!("Trying to add a try rule...");
     let mut best_snake = snake.clone();
     let mut best_snake_results = Vec::new();
-    let try_variants = TryMove::generate_all_variations();
-    let mut count = 0;
-    for try_rule in try_variants {
-        count += 1;
-        println!("Trying rule #{}...", count);
+    let mut rule_added_idx = 0;
+    let mut best_try_rule = TryMove::ProducesLeftMerge(Move::Left);
+    for (idx, &try_rule) in try_variants.iter().enumerate() {
         let mut new_try_rules = snake.try_rules.clone();
         new_try_rules.insert(0, try_rule);
-        let mut challenger = Snake::new(&snake.ban_rules, &new_try_rules, &snake.fallback_moves);
+        let mut challenger;
+        match Snake::new(&snake.ban_rules, &new_try_rules, &snake.fallback_moves) {
+            Some(valid_snake) => {
+                challenger = valid_snake;
+            }
+            None => continue,
+        }
         let mut challenger_results = Vec::new();
         let duel_results = strategy_duel(
             engine,
@@ -64,11 +76,28 @@ fn greedy_add_rule(snake: &mut Snake, engine: &GameEngine) -> Option<Snake> {
             &mut challenger_results,
             10,
         );
-        best_snake = duel_results.0;
-        best_snake_results = duel_results.1;
+        match duel_results {
+            StrategyDuelResult::Champion(results) => {
+                best_snake_results = results;
+            }
+            StrategyDuelResult::Challenger(results) => {
+                best_snake = challenger;
+                best_snake_results = results;
+                rule_added_idx = idx;
+                best_try_rule = try_rule;
+            }
+        }
+        // Dont bother trying to add rule on the end if the move is the same as the first fallback
+        // move
         let mut new_try_rules = snake.try_rules.clone();
         new_try_rules.push(try_rule);
-        let mut challenger = Snake::new(&snake.ban_rules, &new_try_rules, &snake.fallback_moves);
+        let mut challenger;
+        match Snake::new(&snake.ban_rules, &new_try_rules, &snake.fallback_moves) {
+            Some(valid_snake) => {
+                challenger = valid_snake;
+            }
+            None => continue,
+        }
         let mut challenger_results = Vec::new();
         let duel_results = strategy_duel(
             engine,
@@ -78,21 +107,39 @@ fn greedy_add_rule(snake: &mut Snake, engine: &GameEngine) -> Option<Snake> {
             &mut challenger_results,
             10,
         );
-        best_snake = duel_results.0;
-        best_snake_results = duel_results.1;
+        match duel_results {
+            StrategyDuelResult::Champion(results) => {
+                best_snake_results = results;
+            }
+            StrategyDuelResult::Challenger(results) => {
+                best_snake = challenger;
+                best_snake_results = results;
+                rule_added_idx = idx;
+                best_try_rule = try_rule;
+            }
+        }
     }
     if snake.clone() != best_snake {
+        println!("{} added.", best_try_rule);
+        try_variants.remove(rule_added_idx);
         return Some(best_snake);
     }
 
-    println!("Adding a ban rule...");
+    println!("Trying to add a ban rule...");
     let mut best_snake = snake.clone();
     let mut best_snake_results = Vec::new();
-    let ban_variants = BanMove::generate_all_variations();
-    for ban_rule in ban_variants {
+    let mut rule_added_idx = 0;
+    let mut best_ban_rule = BanMove::IfBreaksMonotonicity(Move::Right);
+    for (idx, &ban_rule) in ban_variants.iter().enumerate() {
         let mut new_ban_rules = snake.ban_rules.clone();
         new_ban_rules.push(ban_rule);
-        let mut challenger = Snake::new(&new_ban_rules, &snake.try_rules, &snake.fallback_moves);
+        let mut challenger;
+        match Snake::new(&new_ban_rules, &snake.try_rules, &snake.fallback_moves) {
+            Some(valid_snake) => {
+                challenger = valid_snake;
+            }
+            None => continue,
+        }
         let mut challenger_results = Vec::new();
         let duel_results = strategy_duel(
             engine,
@@ -102,14 +149,30 @@ fn greedy_add_rule(snake: &mut Snake, engine: &GameEngine) -> Option<Snake> {
             &mut challenger_results,
             10,
         );
-        best_snake = duel_results.0;
-        best_snake_results = duel_results.1;
+        match duel_results {
+            StrategyDuelResult::Champion(results) => {
+                best_snake_results = results;
+            }
+            StrategyDuelResult::Challenger(results) => {
+                best_snake = challenger;
+                best_snake_results = results;
+                rule_added_idx = idx;
+                best_ban_rule = ban_rule;
+            }
+        }
     }
     if snake.clone() != best_snake {
+        println!("{} added.", best_ban_rule);
+        ban_variants.remove(rule_added_idx);
         return Some(best_snake);
     }
 
     None
+}
+
+enum StrategyDuelResult {
+    Champion(Vec<Score>),
+    Challenger(Vec<Score>),
 }
 
 fn strategy_duel(
@@ -119,17 +182,14 @@ fn strategy_duel(
     champion_results: &mut Vec<Score>,
     challenger_results: &mut Vec<Score>,
     runs: usize,
-) -> (Snake, Vec<Score>) {
-    println!("Champion: {}\nChallenger: {}", champion, challenger);
-    if runs > 40_000 {
-        println!("No winner!");
-        return (champion.clone(), champion_results.to_owned());
+) -> StrategyDuelResult {
+    if runs > 50_000 {
+        return StrategyDuelResult::Champion(champion_results.to_owned());
     }
-    println!("Dueling at {} runs...", runs);
     run_strategy(champion, engine, champion_results, runs);
     run_strategy(challenger, engine, challenger_results, runs);
     match mann_whitney_u_test_01(&champion_results, &challenger_results) {
-        Ordering::Less => return (challenger.to_owned(), challenger_results.to_owned()),
+        Ordering::Less => return StrategyDuelResult::Challenger(challenger_results.to_owned()),
         Ordering::Equal => {
             return strategy_duel(
                 engine,
@@ -140,7 +200,7 @@ fn strategy_duel(
                 runs * 2,
             )
         }
-        Ordering::Greater => return (champion.to_owned(), champion_results.to_owned()),
+        Ordering::Greater => return StrategyDuelResult::Champion(champion_results.to_owned()),
     }
 }
 

@@ -14,6 +14,44 @@ pub struct Iter {
     fallback_idx: usize,
 }
 
+pub struct IterFixedFallback {
+    ban_sets: Vec<Vec<BanMove>>,
+    try_sets: Vec<Vec<TryMove>>,
+    ban_idx: usize,
+    try_idx: usize,
+}
+
+impl IterFixedFallback {
+    pub fn len(&self) -> usize {
+        self.ban_sets.len() * self.try_sets.len()
+    }
+}
+
+impl Iterator for IterFixedFallback {
+    type Item = Snake;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.try_idx == self.try_sets.len() {
+            self.ban_idx += 1;
+            self.try_idx = 0;
+        }
+
+        if self.ban_idx == self.ban_sets.len() {
+            return None;
+        }
+
+        self.try_idx += 1;
+        match Snake::new(
+            &self.ban_sets[self.ban_idx],
+            &self.try_sets[self.try_idx],
+            &vec![Move::Left, Move::Down, Move::Up, Move::Right],
+        ) {
+            Some(valid_snake) => Some(valid_snake),
+            None => self.next(),
+        }
+    }
+}
+
 impl Iter {
     pub fn len(&self) -> usize {
         self.ban_sets.len() * self.try_sets.len() * self.fallback_sets.len()
@@ -38,13 +76,15 @@ impl Iterator for Iter {
             return None;
         }
 
-        let snake = Snake::new(
+        self.fallback_idx += 1;
+        match Snake::new(
             &self.ban_sets[self.ban_idx],
             &self.try_sets[self.try_idx],
-            &self.fallback_sets[self.fallback_idx],
-        );
-        self.fallback_idx += 1;
-        Some(snake)
+            &vec![Move::Left, Move::Down, Move::Up, Move::Right],
+        ) {
+            Some(valid_snake) => Some(valid_snake),
+            None => self.next(),
+        }
     }
 }
 
@@ -120,14 +160,18 @@ pub fn generate_snakes(max_ban_length: usize, max_try_length: usize) -> Vec<Snak
     for ban_set in ban_sets.iter() {
         for try_set in try_sets.iter() {
             for fallback_set in fallback_sets.iter() {
-                snakes.push(Snake::new(ban_set, try_set, fallback_set));
+                let snake;
+                match Snake::new(ban_set, try_set, fallback_set) {
+                    Some(valid_snake) => {
+                        snake = valid_snake;
+                    }
+                    None => continue,
+                }
+                snakes.push(snake);
             }
         }
     }
-    assert_eq!(
-        ban_sets.len() * try_sets.len() * fallback_sets.len(),
-        snakes.len()
-    );
+    assert!(ban_sets.len() * try_sets.len() * fallback_sets.len() > snakes.len());
     snakes
 }
 
@@ -188,6 +232,6 @@ mod tests {
     #[test]
     fn it_snake_iter_size() {
         let snake_iter = get_snake_iterator(2, 4);
-        assert_eq!(snake_iter.len(), snake_iter.count());
+        assert!(snake_iter.len() > snake_iter.count());
     }
 }

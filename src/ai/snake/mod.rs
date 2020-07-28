@@ -29,7 +29,7 @@ pub mod mann_whitney;
 pub mod rules;
 pub mod run_strategies;
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Debug)]
 pub struct Snake {
     ban_rules: BanRules,
     try_rules: TryRules,
@@ -37,12 +37,40 @@ pub struct Snake {
 }
 
 impl Snake {
-    pub fn new(ban_rules: &BanRules, try_rules: &TryRules, fallback_moves: &Vec<Move>) -> Self {
-        Snake {
+    pub fn new(
+        ban_rules: &BanRules,
+        try_rules: &TryRules,
+        fallback_moves: &Vec<Move>,
+    ) -> Option<Self> {
+        // if last try move direction is same as first fallback move it is a redundant snake
+        if let Some(try_rule) = try_rules.last() {
+            let last_try_direction = try_rule.get_move();
+            if let Some(first_fallback_direction) = fallback_moves.first() {
+                if last_try_direction == *first_fallback_direction {
+                    return None;
+                }
+            }
+        }
+
+        // if ban rule direction is not in try sequence it is a redundant snake
+        let try_rule_directions = try_rules
+            .iter()
+            .map(|&try_rule| try_rule.get_move())
+            .collect::<Vec<_>>();
+        for ban_rule in ban_rules {
+            let ban_direction = ban_rule.get_move();
+            if !try_rule_directions.contains(&ban_direction) {
+                return None;
+            }
+        }
+
+        // TODO: ensure no 2 rules are the same in try_rules or ban rules
+
+        Some(Snake {
             ban_rules: ban_rules.clone(),
             try_rules: try_rules.clone(),
             fallback_moves: fallback_moves.clone(),
-        }
+        })
     }
 }
 
@@ -98,4 +126,35 @@ fn vec_to_string_for_csv<T: fmt::Display>(vec: &[T]) -> String {
         }
     }
     result
+}
+
+#[cfg(test)]
+mod tests {
+    use super::rules::BanMove;
+    use super::rules::TryMove;
+    use super::*;
+
+    #[test]
+    fn it_new_snake() {
+        let fallback_moves = vec![Move::Left, Move::Down, Move::Up, Move::Left];
+        assert_eq!(
+            Snake::new(
+                &vec![BanMove::IfLeftColumnLocked(Move::Up)],
+                &vec![
+                    TryMove::IfMergePossible(Move::Left),
+                    TryMove::ProducesLeftMerge(Move::Down),
+                ],
+                &fallback_moves
+            ),
+            None
+        );
+        assert_eq!(
+            Snake::new(
+                &vec![],
+                &vec![TryMove::IfMergePossible(Move::Left)],
+                &fallback_moves,
+            ),
+            None
+        );
+    }
 }

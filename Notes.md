@@ -237,7 +237,16 @@ Memory used with 2 ban and 4 try after changing to iterator implementation is ve
 
 ## 28/07/2020
 
-[] Greedy search for strategies
+[x] Greedy search for strategies
+[x] Make progressive brute force a bit quicker
+[x] Measure progressive brute force time
+[x] Don't allow repeated try moves in greedy
+[x] Don't allow last try move to be same as first force move in greedy
+[x] Only allow moves in try sequence in ban sequence in greedy
+[x] Measure greedy time
+[x] Enforce redundant snake not created in the constructor
+[] Remeasure progressive brute force time with new try rule generation
+[] Brute force a good number of strategies for 100 runs so I can plot a good histogram
 [] Local search for strategies
 [] Iterated local search for strategies
 [] Fix evaluation of strategies from file
@@ -248,3 +257,6 @@ Memory used with 2 ban and 4 try after changing to iterator implementation is ve
 1. Find best try move at position 1
 2. Continue finding best try move until a max length has been reached
 3. Repeat for ban moves until max ban length has been reached
+
+**Progressive brute force time @ 2 ban 4 try:** 62 mins -> 5, 50, 500, 5000, 50000 (number of runs of each set)
+**Greedy time:** 107secs
