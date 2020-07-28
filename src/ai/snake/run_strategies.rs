@@ -4,14 +4,145 @@ use super::evaluate_strategies::StrategyDataStore;
 use super::generate_strategies::generate_snakes;
 use super::generate_strategies::get_snake_iterator;
 use super::generate_strategies::Iter;
+use super::mann_whitney::mann_whitney_u_test_01;
+use super::rules::BanMove;
+use super::rules::TryMove;
 use super::Snake;
 use crate::ai::AI;
 use crate::engine::GameEngine;
+use crate::engine::Move;
 use crate::engine::Score;
+use std::cmp::Ordering;
 use std::fs::DirBuilder;
 use std::fs::File;
 use std::io::Write;
 use std::path::Path;
+
+pub fn greedy() {
+    println!("Starting greedy search...");
+    let engine = GameEngine::new();
+    let mut snake = Snake::new(
+        &Vec::new(),
+        &Vec::new(),
+        &vec![Move::Left, Move::Down, Move::Up, Move::Right],
+    );
+    loop {
+        match greedy_add_rule(&mut snake, &engine) {
+            Some(new_snake) => snake = new_snake,
+            None => break,
+        }
+    }
+    println!("\n\nGetting stats for best strategy...");
+    let mut results = Vec::new();
+    run_strategy(&mut snake, &engine, &mut results, 100000);
+    let median = median(&results);
+    let average = average(&results);
+    println!(
+        "Strategy: {}\nMedian: {}\nAverage: {}",
+        snake, median, average
+    );
+}
+
+fn greedy_add_rule(snake: &mut Snake, engine: &GameEngine) -> Option<Snake> {
+    println!("Adding a try rule...");
+    let mut best_snake = snake.clone();
+    let mut best_snake_results = Vec::new();
+    let try_variants = TryMove::generate_all_variations();
+    let mut count = 0;
+    for try_rule in try_variants {
+        count += 1;
+        println!("Trying rule #{}...", count);
+        let mut new_try_rules = snake.try_rules.clone();
+        new_try_rules.insert(0, try_rule);
+        let mut challenger = Snake::new(&snake.ban_rules, &new_try_rules, &snake.fallback_moves);
+        let mut challenger_results = Vec::new();
+        let duel_results = strategy_duel(
+            engine,
+            &mut best_snake,
+            &mut challenger,
+            &mut best_snake_results,
+            &mut challenger_results,
+            10,
+        );
+        best_snake = duel_results.0;
+        best_snake_results = duel_results.1;
+        let mut new_try_rules = snake.try_rules.clone();
+        new_try_rules.push(try_rule);
+        let mut challenger = Snake::new(&snake.ban_rules, &new_try_rules, &snake.fallback_moves);
+        let mut challenger_results = Vec::new();
+        let duel_results = strategy_duel(
+            engine,
+            &mut best_snake,
+            &mut challenger,
+            &mut best_snake_results,
+            &mut challenger_results,
+            10,
+        );
+        best_snake = duel_results.0;
+        best_snake_results = duel_results.1;
+    }
+    if snake.clone() != best_snake {
+        return Some(best_snake);
+    }
+
+    println!("Adding a ban rule...");
+    let mut best_snake = snake.clone();
+    let mut best_snake_results = Vec::new();
+    let ban_variants = BanMove::generate_all_variations();
+    for ban_rule in ban_variants {
+        let mut new_ban_rules = snake.ban_rules.clone();
+        new_ban_rules.push(ban_rule);
+        let mut challenger = Snake::new(&new_ban_rules, &snake.try_rules, &snake.fallback_moves);
+        let mut challenger_results = Vec::new();
+        let duel_results = strategy_duel(
+            engine,
+            &mut best_snake,
+            &mut challenger,
+            &mut best_snake_results,
+            &mut challenger_results,
+            10,
+        );
+        best_snake = duel_results.0;
+        best_snake_results = duel_results.1;
+    }
+    if snake.clone() != best_snake {
+        return Some(best_snake);
+    }
+
+    None
+}
+
+fn strategy_duel(
+    engine: &GameEngine,
+    champion: &mut Snake,
+    challenger: &mut Snake,
+    champion_results: &mut Vec<Score>,
+    challenger_results: &mut Vec<Score>,
+    runs: usize,
+) -> (Snake, Vec<Score>) {
+    println!("Champion: {}\nChallenger: {}", champion, challenger);
+    if runs > 40_000 {
+        println!("No winner!");
+        return (champion.clone(), champion_results.to_owned());
+    }
+    println!("Dueling at {} runs...", runs);
+    run_strategy(champion, engine, champion_results, runs);
+    run_strategy(challenger, engine, challenger_results, runs);
+    match mann_whitney_u_test_01(&champion_results, &challenger_results) {
+        Ordering::Less => return (challenger.to_owned(), challenger_results.to_owned()),
+        Ordering::Equal => {
+            return strategy_duel(
+                engine,
+                champion,
+                challenger,
+                champion_results,
+                challenger_results,
+                runs * 2,
+            )
+        }
+        Ordering::Greater => return (champion.to_owned(), champion_results.to_owned()),
+    }
+}
 
 pub fn progressive_brute_force_no_save(max_ban_length: usize, max_try_length: usize) {
     println!("Creating engine...");
@@ -128,6 +259,10 @@ fn median<T: Ord + Copy>(items: &Vec<T>) -> T {
     let mut items = items.clone();
     items.sort();
     items[items.len() / 2]
+}
+
+fn average(items: &Vec<u64>) -> f64 {
+    items.iter().fold(0., |acc, &ele| acc + ele as f64) / items.len() as f64
 }
 
 fn progressive_brute_force_aux(

@@ -58,12 +58,12 @@ pub fn compare_strategy_to_best<T: Clone>(
         best_strategies.push(new_strategy.clone());
         return best_strategies;
     }
-    match mann_whitney_u_test_01(new_strategy.1.clone(), best_strategies[0].1.clone()) {
+    match mann_whitney_u_test_01(&new_strategy.1, &best_strategies[0].1) {
         Ordering::Equal => best_strategies.push(new_strategy.clone()),
         Ordering::Greater => {
             let mut new_best_strategies = vec![new_strategy.clone()];
             best_strategies.iter().for_each(|strategy| {
-                match mann_whitney_u_test_01(strategy.1.clone(), new_strategy.1.clone()) {
+                match mann_whitney_u_test_01(&strategy.1, &new_strategy.1) {
                     Ordering::Equal => new_best_strategies.push(strategy.clone()),
                     Ordering::Greater => panic!("this should be impossible"),
                     Ordering::Less => (),

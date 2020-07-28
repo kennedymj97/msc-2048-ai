@@ -7,8 +7,9 @@ enum Group {
     Y,
 }
 
-pub fn mann_whitney_u_test_01<T: PartialOrd>(xs: Vec<T>, ys: Vec<T>) -> Ordering {
-    let mann_whitney_u_test = MannWhitneyUTest::new(xs, ys);
+// Returns order comparing first to second, if first is less than second will return Ordering::Less
+pub fn mann_whitney_u_test_01<T: PartialOrd + Clone>(xs: &Vec<T>, ys: &Vec<T>) -> Ordering {
+    let mann_whitney_u_test = MannWhitneyUTest::new(xs.to_owned(), ys.to_owned());
     assert!(mann_whitney_u_test.nx > 0. && mann_whitney_u_test.ny > 0.);
     mann_whitney_u_test.test_01()
 }

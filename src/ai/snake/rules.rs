@@ -7,7 +7,7 @@ use std::fmt;
 pub type BanRules = Vec<BanMove>;
 pub type TryRules = Vec<TryMove>;
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum BanMove {
     IfLeftColumnLocked(Move),
     IfBreaksMonotonicity(Move),
@@ -49,14 +49,14 @@ impl fmt::Display for BanMove {
             }
             BanMove::IfBreaksMonotonicity(direction) => write!(
                 f,
-                "ban move {} if breaks monotonicity of left colum",
+                "ban move {} if breaks monotonicity of left column",
                 direction
             ),
         }
     }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum TryMove {
     ProducesLeftMerge(Move),
     IfMergePossible(Move),

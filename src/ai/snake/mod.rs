@@ -29,7 +29,7 @@ pub mod mann_whitney;
 pub mod rules;
 pub mod run_strategies;
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub struct Snake {
     ban_rules: BanRules,
     try_rules: TryRules,

@@ -100,6 +100,9 @@ pub fn is_left_column_monotonic(board: Board) -> bool {
     let tile2 = GameEngine::get_tile(board, 8);
     let tile3 = GameEngine::get_tile(board, 4);
     let tile4 = GameEngine::get_tile(board, 0);
+    if tile1 == 0 && tile2 == 0 && tile3 == 0 && tile4 == 0 {
+        return false;
+    }
     if tile1 < tile2 {
         return false;
     }
