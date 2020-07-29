@@ -8,9 +8,9 @@ use msc_2048_ai::ai::snake::Snake;
 use msc_2048_ai::engine::Move;
 
 fn main() {
-    brute_force(2, 4, 100, "./data/brute_force_2try_4ban_100runs.csv");
+    //brute_force(2, 4, 100, "./data/brute_force_2try_4ban_100runs.csv");
     //progressive_brute_force_no_save_fixed_fallback(2, 5);
-    //greedy();
+    greedy();
     //let ban_rules = vec![
     //    BanMove::IfLeftColumnLocked(Move::Up),
     //    BanMove::IfBreaksMonotonicity(Move::Left),
