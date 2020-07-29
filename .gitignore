@@ -6,3 +6,5 @@
 /flamegraphs
 node_modules
 dist
+*.csv
+*.txt

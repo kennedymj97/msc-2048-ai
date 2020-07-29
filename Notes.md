@@ -263,7 +263,10 @@ There is some bug in the progressive brute force code where the same strategy is
 
 [x] Fix bug where same strategy is being used multiple times
 [x] Remeasure progressive brute force time with new try rule generation
-[] Brute force a good number of strategies for 100 runs so I can plot a good histogram
+[x] Brute force a good number of strategies for 100 runs so I can plot a good histogram
+[x] Set up python to handle and plot the data
+[x] Produce plot of the medians
+[x] Produce histogram plot
 [] Add more rules/make them more general
 [] Local search for strategies
 [] Iterated local search for strategies

@@ -425,7 +425,7 @@ fn run_strategy<T: AI>(
     runs: usize,
 ) {
     let mut current_runs = current_results.len();
-    while current_runs <= runs {
+    while current_runs < runs {
         let mut board = GameEngine::new_board();
         loop {
             let best_move = ai.get_next_move(engine, board);
