@@ -310,30 +310,6 @@ fn progressive_brute_force_no_save_aux(
     progressive_brute_force_no_save_aux(compare_strategies(best), engine, runs * 10)
 }
 
-fn get_count_mod(len: usize) -> u64 {
-    if len < 100 {
-        return 1;
-    }
-
-    if len < 1000 {
-        return 10;
-    }
-
-    if len < 10_000 {
-        return 100;
-    }
-
-    if len < 100_000 {
-        return 1000;
-    }
-
-    if len < 1_000_000 {
-        return 10000;
-    }
-
-    100000
-}
-
 pub fn progressive_brute_force(max_ban_length: usize, max_try_length: usize, foldername: &str) {
     println!("engine...");
     let engine = GameEngine::new();
@@ -413,14 +389,19 @@ fn save_results(data: &StrategyDataStore<Snake>, foldername: &Path, runs: usize)
 }
 
 pub fn brute_force(max_ban_length: usize, max_try_length: usize, runs: usize, filename: &str) {
+    println!("Creating engine...");
     let engine = GameEngine::new();
-    let snakes = generate_snakes(max_ban_length, max_try_length);
+    println!("Generating snakes...");
+    let snakes_iter = get_snake_iterator(max_ban_length, max_try_length);
     let mut f = File::create(Path::new(filename)).expect("Failed to create file");
     let mut count = 0;
-    let total_count = snakes.len();
-    snakes.into_iter().for_each(|mut snake| {
+    let total_count = snakes_iter.len();
+    println!("Getting data...");
+    snakes_iter.for_each(|mut snake| {
         count += 1;
-        println!("{}/{}", count, total_count);
+        if count % get_count_mod(total_count) == 0 {
+            println!("{}/{}", count, total_count);
+        }
         f.write_fmt(format_args!("{},", snake))
             .expect("Failed to write strategy information to file");
         let mut results = Vec::new();
@@ -481,4 +462,28 @@ pub fn run_strategy_save_results(mut ai: Snake) {
         f.write_fmt(format_args!("{},{}\n", score, highest_tile))
             .expect("failed to write data to file");
     });
+}
+
+fn get_count_mod(len: usize) -> u64 {
+    if len < 100 {
+        return 1;
+    }
+
+    if len < 1000 {
+        return 10;
+    }
+
+    if len < 10_000 {
+        return 100;
+    }
+
+    if len < 100_000 {
+        return 1000;
+    }
+
+    if len < 1_000_000 {
+        return 10000;
+    }
+
+    100000
 }

@@ -152,11 +152,6 @@ pub fn get_snake_iterator(max_ban_length: usize, max_try_length: usize) -> Iter 
     let fallback_sets = permuations(vec![vec![Move::Left, Move::Right, Move::Up, Move::Down]]);
     assert_eq!(factorial(4), fallback_sets.len() as u64);
 
-    println!(
-        "Total number of snakes = {}",
-        ban_sets.len() * try_sets.len() * fallback_sets.len()
-    );
-
     Iter {
         ban_sets,
         try_sets,
@@ -189,11 +184,6 @@ pub fn generate_snakes(max_ban_length: usize, max_try_length: usize) -> Vec<Snak
     // Only permuations of the 4 moves
     let fallback_sets = permuations(vec![vec![Move::Left, Move::Right, Move::Up, Move::Down]]);
     assert_eq!(factorial(4), fallback_sets.len() as u64);
-
-    println!(
-        "Total number of snakes = {}",
-        ban_sets.len() * try_sets.len() * fallback_sets.len()
-    );
 
     // 3 nest for loops, for each ban variation add every try variation, for every ban and try
     //   variation and every fallback variation

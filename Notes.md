@@ -261,12 +261,15 @@ There is some bug in the progressive brute force code where the same strategy is
 
 ## 29/07/2020
 
-[] Fix bug where same strategy is being used multiple times
-[] Remeasure progressive brute force time with new try rule generation
+[x] Fix bug where same strategy is being used multiple times
+[x] Remeasure progressive brute force time with new try rule generation
 [] Brute force a good number of strategies for 100 runs so I can plot a good histogram
+[] Add more rules/make them more general
 [] Local search for strategies
 [] Iterated local search for strategies
 [] Fix evaluation of strategies from file
 [] Write formal description of language
 
 - As the number of rules increases the number of good strategies increases greatly, the early rules have much more effect than the later rules.
+- Before forcing moves, should I go through the same ordering but instead trying to make the moves
+	- This means banned moves would have some effect after the try sequence
