@@ -397,6 +397,14 @@ pub fn brute_force(max_ban_length: usize, max_try_length: usize, runs: usize, fi
     let mut count = 0;
     let total_count = snakes_iter.len();
     println!("Getting data...");
+    f.write("Strategy,".as_bytes())
+        .expect("Failed to write header");
+    (1..runs).for_each(|run_idx| {
+        f.write_fmt(format_args!("Run {},", run_idx))
+            .expect("Failed to write header")
+    });
+    f.write_fmt(format_args!("Run {}", runs))
+        .expect("Failed to write header");
     snakes_iter.for_each(|mut snake| {
         count += 1;
         if count % get_count_mod(total_count) == 0 {
