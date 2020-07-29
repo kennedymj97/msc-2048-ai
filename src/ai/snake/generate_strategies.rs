@@ -5,15 +5,7 @@ use crate::engine::Move;
 use permutohedron::Heap;
 use std::iter::Iterator;
 
-pub struct Iter {
-    ban_sets: Vec<Vec<BanMove>>,
-    try_sets: Vec<Vec<TryMove>>,
-    fallback_sets: Vec<Vec<Move>>,
-    ban_idx: usize,
-    try_idx: usize,
-    fallback_idx: usize,
-}
-
+#[derive(Clone)]
 pub struct IterFixedFallback {
     ban_sets: Vec<Vec<BanMove>>,
     try_sets: Vec<Vec<TryMove>>,
@@ -23,7 +15,7 @@ pub struct IterFixedFallback {
 
 impl IterFixedFallback {
     pub fn len(&self) -> usize {
-        self.ban_sets.len() * self.try_sets.len()
+        self.to_owned().count()
     }
 }
 
@@ -40,21 +32,65 @@ impl Iterator for IterFixedFallback {
             return None;
         }
 
-        self.try_idx += 1;
         match Snake::new(
             &self.ban_sets[self.ban_idx],
             &self.try_sets[self.try_idx],
             &vec![Move::Left, Move::Down, Move::Up, Move::Right],
         ) {
-            Some(valid_snake) => Some(valid_snake),
-            None => self.next(),
+            Some(valid_snake) => {
+                self.try_idx += 1;
+                Some(valid_snake)
+            }
+            None => {
+                self.try_idx += 1;
+                self.next()
+            }
         }
     }
 }
 
+pub fn get_snake_iterator_fixed_fallback(
+    max_ban_length: usize,
+    max_try_length: usize,
+) -> IterFixedFallback {
+    // Generate all possible ban variations
+    // power_set and permuations up to certain length
+    let ban_variations = BanMove::generate_all_variations();
+    let ban_sets = power_set(&ban_variations, max_ban_length);
+    assert_eq!(
+        num_of_power_sets(ban_variations.len(), max_ban_length),
+        ban_sets.len() as u64
+    );
+    // Generate all possbile try variations
+    // power_set and permutation up to certain length
+    let try_variations = TryMove::generate_all_variations();
+    let try_sets = permuations(power_set(&try_variations, max_try_length));
+    assert_eq!(
+        num_of_possible_sets(try_variations.len(), max_try_length),
+        try_sets.len() as u64
+    );
+
+    IterFixedFallback {
+        ban_sets,
+        try_sets,
+        ban_idx: 0,
+        try_idx: 0,
+    }
+}
+
+#[derive(Clone)]
+pub struct Iter {
+    ban_sets: Vec<Vec<BanMove>>,
+    try_sets: Vec<Vec<TryMove>>,
+    fallback_sets: Vec<Vec<Move>>,
+    ban_idx: usize,
+    try_idx: usize,
+    fallback_idx: usize,
+}
+
 impl Iter {
     pub fn len(&self) -> usize {
-        self.ban_sets.len() * self.try_sets.len() * self.fallback_sets.len()
+        self.to_owned().count()
     }
 }
 
@@ -76,19 +112,24 @@ impl Iterator for Iter {
             return None;
         }
 
-        self.fallback_idx += 1;
         match Snake::new(
             &self.ban_sets[self.ban_idx],
             &self.try_sets[self.try_idx],
-            &vec![Move::Left, Move::Down, Move::Up, Move::Right],
+            &self.fallback_sets[self.fallback_idx],
         ) {
-            Some(valid_snake) => Some(valid_snake),
-            None => self.next(),
+            Some(valid_snake) => {
+                self.fallback_idx += 1;
+                Some(valid_snake)
+            }
+            None => {
+                self.fallback_idx += 1;
+                self.next()
+            }
         }
     }
 }
 
-pub fn get_snake_iterator<'a>(max_ban_length: usize, max_try_length: usize) -> Iter {
+pub fn get_snake_iterator(max_ban_length: usize, max_try_length: usize) -> Iter {
     // Generate all possible ban variations
     // power_set and permuations up to certain length
     let ban_variations = BanMove::generate_all_variations();

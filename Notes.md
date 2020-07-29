@@ -245,12 +245,6 @@ Memory used with 2 ban and 4 try after changing to iterator implementation is ve
 [x] Only allow moves in try sequence in ban sequence in greedy
 [x] Measure greedy time
 [x] Enforce redundant snake not created in the constructor
-[] Remeasure progressive brute force time with new try rule generation
-[] Brute force a good number of strategies for 100 runs so I can plot a good histogram
-[] Local search for strategies
-[] Iterated local search for strategies
-[] Fix evaluation of strategies from file
-[] Write formal description of language
 
 **Greedy search:**
 
@@ -259,8 +253,20 @@ Memory used with 2 ban and 4 try after changing to iterator implementation is ve
 3. Repeat for ban moves until max ban length has been reached
 
 **Progressive brute force time:** 
-- Before changing rule generation and not allowing redundant snakes: ~11800000 snakes @ 2 ban 4 try, 62 mins -> 5, 50, 500, 5000, 50000 (number of runs of each set)
-- After changes: ~7800000 snakes @ 2 ban 5 try, -> 5, 50, 500, 5000, 50000 (number of runs of each set)
+- Before changing rule generation and not allowing redundant snakes: ~11800000 snakes @ 2 ban 4 try varying fall-back, 62 mins -> 5, 50, 500, 5000, 50000 (number of runs of each set)
+- After changes: ~180000 snakes @ 2 ban 5 try fixed fall-back, 337secs -> 5, 50, 500, 5000, 50000 (number of runs of each set)
 **Greedy time:** 107secs
 
 There is some bug in the progressive brute force code where the same strategy is repeated many times. Need to work out what it is and fix it. Execute on smaller number of possibilities to test it.
+
+## 29/07/2020
+
+[] Fix bug where same strategy is being used multiple times
+[] Remeasure progressive brute force time with new try rule generation
+[] Brute force a good number of strategies for 100 runs so I can plot a good histogram
+[] Local search for strategies
+[] Iterated local search for strategies
+[] Fix evaluation of strategies from file
+[] Write formal description of language
+
+- As the number of rules increases the number of good strategies increases greatly, the early rules have much more effect than the later rules.

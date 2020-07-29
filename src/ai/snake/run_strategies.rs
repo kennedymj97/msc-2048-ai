@@ -3,7 +3,9 @@ use super::evaluate_strategies::compare_strategy_to_best;
 use super::evaluate_strategies::StrategyDataStore;
 use super::generate_strategies::generate_snakes;
 use super::generate_strategies::get_snake_iterator;
+use super::generate_strategies::get_snake_iterator_fixed_fallback;
 use super::generate_strategies::Iter;
+use super::generate_strategies::IterFixedFallback;
 use super::mann_whitney::mann_whitney_u_test_01;
 use super::rules::BanMove;
 use super::rules::TryMove;
@@ -242,6 +244,47 @@ fn progressive_brute_force_initial_run(
     best_strategies
 }
 
+pub fn progressive_brute_force_no_save_fixed_fallback(
+    max_ban_length: usize,
+    max_try_length: usize,
+) {
+    println!("Creating engine...");
+    let engine = GameEngine::new();
+    println!("Getting snakes iterator");
+    let snakes_iter = get_snake_iterator_fixed_fallback(max_ban_length, max_try_length);
+    let best_initial_strategies =
+        progressive_brute_force_fixed_fallback_initial_run(snakes_iter, &engine, 5);
+    let best_strategies =
+        progressive_brute_force_no_save_aux(best_initial_strategies, &engine, 5 * 10);
+    let best_strategies_info = best_strategies
+        .iter()
+        .map(|(strategy_info, scores)| (strategy_info, median(scores)))
+        .collect::<Vec<_>>();
+    best_strategies_info
+        .iter()
+        .for_each(|(snake, median)| println!("{}: {}", snake, median));
+}
+
+fn progressive_brute_force_fixed_fallback_initial_run(
+    snake_iter: IterFixedFallback,
+    engine: &GameEngine,
+    runs: usize,
+) -> StrategyDataStore<Snake> {
+    println!("Initial @ {} runs", runs);
+    let mut count = 0;
+    let total_count = snake_iter.len();
+    let mut best_strategies = Vec::new();
+    for mut snake in snake_iter {
+        count += 1;
+        if count % get_count_mod(total_count) == 0 {
+            println!("{}/{}", count, total_count);
+        }
+        let mut results = Vec::new();
+        run_strategy(&mut snake, engine, &mut results, runs);
+        best_strategies = compare_strategy_to_best((snake, results), best_strategies);
+    }
+    best_strategies
+}
 fn progressive_brute_force_no_save_aux(
     current_best: StrategyDataStore<Snake>,
     engine: &GameEngine,
