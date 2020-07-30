@@ -8,16 +8,19 @@ enum Group {
 }
 
 // Returns order comparing first to second, if first is less than second will return Ordering::Less
-pub fn mann_whitney_u_test_01<T: PartialOrd + Clone>(xs: &Vec<T>, ys: &Vec<T>) -> Ordering {
+pub fn mann_whitney_u_test<T: PartialOrd + Clone>(
+    xs: &Vec<T>,
+    ys: &Vec<T>,
+    confidence: Confidence,
+) -> Ordering {
     let mann_whitney_u_test = MannWhitneyUTest::new(xs.to_owned(), ys.to_owned());
     assert!(mann_whitney_u_test.nx > 0. && mann_whitney_u_test.ny > 0.);
-    mann_whitney_u_test.test_01()
+    mann_whitney_u_test.test(confidence)
 }
 
-pub fn mann_whitney_u_test_05<T: PartialOrd>(xs: Vec<T>, ys: Vec<T>) -> Ordering {
-    let mann_whitney_u_test = MannWhitneyUTest::new(xs, ys);
-    assert!(mann_whitney_u_test.nx > 0. && mann_whitney_u_test.ny > 0.);
-    mann_whitney_u_test.test_05()
+pub enum Confidence {
+    P05,
+    P01,
 }
 
 struct MannWhitneyUTest {
@@ -58,14 +61,17 @@ impl MannWhitneyUTest {
         MannWhitneyUTest { counts, nx, ny }
     }
 
-    fn test_05(&self) -> Ordering {
+    fn test(&self, confidence: Confidence) -> Ordering {
         let nx = self.nx as usize;
         let ny = self.ny as usize;
         let (ux, uy) = self.uxy();
         let u = ux.min(uy);
 
         if nx <= 20 && ny <= 20 {
-            let u_thresh = MANN_WHITNEY_TABLE_P05[nx - 1][ny - 1];
+            let u_thresh = match confidence {
+                P05 => MANN_WHITNEY_TABLE_P05[nx - 1][ny - 1],
+                P01 => MANN_WHITNEY_TABLE_P01[nx - 1][ny - 1],
+            };
             if u < u_thresh as f64 {
                 match ux < uy {
                     true => return Ordering::Less,
@@ -76,7 +82,11 @@ impl MannWhitneyUTest {
             }
         }
 
-        if self.p() < 0.05 {
+        let confidence_thresh = match confidence {
+            P05 => 0.05,
+            P01 => 0.01,
+        };
+        if self.p() < confidence_thresh {
             match ux < uy {
                 true => Ordering::Less,
                 false => Ordering::Greater,
@@ -86,33 +96,6 @@ impl MannWhitneyUTest {
         }
     }
 
-    fn test_01(&self) -> Ordering {
-        let nx = self.nx as usize;
-        let ny = self.ny as usize;
-        let (ux, uy) = self.uxy();
-        let u = ux.min(uy);
-
-        if nx <= 20 && ny <= 20 {
-            let u_thresh = MANN_WHITNEY_TABLE_P01[nx - 1][ny - 1];
-            if u < u_thresh as f64 {
-                match ux < uy {
-                    true => return Ordering::Less,
-                    false => return Ordering::Greater,
-                }
-            } else {
-                return Ordering::Equal;
-            }
-        }
-
-        if self.p() < 0.01 {
-            match ux < uy {
-                true => Ordering::Less,
-                false => Ordering::Greater,
-            }
-        } else {
-            Ordering::Equal
-        }
-    }
     fn uxy(&self) -> (f64, f64) {
         let mut rank = 1.;
         let rx = self.counts.iter().fold(0., |mut acc, &(x_count, y_count)| {
