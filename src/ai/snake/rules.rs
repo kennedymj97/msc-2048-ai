@@ -11,6 +11,7 @@ pub type TryRules = Vec<TryMove>;
 pub enum BanMove {
     IfLeftColumnLocked(Move),
     IfBreaksMonotonicity(Move),
+    Always(Move),
 }
 
 impl BanMove {
@@ -23,6 +24,7 @@ impl BanMove {
             BanMove::IfBreaksMonotonicity(direction) => {
                 ban_move_if_breaks_monotonicity_of_left_column(engine, board, *direction)
             }
+            BanMove::Always(direction) => Some(*direction),
         }
     }
 
@@ -31,6 +33,7 @@ impl BanMove {
         for &direction in &[Move::Left, Move::Right, Move::Up, Move::Down] {
             variations.push(BanMove::IfLeftColumnLocked(direction));
             variations.push(BanMove::IfBreaksMonotonicity(direction));
+            variations.push(BanMove::Always(direction));
         }
         variations
     }
@@ -39,6 +42,7 @@ impl BanMove {
         match self {
             BanMove::IfLeftColumnLocked(direction) => *direction,
             BanMove::IfBreaksMonotonicity(direction) => *direction,
+            BanMove::Always(direction) => *direction,
         }
     }
 }
@@ -54,6 +58,7 @@ impl fmt::Display for BanMove {
                 "ban move {} if breaks monotonicity of left column",
                 direction
             ),
+            BanMove::Always(direction) => write!(f, "always ban move {}", direction),
         }
     }
 }
@@ -63,6 +68,7 @@ pub enum TryMove {
     ProducesLeftMerge(Move),
     IfMergePossible(Move),
     IfMovesLargestTileToCorner(Move),
+    Always(Move),
 }
 
 impl TryMove {
@@ -75,6 +81,7 @@ impl TryMove {
             TryMove::IfMovesLargestTileToCorner(direction) => {
                 try_move_if_moves_largest_tile_to_bottom_left_corner(engine, board, *direction)
             }
+            TryMove::Always(direction) => always_try_move(engine, board, *direction),
         }
     }
 
@@ -90,6 +97,7 @@ impl TryMove {
             }
 
             variations.push(TryMove::IfMergePossible(direction));
+            variations.push(TryMove::Always(direction));
         }
         variations
     }
@@ -99,6 +107,7 @@ impl TryMove {
             TryMove::ProducesLeftMerge(direction) => *direction,
             TryMove::IfMergePossible(direction) => *direction,
             TryMove::IfMovesLargestTileToCorner(direction) => *direction,
+            TryMove::Always(direction) => *direction,
         }
     }
 }
@@ -115,6 +124,7 @@ impl fmt::Display for TryMove {
             TryMove::IfMovesLargestTileToCorner(direction) => {
                 write!(f, "try move {} if moves largest tile to corner", direction)
             }
+            TryMove::Always(direction) => write!(f, "always try move {}", direction),
         }
     }
 }
@@ -174,6 +184,13 @@ fn try_move_if_moves_largest_tile_to_bottom_left_corner(
     let new_board = engine.shift(board, direction);
     let largest_tile_in_corner_new = attributes::is_largest_tile_in_corner(new_board);
     if !largest_tile_in_corner && largest_tile_in_corner_new {
+        return Some(direction);
+    }
+    None
+}
+
+fn always_try_move(engine: &GameEngine, board: Board, direction: Move) -> Option<Move> {
+    if attributes::is_move_possible(engine, board, direction) {
         return Some(direction);
     }
     None

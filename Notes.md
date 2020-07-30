@@ -278,6 +278,7 @@ There is some bug in the progressive brute force code where the same strategy is
 [x] Adapt the greedy search
 [x] Adapt Mann-Whitney to be more adaptable, either P05 or P01
 [x] Clean up greedy search code, allow picking best, prioritising try and prioritising ban, choose the confidence level and max runs until just choosing current best
+[x] Add always rules
 [] Add more rules/make them more general
 [] Local search for strategies
 [] Iterated local search for strategies
