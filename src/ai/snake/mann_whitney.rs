@@ -18,6 +18,7 @@ pub fn mann_whitney_u_test<T: PartialOrd + Clone>(
     mann_whitney_u_test.test(confidence)
 }
 
+#[derive(Clone, Copy)]
 pub enum Confidence {
     P05,
     P01,
@@ -69,8 +70,8 @@ impl MannWhitneyUTest {
 
         if nx <= 20 && ny <= 20 {
             let u_thresh = match confidence {
-                P05 => MANN_WHITNEY_TABLE_P05[nx - 1][ny - 1],
-                P01 => MANN_WHITNEY_TABLE_P01[nx - 1][ny - 1],
+                Confidence::P05 => MANN_WHITNEY_TABLE_P05[nx - 1][ny - 1],
+                Confidence::P01 => MANN_WHITNEY_TABLE_P01[nx - 1][ny - 1],
             };
             if u < u_thresh as f64 {
                 match ux < uy {
@@ -83,8 +84,8 @@ impl MannWhitneyUTest {
         }
 
         let confidence_thresh = match confidence {
-            P05 => 0.05,
-            P01 => 0.01,
+            Confidence::P05 => 0.05,
+            Confidence::P01 => 0.01,
         };
         if self.p() < confidence_thresh {
             match ux < uy {

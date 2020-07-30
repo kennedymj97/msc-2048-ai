@@ -277,7 +277,7 @@ There is some bug in the progressive brute force code where the same strategy is
 [x] Try changing the fall-back rules so they will try to make the moves before forcing, ban rules will have more effect
 [x] Adapt the greedy search
 [x] Adapt Mann-Whitney to be more adaptable, either P05 or P01
-[] Clean up greedy search code, allow picking best, prioritising try and prioritising ban, choose the confidence level and max runs until just choosing current best
+[x] Clean up greedy search code, allow picking best, prioritising try and prioritising ban, choose the confidence level and max runs until just choosing current best
 [] Add more rules/make them more general
 [] Local search for strategies
 [] Iterated local search for strategies

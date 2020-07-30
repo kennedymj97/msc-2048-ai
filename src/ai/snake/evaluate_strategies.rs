@@ -1,4 +1,5 @@
-use super::mann_whitney::mann_whitney_u_test_01;
+use super::mann_whitney::mann_whitney_u_test;
+use super::mann_whitney::Confidence;
 use std::cmp::Ordering;
 use std::fs;
 use std::path::Path;
@@ -27,25 +28,6 @@ pub fn compare_strategies<T: Clone>(data: StrategyDataStore<T>) -> StrategyDataS
     let mut top_strategies = Vec::new();
     for strategy in data {
         top_strategies = compare_strategy_to_best(strategy, top_strategies);
-        //if top_strategies.len() == 0 {
-        //    top_strategies.push(strategy.clone());
-        //    continue;
-        //}
-        //match mann_whitney_u_test_01(strategy.1.clone(), top_strategies[0].1.clone()) {
-        //    Ordering::Equal => top_strategies.push(strategy.clone()),
-        //    Ordering::Greater => {
-        //        let mut new_top_strategies = vec![strategy.clone()];
-        //        top_strategies.iter().for_each(|top_strategy| {
-        //            match mann_whitney_u_test_01(top_strategy.1.clone(), strategy.1.clone()) {
-        //                Ordering::Equal => new_top_strategies.push(top_strategy.clone()),
-        //                Ordering::Greater => panic!("this should be impossible"),
-        //                Ordering::Less => (),
-        //            }
-        //        });
-        //        top_strategies = new_top_strategies;
-        //    }
-        //    Ordering::Less => (),
-        //}
     }
     top_strategies
 }
@@ -58,12 +40,12 @@ pub fn compare_strategy_to_best<T: Clone>(
         best_strategies.push(new_strategy.clone());
         return best_strategies;
     }
-    match mann_whitney_u_test_01(&new_strategy.1, &best_strategies[0].1) {
+    match mann_whitney_u_test(&new_strategy.1, &best_strategies[0].1, Confidence::P01) {
         Ordering::Equal => best_strategies.push(new_strategy.clone()),
         Ordering::Greater => {
             let mut new_best_strategies = vec![new_strategy.clone()];
             best_strategies.iter().for_each(|strategy| {
-                match mann_whitney_u_test_01(&strategy.1, &new_strategy.1) {
+                match mann_whitney_u_test(&strategy.1, &new_strategy.1, Confidence::P01) {
                     Ordering::Equal => new_best_strategies.push(strategy.clone()),
                     Ordering::Greater => panic!("this should be impossible"),
                     Ordering::Less => (),
