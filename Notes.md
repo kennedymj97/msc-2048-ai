@@ -267,12 +267,16 @@ There is some bug in the progressive brute force code where the same strategy is
 [x] Set up python to handle and plot the data
 [x] Produce plot of the medians
 [x] Produce histogram plot
+
+- As the number of rules increases the number of good strategies increases greatly, the early rules have much more effect than the later rules.
+- Before forcing moves, should I go through the same ordering but instead trying to make the moves
+	- This means banned moves would have some effect after the try sequence
+
+## 30/07/2020
+
+[x] Try changing the fall-back rules so they will try to make the moves before forcing, ban rules will have more effect
 [] Add more rules/make them more general
 [] Local search for strategies
 [] Iterated local search for strategies
 [] Fix evaluation of strategies from file
 [] Write formal description of language
-
-- As the number of rules increases the number of good strategies increases greatly, the early rules have much more effect than the later rules.
-- Before forcing moves, should I go through the same ordering but instead trying to make the moves
-	- This means banned moves would have some effect after the try sequence

@@ -211,9 +211,9 @@ pub fn progressive_brute_force_no_save(max_ban_length: usize, max_try_length: us
     let engine = GameEngine::new();
     println!("Getting snakes iterator");
     let snakes_iter = get_snake_iterator(max_ban_length, max_try_length);
-    let best_initial_strategies = progressive_brute_force_initial_run(snakes_iter, &engine, 5);
+    let best_initial_strategies = progressive_brute_force_initial_run(snakes_iter, &engine, 10);
     let best_strategies =
-        progressive_brute_force_no_save_aux(best_initial_strategies, &engine, 5 * 10);
+        progressive_brute_force_no_save_aux(best_initial_strategies, &engine, 10 * 5);
     let best_strategies_info = best_strategies
         .iter()
         .map(|(strategy_info, scores)| (strategy_info, median(scores)))
@@ -307,7 +307,7 @@ fn progressive_brute_force_no_save_aux(
             (snake, results)
         })
         .collect::<StrategyDataStore<Snake>>();
-    progressive_brute_force_no_save_aux(compare_strategies(best), engine, runs * 10)
+    progressive_brute_force_no_save_aux(compare_strategies(best), engine, runs * 5)
 }
 
 pub fn progressive_brute_force(max_ban_length: usize, max_try_length: usize, foldername: &str) {

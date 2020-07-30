@@ -53,16 +53,16 @@ impl Snake {
         }
 
         // if ban rule direction is not in try sequence it is a redundant snake
-        let try_rule_directions = try_rules
-            .iter()
-            .map(|&try_rule| try_rule.get_move())
-            .collect::<Vec<_>>();
-        for ban_rule in ban_rules {
-            let ban_direction = ban_rule.get_move();
-            if !try_rule_directions.contains(&ban_direction) {
-                return None;
-            }
-        }
+        //let try_rule_directions = try_rules
+        //    .iter()
+        //    .map(|&try_rule| try_rule.get_move())
+        //    .collect::<Vec<_>>();
+        //for ban_rule in ban_rules {
+        //    let ban_direction = ban_rule.get_move();
+        //    if !try_rule_directions.contains(&ban_direction) {
+        //        return None;
+        //    }
+        //}
 
         // TODO: ensure no 2 rules are the same in try_rules or ban rules
 
@@ -95,6 +95,14 @@ impl AI for Snake {
             }
         }
 
+        // try to make the fallback moves before forcing them
+        for &direction in self.fallback_moves.iter() {
+            if attributes::is_move_possible(engine, board, direction) {
+                if !banned_moves.contains(&direction) {
+                    return Some(direction);
+                }
+            }
+        }
         for &direction in self.fallback_moves.iter() {
             if attributes::is_move_possible(engine, board, direction) {
                 return Some(direction);
