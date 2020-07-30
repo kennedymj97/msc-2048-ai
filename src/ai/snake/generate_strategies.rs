@@ -54,7 +54,7 @@ pub fn get_snake_iterator_fixed_fallback(
     max_try_length: usize,
 ) -> IterFixedFallback {
     // Generate all possible ban variations
-    // power_set and permuations up to certain length
+    // power_set and permutations up to certain length
     let ban_variations = BanMove::generate_all_variations();
     let ban_sets = power_set(&ban_variations, max_ban_length);
     assert_eq!(
@@ -64,7 +64,7 @@ pub fn get_snake_iterator_fixed_fallback(
     // Generate all possbile try variations
     // power_set and permutation up to certain length
     let try_variations = TryMove::generate_all_variations();
-    let try_sets = permuations(power_set(&try_variations, max_try_length));
+    let try_sets = permutations(power_set(&try_variations, max_try_length));
     assert_eq!(
         num_of_possible_sets(try_variations.len(), max_try_length),
         try_sets.len() as u64
@@ -131,7 +131,7 @@ impl Iterator for Iter {
 
 pub fn get_snake_iterator(max_ban_length: usize, max_try_length: usize) -> Iter {
     // Generate all possible ban variations
-    // power_set and permuations up to certain length
+    // power_set and permutations up to certain length
     let ban_variations = BanMove::generate_all_variations();
     let ban_sets = power_set(&ban_variations, max_ban_length);
     assert_eq!(
@@ -141,15 +141,15 @@ pub fn get_snake_iterator(max_ban_length: usize, max_try_length: usize) -> Iter 
     // Generate all possbile try variations
     // power_set and permutation up to certain length
     let try_variations = TryMove::generate_all_variations();
-    let try_sets = permuations(power_set(&try_variations, max_try_length));
+    let try_sets = permutations(power_set(&try_variations, max_try_length));
     assert_eq!(
         num_of_possible_sets(try_variations.len(), max_try_length),
         try_sets.len() as u64
     );
 
     // Generate all possible fallback variations
-    // Only permuations of the 4 moves
-    let fallback_sets = permuations(vec![vec![Move::Left, Move::Right, Move::Up, Move::Down]]);
+    // Only permutations of the 4 moves
+    let fallback_sets = permutations(vec![vec![Move::Left, Move::Right, Move::Up, Move::Down]]);
     assert_eq!(factorial(4), fallback_sets.len() as u64);
 
     Iter {
@@ -164,7 +164,7 @@ pub fn get_snake_iterator(max_ban_length: usize, max_try_length: usize) -> Iter 
 
 pub fn generate_snakes(max_ban_length: usize, max_try_length: usize) -> Vec<Snake> {
     // Generate all possible ban variations
-    // power_set and permuations up to certain length
+    // power_set and permutations up to certain length
     let ban_variations = BanMove::generate_all_variations();
     let ban_sets = power_set(&ban_variations, max_ban_length);
     assert_eq!(
@@ -174,15 +174,15 @@ pub fn generate_snakes(max_ban_length: usize, max_try_length: usize) -> Vec<Snak
     // Generate all possbile try variations
     // power_set and permutation up to certain length
     let try_variations = TryMove::generate_all_variations();
-    let try_sets = permuations(power_set(&try_variations, max_try_length));
+    let try_sets = permutations(power_set(&try_variations, max_try_length));
     assert_eq!(
         num_of_possible_sets(try_variations.len(), max_try_length),
         try_sets.len() as u64
     );
 
     // Generate all possible fallback variations
-    // Only permuations of the 4 moves
-    let fallback_sets = permuations(vec![vec![Move::Left, Move::Right, Move::Up, Move::Down]]);
+    // Only permutations of the 4 moves
+    let fallback_sets = permutations(vec![vec![Move::Left, Move::Right, Move::Up, Move::Down]]);
     assert_eq!(factorial(4), fallback_sets.len() as u64);
 
     // 3 nest for loops, for each ban variation add every try variation, for every ban and try
@@ -222,15 +222,15 @@ fn power_set<T: Copy>(set: &[T], max_length: usize) -> Vec<Vec<T>> {
         .collect::<Vec<Vec<T>>>()
 }
 
-fn permuations<T: Copy>(set: Vec<Vec<T>>) -> Vec<Vec<T>> {
-    let mut permuations = Vec::new();
+pub fn permutations<T: Copy>(set: Vec<Vec<T>>) -> Vec<Vec<T>> {
+    let mut permutations = Vec::new();
     for mut item in set {
         let heap = Heap::new(&mut item);
         for data in heap {
-            permuations.push(data);
+            permutations.push(data);
         }
     }
-    permuations
+    permutations
 }
 
 // n is size of original set, k is max length of power set and permutations

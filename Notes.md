@@ -275,8 +275,17 @@ There is some bug in the progressive brute force code where the same strategy is
 ## 30/07/2020
 
 [x] Try changing the fall-back rules so they will try to make the moves before forcing, ban rules will have more effect
+[x] Adapt the greedy search
 [] Add more rules/make them more general
 [] Local search for strategies
 [] Iterated local search for strategies
 [] Fix evaluation of strategies from file
 [] Write formal description of language
+
+Changing the fall-back rules so they will try first has had a positive impact on performance.
+
+**New top snake:**
+Getting stats for best strategy...
+Strategy: Ban Rules: ban move Up if left column locked->ban move Right if left column locked->ban move Left if breaks monotonicity of left column       Try Rules: try move Left if moves largest tile to corner->try move Down if moves largest tile to corner->try move Left if merge possible->try move Up if produces left merge->try move Down if produces left merge->try move Up if merge possible        Fall-back: Left->Up->Down->Right
+Median: 11708
+Average: 12021.85084
