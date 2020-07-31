@@ -94,11 +94,13 @@ impl fmt::Display for BanMove {
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum TryMove {
+    Always(Move),
     ProducesMerge(Move),
     IfMergePossible(Move),
     IfMovesLargestTileToCorner(Move, Corner),
     Makes2LargestTilesAdjacent(Move),
-    Always(Move),
+    CreatesMonotonicColumn(Move, Column),
+    CreatesMonotonicRow(Move, Row),
 }
 
 impl TryMove {
@@ -115,6 +117,12 @@ impl TryMove {
             TryMove::Makes2LargestTilesAdjacent(direction) => {
                 try_move_if_makes_2_largest_tiles_adjacent(engine, board, *direction)
             }
+            TryMove::CreatesMonotonicColumn(direction, column) => {
+                try_move_if_creates_monotonic_column(engine, board, *direction, *column)
+            }
+            TryMove::CreatesMonotonicRow(direction, row) => {
+                try_move_if_creates_monotonic_row(engine, board, *direction, *row)
+            }
         }
     }
 
@@ -125,6 +133,8 @@ impl TryMove {
         variations.append(&mut try_move_if_merge_possible_variations());
         variations.append(&mut try_move_if_moves_largest_tile_to_corner_variations());
         variations.append(&mut try_move_if_makes_2_largest_tiles_adjacent_variations());
+        variations.append(&mut try_move_if_creates_monotonic_column_variations());
+        variations.append(&mut try_move_if_creates_monotonic_row_variations());
         variations
     }
 
@@ -135,6 +145,8 @@ impl TryMove {
             TryMove::IfMergePossible(direction) => *direction,
             TryMove::IfMovesLargestTileToCorner(direction, _) => *direction,
             TryMove::Makes2LargestTilesAdjacent(direction) => *direction,
+            TryMove::CreatesMonotonicColumn(direction, _) => *direction,
+            TryMove::CreatesMonotonicRow(direction, _) => *direction,
         }
     }
 }
@@ -159,6 +171,14 @@ impl fmt::Display for TryMove {
                 "try move {} if makes 2 largest tiles adjacent",
                 direction
             ),
+            TryMove::CreatesMonotonicColumn(direction, column) => write!(
+                f,
+                "try move {} if creates monotonic {} column",
+                direction, column
+            ),
+            TryMove::CreatesMonotonicRow(direction, row) => {
+                write!(f, "try move {} if creates monotonic {} row", direction, row)
+            }
         }
     }
 }
@@ -343,6 +363,36 @@ fn try_move_if_makes_2_largest_tiles_adjacent(
     None
 }
 
+fn try_move_if_creates_monotonic_column(
+    engine: &GameEngine,
+    board: Board,
+    direction: Move,
+    column: Column,
+) -> Option<Move> {
+    let is_monotonic = attributes::is_column_monotonic(board, column);
+    let new_board = engine.shift(board, direction);
+    let is_new_monotonic = attributes::is_column_monotonic(new_board, column);
+    if !is_monotonic && is_new_monotonic {
+        return Some(direction);
+    }
+    None
+}
+
+fn try_move_if_creates_monotonic_row(
+    engine: &GameEngine,
+    board: Board,
+    direction: Move,
+    row: Row,
+) -> Option<Move> {
+    let is_monotonic = attributes::is_row_monotonic(board, row);
+    let new_board = engine.shift(board, direction);
+    let is_new_monotonic = attributes::is_row_monotonic(new_board, row);
+    if !is_monotonic && is_new_monotonic {
+        return Some(direction);
+    }
+    None
+}
+
 fn try_move_if_produces_merge_variations() -> Vec<TryMove> {
     Move::iterator().fold(Vec::new(), |mut variations, direction| {
         variations.push(TryMove::ProducesMerge(direction));
@@ -418,4 +468,22 @@ fn try_move_if_makes_2_largest_tiles_adjacent_variations() -> Vec<TryMove> {
         variations.push(TryMove::Makes2LargestTilesAdjacent(direction));
         variations
     })
+}
+
+fn try_move_if_creates_monotonic_column_variations() -> Vec<TryMove> {
+    let mut variations = Vec::new();
+    for column in Column::iterator() {
+        variations.push(TryMove::CreatesMonotonicColumn(Move::Left, column));
+        variations.push(TryMove::CreatesMonotonicColumn(Move::Right, column));
+    }
+    variations
+}
+
+fn try_move_if_creates_monotonic_row_variations() -> Vec<TryMove> {
+    let mut variations = Vec::new();
+    for row in Row::iterator() {
+        variations.push(TryMove::CreatesMonotonicRow(Move::Up, row));
+        variations.push(TryMove::CreatesMonotonicRow(Move::Down, row));
+    }
+    variations
 }

@@ -296,6 +296,13 @@ Average: 12021.85084
 [x] Remove unnecessary comparisons causing early exit from greedy
 [x] Fix right at back of fall-back variations (okay because of symmetry)
 [x] Edit try if produces merge rule so it doesn't need to consider direction
+[x] Row monotonic attribute
+[x] Ban move if breaks monotonicity of row
+[x] Try move if makes row/column monotonic
+[] Try move if locks row/column
+[] Ban move if unlocks row/column
+[] Ban move if removes potential merge
+[] Ban move if moves largest tile out of corner
 [] Add more rules
 [] Local search for strategies
 [] Iterated local search for strategies
