@@ -15,6 +15,7 @@ pub enum BanMove {
     IfColumnNotLocked(Move, Column),
     IfRowNotLocked(Move, Row),
     IfBreaksMonotonicityOfColumn(Move, Column),
+    IfBreaksMonotonicityOfRow(Move, Row),
     Seperates2LargestTiles(Move),
     Always(Move),
 }
@@ -32,6 +33,9 @@ impl BanMove {
             BanMove::IfBreaksMonotonicityOfColumn(direction, column) => {
                 ban_move_if_breaks_monotonicity_of_column(engine, board, *direction, *column)
             }
+            BanMove::IfBreaksMonotonicityOfRow(direction, row) => {
+                ban_move_if_breaks_monotonicity_of_row(engine, board, *direction, *row)
+            }
             BanMove::Seperates2LargestTiles(direction) => {
                 ban_move_if_seperates_2_largest_tiles(engine, board, *direction)
             }
@@ -43,6 +47,7 @@ impl BanMove {
         variations.append(&mut ban_move_if_column_not_locked_variations());
         variations.append(&mut ban_move_if_row_not_locked_variations());
         variations.append(&mut ban_move_if_breaks_monotonicity_of_column_variations());
+        variations.append(&mut ban_move_if_breaks_monotonicity_of_row_variations());
         variations.append(&mut ban_move_if_seperates_2_largest_tiles_variations());
         variations.append(&mut always_ban_variations());
         variations
@@ -54,6 +59,7 @@ impl BanMove {
             BanMove::IfColumnNotLocked(direction, _) => *direction,
             BanMove::IfRowNotLocked(direction, _) => *direction,
             BanMove::IfBreaksMonotonicityOfColumn(direction, _) => *direction,
+            BanMove::IfBreaksMonotonicityOfRow(direction, _) => *direction,
             BanMove::Seperates2LargestTiles(direction) => *direction,
         }
     }
@@ -72,6 +78,11 @@ impl fmt::Display for BanMove {
                 f,
                 "ban move {} if breaks monotonicity of {} column",
                 direction, column,
+            ),
+            BanMove::IfBreaksMonotonicityOfRow(direction, row) => write!(
+                f,
+                "ban move {} if breaks monotonicity of {} row",
+                direction, row,
             ),
             BanMove::Always(direction) => write!(f, "always ban move {}", direction),
             BanMove::Seperates2LargestTiles(direction) => {
@@ -188,6 +199,21 @@ fn ban_move_if_breaks_monotonicity_of_column(
     None
 }
 
+fn ban_move_if_breaks_monotonicity_of_row(
+    engine: &GameEngine,
+    board: Board,
+    direction: Move,
+    row: Row,
+) -> Option<Move> {
+    let is_monotonic = attributes::is_row_monotonic(board, row);
+    let new_board = engine.shift(board, direction);
+    let is_new_monotonic = attributes::is_row_monotonic(new_board, row);
+    if is_monotonic && !is_new_monotonic {
+        return Some(direction);
+    }
+    None
+}
+
 fn ban_move_if_seperates_2_largest_tiles(
     engine: &GameEngine,
     board: Board,
@@ -225,6 +251,15 @@ fn ban_move_if_breaks_monotonicity_of_column_variations() -> Vec<BanMove> {
     for column in Column::iterator() {
         variations.push(BanMove::IfBreaksMonotonicityOfColumn(Move::Left, column));
         variations.push(BanMove::IfBreaksMonotonicityOfColumn(Move::Right, column));
+    }
+    variations
+}
+
+fn ban_move_if_breaks_monotonicity_of_row_variations() -> Vec<BanMove> {
+    let mut variations = Vec::new();
+    for row in Row::iterator() {
+        variations.push(BanMove::IfBreaksMonotonicityOfRow(Move::Up, row));
+        variations.push(BanMove::IfBreaksMonotonicityOfRow(Move::Down, row));
     }
     variations
 }
