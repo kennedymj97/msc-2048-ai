@@ -46,6 +46,42 @@ impl fmt::Display for Column {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
+pub enum Row {
+    Top,
+    MiddleTop,
+    MiddleBottom,
+    Bottom,
+}
+
+impl Row {
+    fn get_idx(&self) -> usize {
+        match self {
+            Row::Top => 0,
+            Row::MiddleTop => 1,
+            Row::MiddleBottom => 2,
+            Row::Bottom => 3,
+        }
+    }
+
+    pub fn iterator() -> impl Iterator<Item = Row> {
+        [Row::Top, Row::MiddleTop, Row::MiddleBottom, Row::Bottom]
+            .iter()
+            .copied()
+    }
+}
+
+impl fmt::Display for Row {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Row::Top => write!(f, "top"),
+            Row::MiddleTop => write!(f, "middle top"),
+            Row::MiddleBottom => write!(f, "middle bottom"),
+            Row::Bottom => write!(f, "bottom"),
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Corner {
     BottomLeft,
     TopLeft,
@@ -94,8 +130,9 @@ pub fn is_column_locked(board: Board, column: Column) -> bool {
     true
 }
 
-pub fn is_row_locked(board: Board, row_idx: usize) -> bool {
+pub fn is_row_locked(board: Board, row: Row) -> bool {
     let mut previous_val = 0;
+    let row_idx = row.get_idx();
     for i in 0..4 {
         let idx = (row_idx * 4) + i;
         let val = GameEngine::get_tile(board, idx);
@@ -191,9 +228,124 @@ pub fn is_column_monotonic(board: Board, column: Column) -> bool {
     true
 }
 
+pub fn are_2_largest_tiles_adjacent(board: Board) -> bool {
+    // need a vec of all the largest tile idxs
+    let mut largest_tile_idxs = Vec::new();
+    let mut largest_tile_val = 0;
+    for idx in 0..16 {
+        let tile_val = GameEngine::get_tile(board, idx);
+        if tile_val > largest_tile_val {
+            largest_tile_val = tile_val;
+            largest_tile_idxs = vec![idx];
+        } else if tile_val == largest_tile_val {
+            largest_tile_idxs.push(idx);
+        }
+    }
+    let mut second_largest_tile_idxs = Vec::new();
+    let mut second_largest_tile_val = 0;
+    for idx in 0..16 {
+        // skip the idx if it is one of the largest tiles
+        if largest_tile_idxs.contains(&idx) {
+            continue;
+        }
+        let tile_val = GameEngine::get_tile(board, idx);
+        if tile_val > second_largest_tile_val {
+            second_largest_tile_val = tile_val;
+            second_largest_tile_idxs = vec![idx];
+        } else if tile_val == second_largest_tile_val {
+            second_largest_tile_idxs.push(idx);
+        }
+    }
+    for largest_tile_idx in &largest_tile_idxs {
+        for second_largest_tile_idx in &second_largest_tile_idxs {
+            // if they are adjacent return true
+            let is_adjacent = match largest_tile_idx {
+                0 => match second_largest_tile_idx {
+                    1 | 4 => true,
+                    _ => false,
+                },
+                1 => match second_largest_tile_idx {
+                    0 | 2 | 5 => true,
+                    _ => false,
+                },
+                2 => match second_largest_tile_idx {
+                    1 | 3 | 6 => true,
+                    _ => false,
+                },
+                3 => match second_largest_tile_idx {
+                    2 | 7 => true,
+                    _ => false,
+                },
+                4 => match second_largest_tile_idx {
+                    0 | 5 | 8 => true,
+                    _ => false,
+                },
+                5 => match second_largest_tile_idx {
+                    1 | 4 | 6 | 9 => true,
+                    _ => false,
+                },
+                6 => match second_largest_tile_idx {
+                    2 | 5 | 7 | 10 => true,
+                    _ => false,
+                },
+                7 => match second_largest_tile_idx {
+                    3 | 6 | 11 => true,
+                    _ => false,
+                },
+                8 => match second_largest_tile_idx {
+                    4 | 9 | 12 => true,
+                    _ => false,
+                },
+                9 => match second_largest_tile_idx {
+                    5 | 8 | 10 | 13 => true,
+                    _ => false,
+                },
+                10 => match second_largest_tile_idx {
+                    6 | 9 | 11 | 14 => true,
+                    _ => false,
+                },
+                11 => match second_largest_tile_idx {
+                    7 | 10 | 15 => true,
+                    _ => false,
+                },
+                12 => match second_largest_tile_idx {
+                    8 | 13 => true,
+                    _ => false,
+                },
+                13 => match second_largest_tile_idx {
+                    9 | 12 | 14 => true,
+                    _ => false,
+                },
+                14 => match second_largest_tile_idx {
+                    10 | 13 | 15 => true,
+                    _ => false,
+                },
+                15 => match second_largest_tile_idx {
+                    11 | 14 => true,
+                    _ => false,
+                },
+                _ => false,
+            };
+            if is_adjacent {
+                return true;
+            }
+        }
+    }
+    false
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn it_2_largest_adjacent() {
+        assert_eq!(are_2_largest_tiles_adjacent(0x2222111100000000), true);
+        assert_eq!(are_2_largest_tiles_adjacent(0x0000000010002000), true);
+        assert_eq!(are_2_largest_tiles_adjacent(0x3200111111111111), true);
+        assert_eq!(are_2_largest_tiles_adjacent(0x3000111120001111), false);
+        assert_eq!(are_2_largest_tiles_adjacent(0x3333000022220000), false);
+    }
 
     #[test]
     fn it_is_left_column_monotonic() {
@@ -332,15 +484,15 @@ mod tests {
 
     #[test]
     fn it_is_row_locked() {
-        assert_eq!(is_row_locked(0x1111000000000000, 0), false);
-        assert_eq!(is_row_locked(0x0000223400000000, 1), false);
-        assert_eq!(is_row_locked(0x0000000056880000, 2), false);
-        assert_eq!(is_row_locked(0x0000000000001511, 3), false);
-        assert_eq!(is_row_locked(0x0234000000000000, 0), false);
-        assert_eq!(is_row_locked(0x1234000000000000, 0), true);
-        assert_eq!(is_row_locked(0x0000293400000000, 1), true);
-        assert_eq!(is_row_locked(0x0000000056980000, 2), true);
-        assert_eq!(is_row_locked(0x0000000000001512, 3), true);
+        assert_eq!(is_row_locked(0x1111000000000000, Row::Top), false);
+        assert_eq!(is_row_locked(0x0000223400000000, Row::MiddleTop), false);
+        assert_eq!(is_row_locked(0x0000000056880000, Row::MiddleBottom), false);
+        assert_eq!(is_row_locked(0x0000000000001511, Row::Bottom), false);
+        assert_eq!(is_row_locked(0x0234000000000000, Row::Top), false);
+        assert_eq!(is_row_locked(0x1234000000000000, Row::Top), true);
+        assert_eq!(is_row_locked(0x0000293400000000, Row::MiddleTop), true);
+        assert_eq!(is_row_locked(0x0000000056980000, Row::MiddleBottom), true);
+        assert_eq!(is_row_locked(0x0000000000001512, Row::Bottom), true);
     }
 
     #[test]

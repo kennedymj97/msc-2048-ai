@@ -13,8 +13,8 @@ use msc_2048_ai::engine::Move;
 fn main() {
     //brute_force(2, 4, 100, "./data/brute_force_2try_4ban_100runs.csv");
     //progressive_brute_force_no_save_fixed_fallback(2, 5);
-    //progressive_brute_force_no_save(2, 4);
-    greedy(Greedy::PrioritiseBest, Confidence::P05, 1000);
+    //progressive_brute_force_no_save(2, 3);
+    greedy(Greedy::PrioritiseTry, Confidence::P01, 50000);
     //let ban_rules = vec![
     //    BanMove::IfLeftColumnLocked(Move::Up),
     //    BanMove::IfBreaksMonotonicity(Move::Left),
