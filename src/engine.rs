@@ -1,6 +1,7 @@
 use bitintr::Popcnt;
 use rand::Rng;
 use std::fmt;
+use std::iter::Iterator;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Move {
@@ -8,6 +9,14 @@ pub enum Move {
     Down,
     Left,
     Right,
+}
+
+impl Move {
+    pub fn iterator() -> impl Iterator<Item = Move> {
+        [Move::Left, Move::Right, Move::Up, Move::Down]
+            .iter()
+            .copied()
+    }
 }
 
 impl fmt::Display for Move {

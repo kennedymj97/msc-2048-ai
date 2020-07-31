@@ -138,24 +138,12 @@ fn vec_to_string_for_csv<T: fmt::Display>(vec: &[T]) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::rules::BanMove;
     use super::rules::TryMove;
     use super::*;
 
     #[test]
     fn it_new_snake() {
         let fallback_moves = vec![Move::Left, Move::Down, Move::Up, Move::Left];
-        assert_eq!(
-            Snake::new(
-                &vec![BanMove::IfLeftColumnLocked(Move::Up)],
-                &vec![
-                    TryMove::IfMergePossible(Move::Left),
-                    TryMove::ProducesLeftMerge(Move::Down),
-                ],
-                &fallback_moves
-            ),
-            None
-        );
         assert_eq!(
             Snake::new(
                 &vec![],

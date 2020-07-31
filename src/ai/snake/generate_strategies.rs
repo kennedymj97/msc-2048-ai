@@ -255,14 +255,3 @@ fn factorial(n: usize) -> u64 {
         _ => factorial(n - 1) * n as u64,
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn it_snake_iter_size() {
-        let snake_iter = get_snake_iterator(2, 4);
-        assert!(snake_iter.len() > snake_iter.count());
-    }
-}

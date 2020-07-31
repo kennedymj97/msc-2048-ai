@@ -291,7 +291,7 @@ mod tests {
         let drug = vec![31, 34, 35, 29, 28, 12, 18, 30, 14, 22, 10];
         let mann_whitney_u_test = MannWhitneyUTest::new(control, drug);
         assert_eq!(mann_whitney_u_test.u(), 39.5);
-        assert_eq!(mann_whitney_u_test.test_05(), Ordering::Equal);
+        assert_eq!(mann_whitney_u_test.test(Confidence::P05), Ordering::Equal);
 
         let non_smokers: Vec<f64> = vec![
             58.5, 9., 71., 54.5, 15., 61.5, 66.5, 37., 68.5, 68.5, 42., 75., 29., 44., 66.5, 49.5,
@@ -311,6 +311,6 @@ mod tests {
         assert!((mann_whitney_u_test.sigmau() - 100.0333278) < 0.00000005);
         assert!((mann_whitney_u_test.z() - 2.739087123) < 0.0000000005);
         assert!((mann_whitney_u_test.p() - 0.006161) < 0.0000005);
-        assert_eq!(mann_whitney_u_test.test_05(), Ordering::Greater);
+        assert_eq!(mann_whitney_u_test.test(Confidence::P05), Ordering::Greater);
     }
 }
