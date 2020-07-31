@@ -131,11 +131,16 @@ impl TryMove {
 impl fmt::Display for TryMove {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            TryMove::ProducesMergeInDirection(direction, merge_direction) => write!(
-                f,
-                "try move {} if produces {} merge",
-                direction, merge_direction
-            ),
+            TryMove::ProducesMergeInDirection(direction, merge_direction) => {
+                match merge_direction {
+                    Move::Left | Move::Right => {
+                        write!(f, "try move {} if produces column merge", direction,)
+                    }
+                    Move::Up | Move::Down => {
+                        write!(f, "try move {} if produces row merge", direction)
+                    }
+                }
+            }
             TryMove::IfMergePossible(direction) => {
                 write!(f, "try move {} if merge possible", direction)
             }
@@ -306,11 +311,9 @@ fn try_move_if_produces_merge_variations() -> Vec<TryMove> {
         match direction {
             Move::Left | Move::Right => {
                 variations.push(TryMove::ProducesMergeInDirection(direction, Move::Up));
-                variations.push(TryMove::ProducesMergeInDirection(direction, Move::Down));
             }
             Move::Up | Move::Down => {
                 variations.push(TryMove::ProducesMergeInDirection(direction, Move::Left));
-                variations.push(TryMove::ProducesMergeInDirection(direction, Move::Right));
             }
         }
     }

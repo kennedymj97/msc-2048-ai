@@ -291,6 +291,8 @@ Average: 12021.85084
 ## 31/07/2020
 
 [x] Make the current rules more general
+[x] Add rules for 2 largest tiles
+[x] Change try move if produces merge to work along rows/columns
 [] Add more rules
 [] Local search for strategies
 [] Iterated local search for strategies
