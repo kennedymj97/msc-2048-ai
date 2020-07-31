@@ -22,10 +22,10 @@ impl Move {
 impl fmt::Display for Move {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Move::Left => write!(f, "Left"),
-            Move::Right => write!(f, "Right"),
-            Move::Up => write!(f, "Up"),
-            Move::Down => write!(f, "Down"),
+            Move::Left => write!(f, "left"),
+            Move::Right => write!(f, "right"),
+            Move::Up => write!(f, "up"),
+            Move::Down => write!(f, "down"),
         }
     }
 }

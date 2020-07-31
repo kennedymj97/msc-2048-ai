@@ -40,11 +40,11 @@ impl BanMove {
 
     pub fn generate_all_variations() -> Vec<Self> {
         let mut variations = Vec::new();
-        variations.append(&mut always_ban_variations());
         variations.append(&mut ban_move_if_column_not_locked_variations());
         variations.append(&mut ban_move_if_row_not_locked_variations());
         variations.append(&mut ban_move_if_breaks_monotonicity_of_column_variations());
         variations.append(&mut ban_move_if_seperates_2_largest_tiles_variations());
+        variations.append(&mut always_ban_variations());
         variations
     }
 
@@ -63,10 +63,10 @@ impl fmt::Display for BanMove {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             BanMove::IfColumnNotLocked(direction, column) => {
-                write!(f, "ban move {} if {} column locked", direction, column)
+                write!(f, "ban move {} if {} column not locked", direction, column)
             }
             BanMove::IfRowNotLocked(direction, row) => {
-                write!(f, "ban move {} if {} row locked", direction, row)
+                write!(f, "ban move {} if {} row not locked", direction, row)
             }
             BanMove::IfBreaksMonotonicityOfColumn(direction, column) => write!(
                 f,
@@ -134,10 +134,10 @@ impl fmt::Display for TryMove {
             TryMove::ProducesMergeInDirection(direction, merge_direction) => {
                 match merge_direction {
                     Move::Left | Move::Right => {
-                        write!(f, "try move {} if produces column merge", direction,)
+                        write!(f, "try move {} if produces row merge", direction,)
                     }
                     Move::Up | Move::Down => {
-                        write!(f, "try move {} if produces row merge", direction)
+                        write!(f, "try move {} if produces column merge", direction)
                     }
                 }
             }
