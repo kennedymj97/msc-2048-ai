@@ -293,6 +293,9 @@ Average: 12021.85084
 [x] Make the current rules more general
 [x] Add rules for 2 largest tiles
 [x] Change try move if produces merge to work along rows/columns
+[x] Remove unnecessary comparisons causing early exit from greedy
+[x] Fix right at back of fall-back variations (okay because of symmetry)
+[x] Edit try if produces merge rule so it doesn't need to consider direction
 [] Add more rules
 [] Local search for strategies
 [] Iterated local search for strategies

@@ -83,7 +83,7 @@ impl fmt::Display for BanMove {
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum TryMove {
-    ProducesMergeInDirection(Move, Move),
+    ProducesMerge(Move),
     IfMergePossible(Move),
     IfMovesLargestTileToCorner(Move, Corner),
     Makes2LargestTilesAdjacent(Move),
@@ -94,8 +94,8 @@ impl TryMove {
     pub fn execute(&self, engine: &GameEngine, board: Board) -> Option<Move> {
         match self {
             TryMove::Always(direction) => always_try_move(engine, board, *direction),
-            TryMove::ProducesMergeInDirection(direction, merge_direction) => {
-                try_move_if_produces_merge(engine, board, *direction, *merge_direction)
+            TryMove::ProducesMerge(direction) => {
+                try_move_if_produces_merge(engine, board, *direction)
             }
             TryMove::IfMergePossible(direction) => try_move_if_merge_possible(board, *direction),
             TryMove::IfMovesLargestTileToCorner(direction, corner) => {
@@ -120,7 +120,7 @@ impl TryMove {
     pub fn get_move(&self) -> Move {
         match self {
             TryMove::Always(direction) => *direction,
-            TryMove::ProducesMergeInDirection(direction, _) => *direction,
+            TryMove::ProducesMerge(direction) => *direction,
             TryMove::IfMergePossible(direction) => *direction,
             TryMove::IfMovesLargestTileToCorner(direction, _) => *direction,
             TryMove::Makes2LargestTilesAdjacent(direction) => *direction,
@@ -131,15 +131,8 @@ impl TryMove {
 impl fmt::Display for TryMove {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            TryMove::ProducesMergeInDirection(direction, merge_direction) => {
-                match merge_direction {
-                    Move::Left | Move::Right => {
-                        write!(f, "try move {} if produces row merge", direction,)
-                    }
-                    Move::Up | Move::Down => {
-                        write!(f, "try move {} if produces column merge", direction)
-                    }
-                }
+            TryMove::ProducesMerge(direction) => {
+                write!(f, "try move {} if produces merge", direction)
             }
             TryMove::IfMergePossible(direction) => {
                 write!(f, "try move {} if merge possible", direction)
@@ -250,14 +243,24 @@ fn ban_move_if_seperates_2_largest_tiles_variations() -> Vec<BanMove> {
     })
 }
 
-fn try_move_if_produces_merge(
-    engine: &GameEngine,
-    board: Board,
-    direction: Move,
-    merge_direction: Move,
-) -> Option<Move> {
-    if attributes::does_move_produce_merge_in_direction(engine, board, direction, merge_direction) {
-        return Some(direction);
+fn try_move_if_produces_merge(engine: &GameEngine, board: Board, direction: Move) -> Option<Move> {
+    match direction {
+        Move::Left | Move::Right => {
+            if attributes::does_move_produce_merge_in_direction(engine, board, direction, Move::Up)
+            {
+                return Some(direction);
+            }
+        }
+        Move::Up | Move::Down => {
+            if attributes::does_move_produce_merge_in_direction(
+                engine,
+                board,
+                direction,
+                Move::Left,
+            ) {
+                return Some(direction);
+            }
+        }
     }
     None
 }
@@ -306,18 +309,10 @@ fn try_move_if_makes_2_largest_tiles_adjacent(
 }
 
 fn try_move_if_produces_merge_variations() -> Vec<TryMove> {
-    let mut variations = Vec::new();
-    for direction in Move::iterator() {
-        match direction {
-            Move::Left | Move::Right => {
-                variations.push(TryMove::ProducesMergeInDirection(direction, Move::Up));
-            }
-            Move::Up | Move::Down => {
-                variations.push(TryMove::ProducesMergeInDirection(direction, Move::Left));
-            }
-        }
-    }
-    variations
+    Move::iterator().fold(Vec::new(), |mut variations, direction| {
+        variations.push(TryMove::ProducesMerge(direction));
+        variations
+    })
 }
 
 fn try_move_if_merge_possible_variations() -> Vec<TryMove> {
