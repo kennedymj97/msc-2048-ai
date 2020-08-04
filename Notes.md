@@ -299,10 +299,13 @@ Average: 12021.85084
 [x] Row monotonic attribute
 [x] Ban move if breaks monotonicity of row
 [x] Try move if makes row/column monotonic
-[] Try move if locks row/column
-[] Ban move if unlocks row/column
-[] Ban move if removes potential merge
-[] Ban move if moves largest tile out of corner
+
+## 04/08/2020
+
+[x] Try move if locks row/column
+[x] Ban move if unlocks row/column
+[x] Ban move if removes potential merge
+[x] Ban move if moves largest tile out of corner
 [] Add more rules
 [] Local search for strategies
 [] Iterated local search for strategies

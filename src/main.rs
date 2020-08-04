@@ -1,12 +1,13 @@
 use msc_2048_ai::ai::run_ai_with_delay;
+use msc_2048_ai::ai::snake::ban_rules::*;
 use msc_2048_ai::ai::snake::mann_whitney::Confidence;
-use msc_2048_ai::ai::snake::rules::*;
 use msc_2048_ai::ai::snake::run_strategies::brute_force;
 use msc_2048_ai::ai::snake::run_strategies::greedy;
 use msc_2048_ai::ai::snake::run_strategies::progressive_brute_force_no_save;
 use msc_2048_ai::ai::snake::run_strategies::progressive_brute_force_no_save_fixed_fallback;
 use msc_2048_ai::ai::snake::run_strategies::run_strategy_save_results;
 use msc_2048_ai::ai::snake::run_strategies::Greedy;
+use msc_2048_ai::ai::snake::try_rules::*;
 use msc_2048_ai::ai::snake::Snake;
 use msc_2048_ai::engine::Move;
 
