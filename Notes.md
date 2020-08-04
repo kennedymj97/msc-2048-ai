@@ -306,8 +306,13 @@ Average: 12021.85084
 [x] Ban move if unlocks row/column
 [x] Ban move if removes potential merge
 [x] Ban move if moves largest tile out of corner
-[] Add more rules
+[x] Remove unneeded attribute produces merge in direction
+[x] Try move if row/column locked
+
+## 05/08/2020
+[] Update the graphs with what was discussed in meeting last week
 [] Local search for strategies
+[] Add more rules
 [] Iterated local search for strategies
 [] Fix evaluation of strategies from file
 [] Write formal description of language

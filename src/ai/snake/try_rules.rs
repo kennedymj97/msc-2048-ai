@@ -20,6 +20,8 @@ pub enum TryMove {
     CreatesMonotonicRow(Move, Row),
     LocksColumn(Move, Column),
     LocksRow(Move, Row),
+    ColumnLocked(Move, Column),
+    RowLocked(Move, Row),
 }
 
 impl TryMove {
@@ -48,6 +50,10 @@ impl TryMove {
             TryMove::LocksRow(direction, row) => {
                 try_move_if_locks_row(engine, board, *direction, *row)
             }
+            TryMove::ColumnLocked(direction, column) => {
+                try_move_if_column_locked(board, *direction, *column)
+            }
+            TryMove::RowLocked(direction, row) => try_move_if_row_locked(board, *direction, *row),
         }
     }
 
@@ -62,6 +68,8 @@ impl TryMove {
         variations.append(&mut try_move_if_creates_monotonic_row_variations());
         variations.append(&mut try_move_if_locks_column_variations());
         variations.append(&mut try_move_if_locks_row_variations());
+        variations.append(&mut try_move_if_row_locked_variations());
+        variations.append(&mut try_move_if_column_locked_variations());
         variations
     }
 
@@ -76,6 +84,8 @@ impl TryMove {
             TryMove::CreatesMonotonicRow(direction, _) => *direction,
             TryMove::LocksColumn(direction, _) => *direction,
             TryMove::LocksRow(direction, _) => *direction,
+            TryMove::ColumnLocked(direction, _) => *direction,
+            TryMove::RowLocked(direction, _) => *direction,
         }
     }
 }
@@ -113,6 +123,12 @@ impl fmt::Display for TryMove {
             }
             TryMove::LocksRow(direction, row) => {
                 write!(f, "try move {} if locks {} row", direction, row)
+            }
+            TryMove::ColumnLocked(direction, column) => {
+                write!(f, "try move {} if {} column locked", direction, column)
+            }
+            TryMove::RowLocked(direction, row) => {
+                write!(f, "try move {} if {} row locked", direction, row)
             }
         }
     }
@@ -248,6 +264,20 @@ fn try_move_if_locks_row(
     None
 }
 
+fn try_move_if_column_locked(board: Board, direction: Move, column: Column) -> Option<Move> {
+    if attributes::is_column_locked(board, column) {
+        return Some(direction);
+    }
+    None
+}
+
+fn try_move_if_row_locked(board: Board, direction: Move, row: Row) -> Option<Move> {
+    if attributes::is_row_locked(board, row) {
+        return Some(direction);
+    }
+    None
+}
+
 fn try_move_if_produces_potential_merge_variations() -> Vec<TryMove> {
     Move::iterator().fold(Vec::new(), |mut variations, direction| {
         variations.push(TryMove::ProducesMerge(direction));
@@ -357,6 +387,24 @@ fn try_move_if_locks_row_variations() -> Vec<TryMove> {
     for row in Row::iterator() {
         variations.push(TryMove::LocksRow(Move::Left, row));
         variations.push(TryMove::LocksRow(Move::Right, row));
+    }
+    variations
+}
+
+fn try_move_if_column_locked_variations() -> Vec<TryMove> {
+    let mut variations = Vec::new();
+    for column in Column::iterator() {
+        variations.push(TryMove::ColumnLocked(Move::Up, column));
+        variations.push(TryMove::ColumnLocked(Move::Down, column));
+    }
+    variations
+}
+
+fn try_move_if_row_locked_variations() -> Vec<TryMove> {
+    let mut variations = Vec::new();
+    for row in Row::iterator() {
+        variations.push(TryMove::RowLocked(Move::Left, row));
+        variations.push(TryMove::RowLocked(Move::Right, row));
     }
     variations
 }
