@@ -18,6 +18,7 @@ pub enum BanMove {
     Seperates2LargestTiles(Move),
     UnlocksColumn(Move, Column),
     UnlocksRow(Move, Row),
+    RemovesPotentialMerge(Move),
 }
 
 impl BanMove {
@@ -45,6 +46,9 @@ impl BanMove {
             BanMove::UnlocksRow(direction, row) => {
                 ban_move_if_unlocks_row(engine, board, *direction, *row)
             }
+            BanMove::RemovesPotentialMerge(direction) => {
+                ban_move_if_removes_potential_merge(engine, board, *direction)
+            }
         }
     }
 
@@ -58,6 +62,7 @@ impl BanMove {
         variations.append(&mut ban_move_if_seperates_2_largest_tiles_variations());
         variations.append(&mut ban_move_if_unlocks_column_variations());
         variations.append(&mut ban_move_if_unlocks_row_variations());
+        variations.append(&mut ban_move_if_removes_potential_merge_variations());
         variations
     }
 
@@ -71,6 +76,7 @@ impl BanMove {
             BanMove::Seperates2LargestTiles(direction) => *direction,
             BanMove::UnlocksColumn(direction, _) => *direction,
             BanMove::UnlocksRow(direction, _) => *direction,
+            BanMove::RemovesPotentialMerge(direction) => *direction,
         }
     }
 }
@@ -103,6 +109,9 @@ impl fmt::Display for BanMove {
             }
             BanMove::UnlocksRow(direction, row) => {
                 write!(f, "ban move {} if unlocks {} row", direction, row)
+            }
+            BanMove::RemovesPotentialMerge(direction) => {
+                write!(f, "ban move {} if removes potential merge", direction)
             }
         }
     }
@@ -196,6 +205,26 @@ fn ban_move_if_unlocks_row(
     None
 }
 
+fn ban_move_if_removes_potential_merge(
+    engine: &GameEngine,
+    board: Board,
+    direction: Move,
+) -> Option<Move> {
+    let is_merge_possible = match direction {
+        Move::Up | Move::Down => attributes::is_merge_possible(board, Move::Left),
+        Move::Left | Move::Right => attributes::is_merge_possible(board, Move::Up),
+    };
+    let new_board = engine.shift(board, direction);
+    let is_new_merge_possible = match direction {
+        Move::Up | Move::Down => attributes::is_merge_possible(new_board, Move::Left),
+        Move::Left | Move::Right => attributes::is_merge_possible(new_board, Move::Up),
+    };
+    if is_merge_possible && !is_new_merge_possible {
+        return Some(direction);
+    }
+    None
+}
+
 fn ban_move_if_column_not_locked_variations() -> Vec<BanMove> {
     let mut variations = Vec::new();
     for column in Column::iterator() {
@@ -262,4 +291,11 @@ fn ban_move_if_unlocks_row_variations() -> Vec<BanMove> {
         variations.push(BanMove::UnlocksRow(Move::Right, row));
     }
     variations
+}
+
+fn ban_move_if_removes_potential_merge_variations() -> Vec<BanMove> {
+    Move::iterator().fold(Vec::new(), |mut variations, direction| {
+        variations.push(BanMove::RemovesPotentialMerge(direction));
+        variations
+    })
 }
