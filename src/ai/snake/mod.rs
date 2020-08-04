@@ -14,8 +14,8 @@
  * [] does left merge harm monotonicity
  * [] how to deal with a move right/up when not wanted
  */
-use self::rules::BanRules;
-use self::rules::TryRules;
+use self::ban_rules::BanRules;
+use self::try_rules::TryRules;
 use crate::ai::AI;
 use crate::engine::Board;
 use crate::engine::GameEngine;
@@ -23,11 +23,12 @@ use crate::engine::Move;
 use std::fmt;
 
 pub mod attributes;
+pub mod ban_rules;
 pub mod evaluate_strategies;
 pub mod generate_strategies;
 pub mod mann_whitney;
-pub mod rules;
 pub mod run_strategies;
+pub mod try_rules;
 
 #[derive(Clone, PartialEq, Debug)]
 pub struct Snake {
@@ -138,7 +139,7 @@ fn vec_to_string_for_csv<T: fmt::Display>(vec: &[T]) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::rules::TryMove;
+    use super::try_rules::TryMove;
     use super::*;
 
     #[test]

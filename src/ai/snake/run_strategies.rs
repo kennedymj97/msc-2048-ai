@@ -1,3 +1,4 @@
+use super::ban_rules::BanMove;
 use super::evaluate_strategies::compare_strategies;
 use super::evaluate_strategies::compare_strategy_to_best;
 use super::evaluate_strategies::StrategyDataStore;
@@ -9,8 +10,7 @@ use super::generate_strategies::Iter;
 use super::generate_strategies::IterFixedFallback;
 use super::mann_whitney::mann_whitney_u_test;
 use super::mann_whitney::Confidence;
-use super::rules::BanMove;
-use super::rules::TryMove;
+use super::try_rules::TryMove;
 use super::Snake;
 use crate::ai::AI;
 use crate::engine::GameEngine;

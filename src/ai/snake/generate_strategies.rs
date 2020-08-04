@@ -1,5 +1,5 @@
-use super::rules::BanMove;
-use super::rules::TryMove;
+use super::ban_rules::BanMove;
+use super::try_rules::TryMove;
 use super::Snake;
 use crate::engine::Move;
 use permutohedron::Heap;
