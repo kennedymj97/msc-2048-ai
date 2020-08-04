@@ -10,12 +10,14 @@ pub type BanRules = Vec<BanMove>;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum BanMove {
+    Always(Move),
     IfColumnNotLocked(Move, Column),
     IfRowNotLocked(Move, Row),
     IfBreaksMonotonicityOfColumn(Move, Column),
     IfBreaksMonotonicityOfRow(Move, Row),
     Seperates2LargestTiles(Move),
-    Always(Move),
+    UnlocksColumn(Move, Column),
+    UnlocksRow(Move, Row),
 }
 
 impl BanMove {
@@ -37,17 +39,25 @@ impl BanMove {
             BanMove::Seperates2LargestTiles(direction) => {
                 ban_move_if_seperates_2_largest_tiles(engine, board, *direction)
             }
+            BanMove::UnlocksColumn(direction, column) => {
+                ban_move_if_unlocks_column(engine, board, *direction, *column)
+            }
+            BanMove::UnlocksRow(direction, row) => {
+                ban_move_if_unlocks_row(engine, board, *direction, *row)
+            }
         }
     }
 
     pub fn generate_all_variations() -> Vec<Self> {
         let mut variations = Vec::new();
+        variations.append(&mut always_ban_variations());
         variations.append(&mut ban_move_if_column_not_locked_variations());
         variations.append(&mut ban_move_if_row_not_locked_variations());
         variations.append(&mut ban_move_if_breaks_monotonicity_of_column_variations());
         variations.append(&mut ban_move_if_breaks_monotonicity_of_row_variations());
         variations.append(&mut ban_move_if_seperates_2_largest_tiles_variations());
-        variations.append(&mut always_ban_variations());
+        variations.append(&mut ban_move_if_unlocks_column_variations());
+        variations.append(&mut ban_move_if_unlocks_row_variations());
         variations
     }
 
@@ -59,6 +69,8 @@ impl BanMove {
             BanMove::IfBreaksMonotonicityOfColumn(direction, _) => *direction,
             BanMove::IfBreaksMonotonicityOfRow(direction, _) => *direction,
             BanMove::Seperates2LargestTiles(direction) => *direction,
+            BanMove::UnlocksColumn(direction, _) => *direction,
+            BanMove::UnlocksRow(direction, _) => *direction,
         }
     }
 }
@@ -85,6 +97,12 @@ impl fmt::Display for BanMove {
             BanMove::Always(direction) => write!(f, "always ban move {}", direction),
             BanMove::Seperates2LargestTiles(direction) => {
                 write!(f, "ban move {} if seperates 2 largest tiles", direction)
+            }
+            BanMove::UnlocksColumn(direction, column) => {
+                write!(f, "ban move {} if unlocks {} column", direction, column)
+            }
+            BanMove::UnlocksRow(direction, row) => {
+                write!(f, "ban move {} if unlocks {} row", direction, row)
             }
         }
     }
@@ -148,6 +166,36 @@ fn ban_move_if_seperates_2_largest_tiles(
     None
 }
 
+fn ban_move_if_unlocks_column(
+    engine: &GameEngine,
+    board: Board,
+    direction: Move,
+    column: Column,
+) -> Option<Move> {
+    let is_locked = attributes::is_column_locked(board, column);
+    let new_board = engine.shift(board, direction);
+    let is_new_locked = attributes::is_column_locked(new_board, column);
+    if is_locked && !is_new_locked {
+        return Some(direction);
+    }
+    None
+}
+
+fn ban_move_if_unlocks_row(
+    engine: &GameEngine,
+    board: Board,
+    direction: Move,
+    row: Row,
+) -> Option<Move> {
+    let is_locked = attributes::is_row_locked(board, row);
+    let new_board = engine.shift(board, direction);
+    let is_new_locked = attributes::is_row_locked(new_board, row);
+    if is_locked && !is_new_locked {
+        return Some(direction);
+    }
+    None
+}
+
 fn ban_move_if_column_not_locked_variations() -> Vec<BanMove> {
     let mut variations = Vec::new();
     for column in Column::iterator() {
@@ -196,4 +244,22 @@ fn ban_move_if_seperates_2_largest_tiles_variations() -> Vec<BanMove> {
         variations.push(BanMove::Seperates2LargestTiles(direction));
         variations
     })
+}
+
+fn ban_move_if_unlocks_column_variations() -> Vec<BanMove> {
+    let mut variations = Vec::new();
+    for column in Column::iterator() {
+        variations.push(BanMove::UnlocksColumn(Move::Left, column));
+        variations.push(BanMove::UnlocksColumn(Move::Right, column));
+    }
+    variations
+}
+
+fn ban_move_if_unlocks_row_variations() -> Vec<BanMove> {
+    let mut variations = Vec::new();
+    for row in Row::iterator() {
+        variations.push(BanMove::UnlocksRow(Move::Left, row));
+        variations.push(BanMove::UnlocksRow(Move::Right, row));
+    }
+    variations
 }
