@@ -245,7 +245,7 @@ fn ban_move_if_moves_largest_tile_out_of_corner(
 ) -> Option<Move> {
     let is_largest_tile_in_corner = attributes::is_largest_tile_in_corner(board, corner);
     let new_board = engine.shift(board, direction);
-    let is_new_largest_tile_in_corner = attributes::is_largest_tile_in_corner(board, corner);
+    let is_new_largest_tile_in_corner = attributes::is_largest_tile_in_corner(new_board, corner);
     if is_largest_tile_in_corner && !is_new_largest_tile_in_corner {
         return Some(direction);
     }
