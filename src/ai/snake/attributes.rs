@@ -176,19 +176,6 @@ pub fn is_merge_possible(board: Board, direction: Move) -> bool {
     false
 }
 
-pub fn does_move_produce_merge_in_direction(
-    engine: &GameEngine,
-    board: Board,
-    direction: Move,
-    merge_direction: Move,
-) -> bool {
-    let new_board = engine.shift(board, direction);
-    if board == new_board {
-        return false;
-    }
-    is_merge_possible(new_board, merge_direction)
-}
-
 pub fn is_largest_tile_in_corner(board: Board, corner: Corner) -> bool {
     let mut largest_tile_idx = 0;
     let mut largest_tile_val = 0;

@@ -89,7 +89,9 @@ impl AI for Snake {
             match try_rule.execute(engine, board) {
                 Some(direction) => {
                     if !banned_moves.contains(&direction) {
-                        return Some(direction);
+                        if attributes::is_move_possible(engine, board, direction) {
+                            return Some(direction);
+                        }
                     }
                 }
                 None => (),
@@ -98,8 +100,8 @@ impl AI for Snake {
 
         // try to make the fallback moves before forcing them
         for &direction in self.fallback_moves.iter() {
-            if attributes::is_move_possible(engine, board, direction) {
-                if !banned_moves.contains(&direction) {
+            if !banned_moves.contains(&direction) {
+                if attributes::is_move_possible(engine, board, direction) {
                     return Some(direction);
                 }
             }

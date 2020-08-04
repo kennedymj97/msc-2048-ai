@@ -27,7 +27,7 @@ impl TryMove {
         match self {
             TryMove::Always(direction) => always_try_move(engine, board, *direction),
             TryMove::ProducesMerge(direction) => {
-                try_move_if_produces_merge(engine, board, *direction)
+                try_move_if_produces_potential_merge(engine, board, *direction)
             }
             TryMove::IfMergePossible(direction) => try_move_if_merge_possible(board, *direction),
             TryMove::IfMovesLargestTileToCorner(direction, corner) => {
@@ -54,7 +54,7 @@ impl TryMove {
     pub fn generate_all_variations() -> Vec<Self> {
         let mut variations = Vec::new();
         variations.append(&mut always_try_variations());
-        variations.append(&mut try_move_if_produces_merge_variations());
+        variations.append(&mut try_move_if_produces_potential_merge_variations());
         variations.append(&mut try_move_if_merge_possible_variations());
         variations.append(&mut try_move_if_moves_largest_tile_to_corner_variations());
         variations.append(&mut try_move_if_makes_2_largest_tiles_adjacent_variations());
@@ -125,24 +125,22 @@ pub fn force_move_if_possible(engine: &GameEngine, board: Board, direction: Move
     None
 }
 
-fn try_move_if_produces_merge(engine: &GameEngine, board: Board, direction: Move) -> Option<Move> {
-    match direction {
-        Move::Left | Move::Right => {
-            if attributes::does_move_produce_merge_in_direction(engine, board, direction, Move::Up)
-            {
-                return Some(direction);
-            }
-        }
-        Move::Up | Move::Down => {
-            if attributes::does_move_produce_merge_in_direction(
-                engine,
-                board,
-                direction,
-                Move::Left,
-            ) {
-                return Some(direction);
-            }
-        }
+fn try_move_if_produces_potential_merge(
+    engine: &GameEngine,
+    board: Board,
+    direction: Move,
+) -> Option<Move> {
+    let is_merge_possible = match direction {
+        Move::Up | Move::Down => attributes::is_merge_possible(board, Move::Left),
+        Move::Left | Move::Right => attributes::is_merge_possible(board, Move::Up),
+    };
+    let new_board = engine.shift(board, direction);
+    let is_new_merge_possible = match direction {
+        Move::Up | Move::Down => attributes::is_merge_possible(new_board, Move::Left),
+        Move::Left | Move::Right => attributes::is_merge_possible(new_board, Move::Up),
+    };
+    if !is_merge_possible && is_new_merge_possible {
+        return Some(direction);
     }
     None
 }
@@ -250,7 +248,7 @@ fn try_move_if_locks_row(
     None
 }
 
-fn try_move_if_produces_merge_variations() -> Vec<TryMove> {
+fn try_move_if_produces_potential_merge_variations() -> Vec<TryMove> {
     Move::iterator().fold(Vec::new(), |mut variations, direction| {
         variations.push(TryMove::ProducesMerge(direction));
         variations
