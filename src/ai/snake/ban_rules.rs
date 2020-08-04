@@ -1,5 +1,6 @@
 use super::attributes;
 use super::attributes::Column;
+use super::attributes::Corner;
 use super::attributes::Row;
 use crate::engine::Board;
 use crate::engine::GameEngine;
@@ -19,6 +20,7 @@ pub enum BanMove {
     UnlocksColumn(Move, Column),
     UnlocksRow(Move, Row),
     RemovesPotentialMerge(Move),
+    MovesLargestTileOutOfCorner(Move, Corner),
 }
 
 impl BanMove {
@@ -49,6 +51,9 @@ impl BanMove {
             BanMove::RemovesPotentialMerge(direction) => {
                 ban_move_if_removes_potential_merge(engine, board, *direction)
             }
+            BanMove::MovesLargestTileOutOfCorner(direction, corner) => {
+                ban_move_if_moves_largest_tile_out_of_corner(engine, board, *direction, *corner)
+            }
         }
     }
 
@@ -63,6 +68,7 @@ impl BanMove {
         variations.append(&mut ban_move_if_unlocks_column_variations());
         variations.append(&mut ban_move_if_unlocks_row_variations());
         variations.append(&mut ban_move_if_removes_potential_merge_variations());
+        variations.append(&mut ban_move_if_moves_largest_tile_out_of_corner_variations());
         variations
     }
 
@@ -77,6 +83,7 @@ impl BanMove {
             BanMove::UnlocksColumn(direction, _) => *direction,
             BanMove::UnlocksRow(direction, _) => *direction,
             BanMove::RemovesPotentialMerge(direction) => *direction,
+            BanMove::MovesLargestTileOutOfCorner(direction, _) => *direction,
         }
     }
 }
@@ -113,6 +120,11 @@ impl fmt::Display for BanMove {
             BanMove::RemovesPotentialMerge(direction) => {
                 write!(f, "ban move {} if removes potential merge", direction)
             }
+            BanMove::MovesLargestTileOutOfCorner(direction, corner) => write!(
+                f,
+                "ban move {} if moves largest tile out of {} corner",
+                direction, corner
+            ),
         }
     }
 }
@@ -225,6 +237,21 @@ fn ban_move_if_removes_potential_merge(
     None
 }
 
+fn ban_move_if_moves_largest_tile_out_of_corner(
+    engine: &GameEngine,
+    board: Board,
+    direction: Move,
+    corner: Corner,
+) -> Option<Move> {
+    let is_largest_tile_in_corner = attributes::is_largest_tile_in_corner(board, corner);
+    let new_board = engine.shift(board, direction);
+    let is_new_largest_tile_in_corner = attributes::is_largest_tile_in_corner(board, corner);
+    if is_largest_tile_in_corner && !is_new_largest_tile_in_corner {
+        return Some(direction);
+    }
+    None
+}
+
 fn ban_move_if_column_not_locked_variations() -> Vec<BanMove> {
     let mut variations = Vec::new();
     for column in Column::iterator() {
@@ -298,4 +325,53 @@ fn ban_move_if_removes_potential_merge_variations() -> Vec<BanMove> {
         variations.push(BanMove::RemovesPotentialMerge(direction));
         variations
     })
+}
+
+fn ban_move_if_moves_largest_tile_out_of_corner_variations() -> Vec<BanMove> {
+    let mut variations = Vec::new();
+    for direction in Move::iterator() {
+        match direction {
+            Move::Left => {
+                variations.push(BanMove::MovesLargestTileOutOfCorner(
+                    direction,
+                    Corner::TopRight,
+                ));
+                variations.push(BanMove::MovesLargestTileOutOfCorner(
+                    direction,
+                    Corner::BottomRight,
+                ));
+            }
+            Move::Right => {
+                variations.push(BanMove::MovesLargestTileOutOfCorner(
+                    direction,
+                    Corner::TopLeft,
+                ));
+                variations.push(BanMove::MovesLargestTileOutOfCorner(
+                    direction,
+                    Corner::BottomLeft,
+                ));
+            }
+            Move::Up => {
+                variations.push(BanMove::MovesLargestTileOutOfCorner(
+                    direction,
+                    Corner::BottomLeft,
+                ));
+                variations.push(BanMove::MovesLargestTileOutOfCorner(
+                    direction,
+                    Corner::BottomRight,
+                ));
+            }
+            Move::Down => {
+                variations.push(BanMove::MovesLargestTileOutOfCorner(
+                    direction,
+                    Corner::TopLeft,
+                ));
+                variations.push(BanMove::MovesLargestTileOutOfCorner(
+                    direction,
+                    Corner::TopRight,
+                ));
+            }
+        }
+    }
+    variations
 }
