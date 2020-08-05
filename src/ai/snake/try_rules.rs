@@ -376,8 +376,12 @@ fn try_move_if_creates_monotonic_row_variations() -> Vec<TryMove> {
 fn try_move_if_locks_column_variations() -> Vec<TryMove> {
     let mut variations = Vec::new();
     for column in Column::iterator() {
-        variations.push(TryMove::LocksColumn(Move::Left, column));
-        variations.push(TryMove::LocksColumn(Move::Right, column));
+        if column != Column::Left || column != Column::MiddleLeft {
+            variations.push(TryMove::LocksColumn(Move::Right, column));
+        }
+        if column != Column::Right || column != Column::MiddleRight {
+            variations.push(TryMove::LocksColumn(Move::Left, column));
+        }
     }
     variations
 }
@@ -385,8 +389,12 @@ fn try_move_if_locks_column_variations() -> Vec<TryMove> {
 fn try_move_if_locks_row_variations() -> Vec<TryMove> {
     let mut variations = Vec::new();
     for row in Row::iterator() {
-        variations.push(TryMove::LocksRow(Move::Left, row));
-        variations.push(TryMove::LocksRow(Move::Right, row));
+        if row != Row::Top || row != Row::MiddleTop {
+            variations.push(TryMove::LocksRow(Move::Down, row));
+        }
+        if row != Row::Bottom || row != Row::MiddleBottom {
+            variations.push(TryMove::LocksRow(Move::Up, row));
+        }
     }
     variations
 }

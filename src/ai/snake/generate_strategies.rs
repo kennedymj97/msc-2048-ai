@@ -271,7 +271,7 @@ fn num_of_power_sets(n: usize, k: usize) -> BigUint {
     })
 }
 
-pub fn factorial(n: usize) -> BigUint {
+fn factorial(n: usize) -> BigUint {
     if let Some(mut factorial) = 1.to_biguint() {
         for i in 1..(n + 1) {
             factorial = factorial * i;
