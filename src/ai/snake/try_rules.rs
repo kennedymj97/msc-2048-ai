@@ -358,8 +358,14 @@ fn try_move_if_makes_2_largest_tiles_adjacent_variations() -> Vec<TryMove> {
 fn try_move_if_creates_monotonic_column_variations() -> Vec<TryMove> {
     let mut variations = Vec::new();
     for column in Column::iterator() {
-        variations.push(TryMove::CreatesMonotonicColumn(Move::Left, column));
-        variations.push(TryMove::CreatesMonotonicColumn(Move::Right, column));
+        match column {
+            Column::Left | Column::MiddleLeft => {
+                variations.push(TryMove::CreatesMonotonicColumn(Move::Left, column))
+            }
+            Column::Right | Column::MiddleRight => {
+                variations.push(TryMove::CreatesMonotonicColumn(Move::Right, column))
+            }
+        }
     }
     variations
 }
@@ -367,8 +373,14 @@ fn try_move_if_creates_monotonic_column_variations() -> Vec<TryMove> {
 fn try_move_if_creates_monotonic_row_variations() -> Vec<TryMove> {
     let mut variations = Vec::new();
     for row in Row::iterator() {
-        variations.push(TryMove::CreatesMonotonicRow(Move::Up, row));
-        variations.push(TryMove::CreatesMonotonicRow(Move::Down, row));
+        match row {
+            Row::Top | Row::MiddleTop => {
+                variations.push(TryMove::CreatesMonotonicRow(Move::Up, row))
+            }
+            Row::Bottom | Row::MiddleBottom => {
+                variations.push(TryMove::CreatesMonotonicRow(Move::Down, row))
+            }
+        }
     }
     variations
 }
