@@ -312,7 +312,9 @@ Average: 12021.85084
 ## 05/08/2020
 
 [x] Update the graphs with what was discussed in meeting last week
-[] Calculate size of search space
+[x] Calculate size of search space
+[] Try move if empties column/row
+[] Ban move if fills column/row
 [] Local search for strategies
 [] Add more rules
 [] Iterated local search for strategies
