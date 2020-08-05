@@ -21,6 +21,8 @@ pub enum BanMove {
     UnlocksRow(Move, Row),
     RemovesPotentialMerge(Move),
     MovesLargestTileOutOfCorner(Move, Corner),
+    FillsColumn(Move, Column),
+    FillsRow(Move, Row),
 }
 
 impl BanMove {
@@ -54,6 +56,12 @@ impl BanMove {
             BanMove::MovesLargestTileOutOfCorner(direction, corner) => {
                 ban_move_if_moves_largest_tile_out_of_corner(engine, board, *direction, *corner)
             }
+            BanMove::FillsColumn(direction, column) => {
+                ban_move_if_fills_column(engine, board, *direction, *column)
+            }
+            BanMove::FillsRow(direction, row) => {
+                ban_move_if_fills_row(engine, board, *direction, *row)
+            }
         }
     }
 
@@ -69,6 +77,8 @@ impl BanMove {
         variations.append(&mut ban_move_if_unlocks_row_variations());
         variations.append(&mut ban_move_if_removes_potential_merge_variations());
         variations.append(&mut ban_move_if_moves_largest_tile_out_of_corner_variations());
+        variations.append(&mut ban_move_if_fills_column_variations());
+        variations.append(&mut ban_move_if_fills_row_variations());
         variations
     }
 
@@ -84,6 +94,8 @@ impl BanMove {
             BanMove::UnlocksRow(direction, _) => *direction,
             BanMove::RemovesPotentialMerge(direction) => *direction,
             BanMove::MovesLargestTileOutOfCorner(direction, _) => *direction,
+            BanMove::FillsColumn(direction, _) => *direction,
+            BanMove::FillsRow(direction, _) => *direction,
         }
     }
 }
@@ -125,6 +137,12 @@ impl fmt::Display for BanMove {
                 "ban move {} if moves largest tile out of {} corner",
                 direction, corner
             ),
+            BanMove::FillsColumn(direction, column) => {
+                write!(f, "ban move {} if fills {} column", direction, column)
+            }
+            BanMove::FillsRow(direction, row) => {
+                write!(f, "ban move {} if fills {} row", direction, row)
+            }
         }
     }
 }
@@ -252,6 +270,36 @@ fn ban_move_if_moves_largest_tile_out_of_corner(
     None
 }
 
+fn ban_move_if_fills_column(
+    engine: &GameEngine,
+    board: Board,
+    direction: Move,
+    column: Column,
+) -> Option<Move> {
+    let is_empty = attributes::is_column_empty(board, column);
+    let new_board = engine.shift(board, direction);
+    let is_new_empty = attributes::is_column_empty(new_board, column);
+    if is_empty && !is_new_empty {
+        return Some(direction);
+    }
+    None
+}
+
+fn ban_move_if_fills_row(
+    engine: &GameEngine,
+    board: Board,
+    direction: Move,
+    row: Row,
+) -> Option<Move> {
+    let is_empty = attributes::is_row_empty(board, row);
+    let new_board = engine.shift(board, direction);
+    let is_new_empty = attributes::is_row_empty(new_board, row);
+    if is_empty && !is_new_empty {
+        return Some(direction);
+    }
+    None
+}
+
 fn ban_move_if_column_not_locked_variations() -> Vec<BanMove> {
     let mut variations = Vec::new();
     for column in Column::iterator() {
@@ -371,6 +419,32 @@ fn ban_move_if_moves_largest_tile_out_of_corner_variations() -> Vec<BanMove> {
                     Corner::TopRight,
                 ));
             }
+        }
+    }
+    variations
+}
+
+fn ban_move_if_fills_column_variations() -> Vec<BanMove> {
+    let mut variations = Vec::new();
+    for column in Column::iterator() {
+        if column != Column::Left {
+            variations.push(BanMove::FillsColumn(Move::Right, column));
+        }
+        if column != Column::Right {
+            variations.push(BanMove::FillsColumn(Move::Left, column));
+        }
+    }
+    variations
+}
+
+fn ban_move_if_fills_row_variations() -> Vec<BanMove> {
+    let mut variations = Vec::new();
+    for row in Row::iterator() {
+        if row != Row::Top {
+            variations.push(BanMove::FillsRow(Move::Down, row));
+        }
+        if row != Row::Bottom {
+            variations.push(BanMove::FillsRow(Move::Up, row));
         }
     }
     variations

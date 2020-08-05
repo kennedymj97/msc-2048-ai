@@ -481,7 +481,7 @@ fn try_move_if_empties_column_variations() -> Vec<TryMove> {
             variations.push(TryMove::EmptiesColumn(Move::Left, column));
         }
         if column != Column::Right {
-            variations.push(TryMove::EmptiesColumn(Move::Down, column));
+            variations.push(TryMove::EmptiesColumn(Move::Right, column));
         }
     }
     variations
