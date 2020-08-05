@@ -5,6 +5,7 @@ use super::evaluate_strategies::StrategyDataStore;
 use super::generate_strategies::generate_snakes;
 use super::generate_strategies::get_snake_iterator;
 use super::generate_strategies::get_snake_iterator_fixed_fallback;
+use super::generate_strategies::number_of_possible_strategies;
 use super::generate_strategies::permutations;
 use super::generate_strategies::Iter;
 use super::generate_strategies::IterFixedFallback;
@@ -79,6 +80,10 @@ fn greedy_prioritise_best(
     };
     let mut try_variants = TryMove::generate_all_variations();
     let mut ban_variants = BanMove::generate_all_variations();
+    println!(
+        "Total number of possible strategies: {}",
+        number_of_possible_strategies(4, ban_variants.len(), 5, try_variants.len())
+    );
     loop {
         println!("\n\nNew best strategy: {}", best_snake_data.strategy);
         // try all remaining try rules at the front
