@@ -22,6 +22,8 @@ pub enum TryMove {
     LocksRow(Move, Row),
     ColumnLocked(Move, Column),
     RowLocked(Move, Row),
+    EmptiesColumn(Move, Column),
+    EmptiesRow(Move, Row),
 }
 
 impl TryMove {
@@ -54,6 +56,12 @@ impl TryMove {
                 try_move_if_column_locked(board, *direction, *column)
             }
             TryMove::RowLocked(direction, row) => try_move_if_row_locked(board, *direction, *row),
+            TryMove::EmptiesColumn(direction, column) => {
+                try_move_if_empties_column(engine, board, *direction, *column)
+            }
+            TryMove::EmptiesRow(direction, row) => {
+                try_move_if_empties_row(engine, board, *direction, *row)
+            }
         }
     }
 
@@ -70,6 +78,8 @@ impl TryMove {
         variations.append(&mut try_move_if_locks_row_variations());
         variations.append(&mut try_move_if_row_locked_variations());
         variations.append(&mut try_move_if_column_locked_variations());
+        variations.append(&mut try_move_if_empties_column_variations());
+        variations.append(&mut try_move_if_empties_row_variations());
         variations
     }
 
@@ -86,6 +96,8 @@ impl TryMove {
             TryMove::LocksRow(direction, _) => *direction,
             TryMove::ColumnLocked(direction, _) => *direction,
             TryMove::RowLocked(direction, _) => *direction,
+            TryMove::EmptiesColumn(direction, _) => *direction,
+            TryMove::EmptiesRow(direction, _) => *direction,
         }
     }
 }
@@ -129,6 +141,12 @@ impl fmt::Display for TryMove {
             }
             TryMove::RowLocked(direction, row) => {
                 write!(f, "try move {} if {} row locked", direction, row)
+            }
+            TryMove::EmptiesColumn(direction, column) => {
+                write!(f, "try move {} if empties {} column", direction, column)
+            }
+            TryMove::EmptiesRow(direction, row) => {
+                write!(f, "try move {} if empties {} row", direction, row)
             }
         }
     }
@@ -278,6 +296,36 @@ fn try_move_if_row_locked(board: Board, direction: Move, row: Row) -> Option<Mov
     None
 }
 
+fn try_move_if_empties_column(
+    engine: &GameEngine,
+    board: Board,
+    direction: Move,
+    column: Column,
+) -> Option<Move> {
+    let is_empty = attributes::is_column_empty(board, column);
+    let new_board = engine.shift(board, direction);
+    let is_new_empty = attributes::is_column_empty(new_board, column);
+    if !is_empty && is_new_empty {
+        return Some(direction);
+    }
+    None
+}
+
+fn try_move_if_empties_row(
+    engine: &GameEngine,
+    board: Board,
+    direction: Move,
+    row: Row,
+) -> Option<Move> {
+    let is_empty = attributes::is_row_empty(board, row);
+    let new_board = engine.shift(board, direction);
+    let is_new_empty = attributes::is_row_empty(new_board, row);
+    if !is_empty && is_new_empty {
+        return Some(direction);
+    }
+    None
+}
+
 fn try_move_if_produces_potential_merge_variations() -> Vec<TryMove> {
     Move::iterator().fold(Vec::new(), |mut variations, direction| {
         variations.push(TryMove::ProducesMerge(direction));
@@ -358,13 +406,12 @@ fn try_move_if_makes_2_largest_tiles_adjacent_variations() -> Vec<TryMove> {
 fn try_move_if_creates_monotonic_column_variations() -> Vec<TryMove> {
     let mut variations = Vec::new();
     for column in Column::iterator() {
-        match column {
-            Column::Left | Column::MiddleLeft => {
-                variations.push(TryMove::CreatesMonotonicColumn(Move::Left, column))
-            }
-            Column::Right | Column::MiddleRight => {
-                variations.push(TryMove::CreatesMonotonicColumn(Move::Right, column))
-            }
+        if column != Column::Right {
+            variations.push(TryMove::CreatesMonotonicColumn(Move::Left, column));
+        }
+
+        if column != Column::Left {
+            variations.push(TryMove::CreatesMonotonicColumn(Move::Right, column));
         }
     }
     variations
@@ -373,13 +420,11 @@ fn try_move_if_creates_monotonic_column_variations() -> Vec<TryMove> {
 fn try_move_if_creates_monotonic_row_variations() -> Vec<TryMove> {
     let mut variations = Vec::new();
     for row in Row::iterator() {
-        match row {
-            Row::Top | Row::MiddleTop => {
-                variations.push(TryMove::CreatesMonotonicRow(Move::Up, row))
-            }
-            Row::Bottom | Row::MiddleBottom => {
-                variations.push(TryMove::CreatesMonotonicRow(Move::Down, row))
-            }
+        if row != Row::Bottom {
+            variations.push(TryMove::CreatesMonotonicRow(Move::Up, row));
+        }
+        if row != Row::Top {
+            variations.push(TryMove::CreatesMonotonicRow(Move::Down, row));
         }
     }
     variations
@@ -388,10 +433,10 @@ fn try_move_if_creates_monotonic_row_variations() -> Vec<TryMove> {
 fn try_move_if_locks_column_variations() -> Vec<TryMove> {
     let mut variations = Vec::new();
     for column in Column::iterator() {
-        if column != Column::Left || column != Column::MiddleLeft {
+        if column != Column::Left {
             variations.push(TryMove::LocksColumn(Move::Right, column));
         }
-        if column != Column::Right || column != Column::MiddleRight {
+        if column != Column::Right {
             variations.push(TryMove::LocksColumn(Move::Left, column));
         }
     }
@@ -401,10 +446,10 @@ fn try_move_if_locks_column_variations() -> Vec<TryMove> {
 fn try_move_if_locks_row_variations() -> Vec<TryMove> {
     let mut variations = Vec::new();
     for row in Row::iterator() {
-        if row != Row::Top || row != Row::MiddleTop {
+        if row != Row::Top {
             variations.push(TryMove::LocksRow(Move::Down, row));
         }
-        if row != Row::Bottom || row != Row::MiddleBottom {
+        if row != Row::Bottom {
             variations.push(TryMove::LocksRow(Move::Up, row));
         }
     }
@@ -425,6 +470,32 @@ fn try_move_if_row_locked_variations() -> Vec<TryMove> {
     for row in Row::iterator() {
         variations.push(TryMove::RowLocked(Move::Left, row));
         variations.push(TryMove::RowLocked(Move::Right, row));
+    }
+    variations
+}
+
+fn try_move_if_empties_column_variations() -> Vec<TryMove> {
+    let mut variations = Vec::new();
+    for column in Column::iterator() {
+        if column != Column::Left {
+            variations.push(TryMove::EmptiesColumn(Move::Left, column));
+        }
+        if column != Column::Right {
+            variations.push(TryMove::EmptiesColumn(Move::Down, column));
+        }
+    }
+    variations
+}
+
+fn try_move_if_empties_row_variations() -> Vec<TryMove> {
+    let mut variations = Vec::new();
+    for row in Row::iterator() {
+        if row != Row::Top {
+            variations.push(TryMove::EmptiesRow(Move::Up, row));
+        }
+        if row != Row::Bottom {
+            variations.push(TryMove::EmptiesRow(Move::Down, row));
+        }
     }
     variations
 }
