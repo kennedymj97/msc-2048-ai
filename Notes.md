@@ -310,7 +310,9 @@ Average: 12021.85084
 [x] Try move if row/column locked
 
 ## 05/08/2020
-[] Update the graphs with what was discussed in meeting last week
+
+[x] Update the graphs with what was discussed in meeting last week
+[] Calculate size of search space
 [] Local search for strategies
 [] Add more rules
 [] Iterated local search for strategies
