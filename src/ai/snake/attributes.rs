@@ -200,6 +200,9 @@ pub fn is_column_monotonic(board: Board, column: Column) -> bool {
     let tile2 = GameEngine::get_tile(board, 8 + col_idx);
     let tile3 = GameEngine::get_tile(board, 4 + col_idx);
     let tile4 = GameEngine::get_tile(board, 0 + col_idx);
+    if tile1 == 0 && tile2 == 0 && tile3 == 0 && tile4 == 0 {
+        return false;
+    }
     if tile1 <= tile2 && tile2 <= tile3 && tile3 <= tile4 {
         return true;
     }
@@ -215,6 +218,9 @@ pub fn is_row_monotonic(board: Board, row: Row) -> bool {
     let tile2 = GameEngine::get_tile(board, row_starting_idx + 1);
     let tile3 = GameEngine::get_tile(board, row_starting_idx + 2);
     let tile4 = GameEngine::get_tile(board, row_starting_idx + 3);
+    if tile1 == 0 && tile2 == 0 && tile3 == 0 && tile4 == 0 {
+        return false;
+    }
     if tile1 <= tile2 && tile2 <= tile3 && tile3 <= tile4 {
         return true;
     }

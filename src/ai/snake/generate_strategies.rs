@@ -246,11 +246,6 @@ pub fn number_of_possible_strategies(
     max_try: usize,
     try_variations: usize,
 ) -> BigUint {
-    println!(
-        "ban: {}, try: {}",
-        num_of_power_sets(ban_variations, max_ban),
-        num_of_possible_sets(try_variations, max_try)
-    );
     num_of_power_sets(ban_variations, max_ban)
         * num_of_possible_sets(try_variations, max_try)
         * ToBigUint::to_biguint(&8).expect("failed ot create big int")

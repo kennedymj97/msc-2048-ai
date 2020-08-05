@@ -16,7 +16,7 @@ fn main() {
     //brute_force(2, 4, 100, "./data/brute_force_2try_4ban_100runs.csv");
     //progressive_brute_force_no_save_fixed_fallback(2, 5);
     //progressive_brute_force_no_save(2, 3);
-    greedy(Greedy::PrioritiseBest, Confidence::P05, 10000);
+    greedy(Greedy::PrioritiseTry, Confidence::P05, 1000);
     //let ban_rules = vec![
     //    BanMove::IfColumnNotLocked(Move::Up, Column::Left),
     //    BanMove::MovesLargestTileOutOfCorner(Move::Down, Corner::TopRight),
