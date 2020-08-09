@@ -27,7 +27,7 @@ pub mod ban_rules;
 pub mod evaluate_strategies;
 pub mod generate_strategies;
 pub mod mann_whitney;
-pub mod run_strategies;
+pub mod search;
 pub mod try_rules;
 
 #[derive(Clone, PartialEq, Debug)]
