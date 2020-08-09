@@ -318,13 +318,13 @@ Average: 12021.85084
 
 ## 09/08/2020
 [x] Refactor search code
-[] Add filter for greedy search
-[] Add random strategy generator
-[] Add random search for strategy
+[x] Add random strategy generator
 
 ## 10/08/2020
+[] Add random search for strategy
 [] Local search for strategies (on top of greedy and random)
 [] Add in some permutation for iterated local search
+[~] Add filter for greedy search (not sure if I want to complete this now, instead just set a limit on max ban/try??)
 
 ## Unallocated
 [] Iterated local search for strategies
