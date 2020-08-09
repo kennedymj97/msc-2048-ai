@@ -13,6 +13,18 @@ use crate::engine::Move;
 use crate::engine::Score;
 use std::cmp::Ordering;
 
+// need a function that returns a vec of all the rules in a snake
+// need a function that removes a rule from a snake
+//fn filter(snake: Snake, confidence: Confidence, runs: usize) -> Snake {
+// for every rule in the snake:
+//     clone the snake and remove the rule.
+//     compare with original snake for specified runs.
+//     if greater or equal to original then return a recursive call to the filter function with
+//     the new snake.
+//     if less than original then just continue.
+// if the end of the for loop is reached return the original snake
+//}
+
 #[derive(Clone)]
 struct SnakeData {
     strategy: Snake,

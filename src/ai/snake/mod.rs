@@ -14,7 +14,9 @@
  * [] does left merge harm monotonicity
  * [] how to deal with a move right/up when not wanted
  */
+use self::ban_rules::BanMove;
 use self::ban_rules::BanRules;
+use self::try_rules::TryMove;
 use self::try_rules::TryRules;
 use crate::ai::AI;
 use crate::engine::Board;
@@ -36,6 +38,14 @@ pub struct Snake {
     try_rules: TryRules,
     fallback_moves: Vec<Move>,
 }
+
+#[derive(Clone, Copy, PartialEq, Debug)]
+pub enum Rule {
+    Ban(BanMove),
+    Try(TryMove),
+}
+
+pub type Rules = Vec<Rule>;
 
 impl Snake {
     pub fn new(
@@ -72,6 +82,42 @@ impl Snake {
             try_rules: try_rules.clone(),
             fallback_moves: fallback_moves.clone(),
         })
+    }
+
+    pub fn get_rules(&self) -> Rules {
+        let mut ban_rules = self
+            .ban_rules
+            .iter()
+            .map(|&rule| Rule::Ban(rule))
+            .collect::<Rules>();
+        let mut try_rules = self
+            .try_rules
+            .iter()
+            .map(|&rule| Rule::Try(rule))
+            .collect::<Rules>();
+        ban_rules.append(&mut try_rules);
+        ban_rules
+    }
+
+    pub fn remove_rule(&mut self, rule: Rule) {
+        match rule {
+            Rule::Ban(ban_rule) => {
+                self.ban_rules = self
+                    .ban_rules
+                    .iter()
+                    .copied()
+                    .filter(|&rule| rule != ban_rule)
+                    .collect::<BanRules>()
+            }
+            Rule::Try(try_rule) => {
+                self.try_rules = self
+                    .try_rules
+                    .iter()
+                    .copied()
+                    .filter(|&rule| rule != try_rule)
+                    .collect::<TryRules>()
+            }
+        }
     }
 }
 
@@ -141,7 +187,7 @@ fn vec_to_string_for_csv<T: fmt::Display>(vec: &[T]) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::try_rules::TryMove;
+    use super::attributes::Column;
     use super::*;
 
     #[test]
@@ -155,5 +201,49 @@ mod tests {
             ),
             None
         );
+    }
+
+    #[test]
+    fn it_get_rules() {
+        let snake = Snake::new(
+            &vec![BanMove::IfColumnNotLocked(Move::Up, Column::Left)],
+            &vec![
+                TryMove::ProducesMerge(Move::Up),
+                TryMove::ProducesMerge(Move::Down),
+            ],
+            &vec![Move::Left, Move::Down, Move::Up, Move::Right],
+        )
+        .unwrap();
+        assert_eq!(
+            snake.get_rules(),
+            vec![
+                Rule::Ban(BanMove::IfColumnNotLocked(Move::Up, Column::Left)),
+                Rule::Try(TryMove::ProducesMerge(Move::Up)),
+                Rule::Try(TryMove::ProducesMerge(Move::Down))
+            ]
+        );
+    }
+
+    #[test]
+    fn it_remove_rule() {
+        let mut snake = Snake::new(
+            &vec![BanMove::IfColumnNotLocked(Move::Up, Column::Left)],
+            &vec![
+                TryMove::ProducesMerge(Move::Up),
+                TryMove::ProducesMerge(Move::Down),
+            ],
+            &vec![Move::Left, Move::Down, Move::Up, Move::Right],
+        )
+        .unwrap();
+
+        let snake2 = Snake::new(
+            &vec![BanMove::IfColumnNotLocked(Move::Up, Column::Left)],
+            &vec![TryMove::ProducesMerge(Move::Up)],
+            &vec![Move::Left, Move::Down, Move::Up, Move::Right],
+        )
+        .unwrap();
+
+        snake.remove_rule(Rule::Try(TryMove::ProducesMerge(Move::Down)));
+        assert_eq!(snake, snake2);
     }
 }

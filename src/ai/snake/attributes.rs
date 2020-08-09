@@ -537,22 +537,4 @@ mod tests {
         assert_eq!(is_merge_possible(0x0000205450262035, Move::Down), false);
         assert_eq!(is_merge_possible(0x2100101052008531, Move::Left), true);
     }
-
-    #[test]
-    fn it_does_move_produce_merge_in_direction() {
-        let engine = GameEngine::new();
-        assert_eq!(
-            does_move_produce_merge_in_direction(
-                &engine,
-                0x1234234000000000,
-                Move::Right,
-                Move::Up
-            ),
-            true
-        );
-        assert_eq!(
-            does_move_produce_merge_in_direction(&engine, 0x5320752186105400, Move::Up, Move::Left,),
-            true
-        );
-    }
 }

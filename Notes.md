@@ -315,8 +315,18 @@ Average: 12021.85084
 [x] Calculate size of search space
 [x] Try move if empties column/row
 [x] Ban move if fills column/row
-[] Local search for strategies
-[] Add more rules
+
+## 09/08/2020
+[x] Refactor search code
+[] Add filter for greedy search
+[] Add random strategy generator
+[] Add random search for strategy
+
+## 10/08/2020
+[] Local search for strategies (on top of greedy and random)
+[] Add in some permutation for iterated local search
+
+## Unallocated
 [] Iterated local search for strategies
 [] Fix evaluation of strategies from file
 [] Write formal description of language
