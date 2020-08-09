@@ -13,17 +13,38 @@ use crate::engine::Move;
 use crate::engine::Score;
 use std::cmp::Ordering;
 
-// need a function that returns a vec of all the rules in a snake
-// need a function that removes a rule from a snake
-//fn filter(snake: Snake, confidence: Confidence, runs: usize) -> Snake {
-// for every rule in the snake:
-//     clone the snake and remove the rule.
-//     compare with original snake for specified runs.
-//     if greater or equal to original then return a recursive call to the filter function with
-//     the new snake.
-//     if less than original then just continue.
-// if the end of the for loop is reached return the original snake
-//}
+fn filter(engine: &GameEngine, snake: SnakeData, confidence: Confidence, max_runs: usize) -> Snake {
+    // for every rule in the snake:
+    for rule in snake.strategy.get_rules() {
+        //     clone the snake and remove the rule.
+        let mut reduced_snake = snake.strategy.clone();
+        reduced_snake.remove_rule(rule);
+        //     compare with original snake for specified runs.
+        match strategy_duel(
+            engine,
+            &mut SnakeData {
+                strategy: reduced_snake,
+                results: Vec::new(),
+            },
+            &mut snake.clone(),
+            GreedyRuns {
+                current: 10,
+                max: max_runs,
+            },
+            confidence,
+        ) {
+            //     if greater or equal to original then return a recursive call to the filter function with
+            //     the new snake.
+            StrategyDuelResult::Champion(reduced_snake_data) => {
+                return filter(engine, reduced_snake_data, confidence, max_runs)
+            }
+            //     if less than original then just continue.
+            StrategyDuelResult::Challenger(_) => (),
+        }
+    }
+    // if the end of the for loop is reached return the original snake
+    snake.strategy
+}
 
 #[derive(Clone)]
 struct SnakeData {

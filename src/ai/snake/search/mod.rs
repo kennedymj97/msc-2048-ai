@@ -9,6 +9,7 @@ use std::path::Path;
 pub mod brute_force;
 pub mod greedy;
 pub mod progressive_brute_force;
+pub mod random;
 
 fn save_results(data: &StrategyDataStore<Snake>, foldername: &Path, runs: usize) {
     println!("Saving data @ {} runs...", runs);
