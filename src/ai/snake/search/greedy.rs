@@ -63,13 +63,37 @@ struct GreedyRuns {
     max: usize,
 }
 
-pub fn greedy(greedy_type: Greedy, confidence: Confidence, max_runs: usize) {
+pub fn greedy(
+    max_ban_length: usize,
+    max_try_length: usize,
+    greedy_type: Greedy,
+    confidence: Confidence,
+    max_runs: usize,
+) {
     println!("Starting greedy search");
     let engine = GameEngine::new();
     let mut best_strategy_data = match greedy_type {
-        Greedy::PrioritiseTry => greedy_prioritise_try(&engine, confidence, max_runs),
-        Greedy::PrioritiseBan => greedy_prioritise_ban(&engine, confidence, max_runs),
-        Greedy::PrioritiseBest => greedy_prioritise_best(&engine, confidence, max_runs),
+        Greedy::PrioritiseTry => greedy_prioritise_try(
+            &engine,
+            max_ban_length,
+            max_try_length,
+            confidence,
+            max_runs,
+        ),
+        Greedy::PrioritiseBan => greedy_prioritise_ban(
+            &engine,
+            max_ban_length,
+            max_try_length,
+            confidence,
+            max_runs,
+        ),
+        Greedy::PrioritiseBest => greedy_prioritise_best(
+            &engine,
+            max_ban_length,
+            max_try_length,
+            confidence,
+            max_runs,
+        ),
     };
     println!("\n\nGetting stats for best strategy...");
     run_strategy(
@@ -88,6 +112,8 @@ pub fn greedy(greedy_type: Greedy, confidence: Confidence, max_runs: usize) {
 
 fn greedy_prioritise_best(
     engine: &GameEngine,
+    max_ban_length: usize,
+    max_try_length: usize,
     confidence: Confidence,
     max_runs: usize,
 ) -> SnakeData {
@@ -109,33 +135,49 @@ fn greedy_prioritise_best(
     );
     loop {
         println!("\n\nNew best strategy: {}", best_snake_data.strategy);
-        // try all remaining try rules at the front
-        println!("Finding best front strategy...");
-        let (mut best_front_data, front_variant_idx) = find_best_try_front_rule(
-            &engine,
-            &best_snake_data,
-            &try_variants,
-            confidence,
-            max_runs,
-        );
-        // try all remaining try rules at the back
-        println!("Finding best back strategy...");
-        let (mut best_back_data, back_variant_idx) = find_best_try_back_rule(
-            &engine,
-            &best_snake_data,
-            &try_variants,
-            confidence,
-            max_runs,
-        );
-        // try all remaining ban rules
-        println!("Finding best ban strategy...");
-        let (mut best_ban_data, ban_variant_idx) = find_best_ban_rule(
-            &engine,
-            &best_snake_data,
-            &ban_variants,
-            confidence,
-            max_runs,
-        );
+        let mut best_front_data = best_snake_data.clone();
+        let mut best_back_data = best_snake_data.clone();
+        let mut best_ban_data = best_snake_data.clone();
+        let mut front_variant_idx = None;
+        let mut back_variant_idx = None;
+        let mut ban_variant_idx = None;
+        if best_snake_data.strategy.try_rules.len() < max_try_length {
+            // try all remaining try rules at the front
+            println!("Finding best front strategy...");
+            let front_results = find_best_try_front_rule(
+                &engine,
+                &best_snake_data,
+                &try_variants,
+                confidence,
+                max_runs,
+            );
+            best_front_data = front_results.0;
+            front_variant_idx = front_results.1;
+            // try all remaining try rules at the back
+            println!("Finding best back strategy...");
+            let back_results = find_best_try_back_rule(
+                &engine,
+                &best_snake_data,
+                &try_variants,
+                confidence,
+                max_runs,
+            );
+            best_back_data = back_results.0;
+            back_variant_idx = back_results.1;
+        }
+        if best_snake_data.strategy.ban_rules.len() < max_ban_length {
+            // try all remaining ban rules
+            println!("Finding best ban strategy...");
+            let ban_results = find_best_ban_rule(
+                &engine,
+                &best_snake_data,
+                &ban_variants,
+                confidence,
+                max_runs,
+            );
+            best_ban_data = ban_results.0;
+            ban_variant_idx = ban_results.1;
+        }
         // set the best rules to be the best of the three
         if &best_front_data.strategy == &best_snake_data.strategy
             && &best_back_data.strategy == &best_snake_data.strategy
@@ -211,6 +253,8 @@ fn greedy_prioritise_best(
 
 fn greedy_prioritise_try(
     engine: &GameEngine,
+    max_ban_length: usize,
+    max_try_length: usize,
     confidence: Confidence,
     max_runs: usize,
 ) -> SnakeData {
@@ -228,64 +272,68 @@ fn greedy_prioritise_try(
     let mut ban_variants = BanMove::generate_all_variations();
     loop {
         println!("\n\nNew best strategy: {}", best_snake_data.strategy);
-        // try all remaining try rules at the front
-        println!("Finding best try strategy...");
-        let (mut best_front_data, front_variant_idx) = find_best_try_front_rule(
-            &engine,
-            &best_snake_data,
-            &try_variants,
-            confidence,
-            max_runs,
-        );
-        // try all remaining try rules at the back
-        let (mut best_back_data, back_variant_idx) = find_best_try_back_rule(
-            &engine,
-            &best_snake_data,
-            &try_variants,
-            confidence,
-            max_runs,
-        );
+        if best_snake_data.strategy.try_rules.len() < max_try_length {
+            // try all remaining try rules at the front
+            println!("Finding best try strategy...");
+            let (mut best_front_data, front_variant_idx) = find_best_try_front_rule(
+                &engine,
+                &best_snake_data,
+                &try_variants,
+                confidence,
+                max_runs,
+            );
+            // try all remaining try rules at the back
+            let (mut best_back_data, back_variant_idx) = find_best_try_back_rule(
+                &engine,
+                &best_snake_data,
+                &try_variants,
+                confidence,
+                max_runs,
+            );
 
-        let (best_try_data, best_try_idx) = match strategy_duel(
-            &engine,
-            &mut best_front_data,
-            &mut best_back_data,
-            GreedyRuns {
-                current: 10,
-                max: max_runs,
-            },
-            confidence,
-        ) {
-            StrategyDuelResult::Champion(results) => (results, front_variant_idx),
-            StrategyDuelResult::Challenger(results) => (results, back_variant_idx),
-        };
+            let (best_try_data, best_try_idx) = match strategy_duel(
+                &engine,
+                &mut best_front_data,
+                &mut best_back_data,
+                GreedyRuns {
+                    current: 10,
+                    max: max_runs,
+                },
+                confidence,
+            ) {
+                StrategyDuelResult::Champion(results) => (results, front_variant_idx),
+                StrategyDuelResult::Challenger(results) => (results, back_variant_idx),
+            };
 
-        if &best_try_data.strategy != &best_snake_data.strategy {
-            println!("New try rule added.");
-            best_snake_data = best_try_data;
-            if let Some(idx) = best_try_idx {
-                try_variants.remove(idx);
+            if &best_try_data.strategy != &best_snake_data.strategy {
+                println!("New try rule added.");
+                best_snake_data = best_try_data;
+                if let Some(idx) = best_try_idx {
+                    try_variants.remove(idx);
+                }
+                continue;
             }
-            continue;
         }
 
-        // try all remaining ban rules
-        println!("Finding best ban strategy...");
-        let (best_ban_data, best_ban_idx) = find_best_ban_rule(
-            &engine,
-            &best_snake_data,
-            &ban_variants,
-            confidence,
-            max_runs,
-        );
+        if best_snake_data.strategy.ban_rules.len() < max_ban_length {
+            // try all remaining ban rules
+            println!("Finding best ban strategy...");
+            let (best_ban_data, best_ban_idx) = find_best_ban_rule(
+                &engine,
+                &best_snake_data,
+                &ban_variants,
+                confidence,
+                max_runs,
+            );
 
-        if &best_ban_data.strategy != &best_snake_data.strategy {
-            println!("New ban rule added.");
-            best_snake_data = best_ban_data;
-            if let Some(idx) = best_ban_idx {
-                ban_variants.remove(idx);
+            if &best_ban_data.strategy != &best_snake_data.strategy {
+                println!("New ban rule added.");
+                best_snake_data = best_ban_data;
+                if let Some(idx) = best_ban_idx {
+                    ban_variants.remove(idx);
+                }
+                continue;
             }
-            continue;
         }
 
         return best_snake_data;
@@ -294,6 +342,8 @@ fn greedy_prioritise_try(
 
 fn greedy_prioritise_ban(
     engine: &GameEngine,
+    max_ban_length: usize,
+    max_try_length: usize,
     confidence: Confidence,
     max_runs: usize,
 ) -> SnakeData {
@@ -311,64 +361,68 @@ fn greedy_prioritise_ban(
     let mut ban_variants = BanMove::generate_all_variations();
     loop {
         println!("\n\nNew best strategy: {}", best_snake_data.strategy);
-        // try all remaining ban rules
-        println!("Finding best ban strategy...");
-        let (best_ban_data, best_ban_idx) = find_best_ban_rule(
-            &engine,
-            &best_snake_data,
-            &ban_variants,
-            confidence,
-            max_runs,
-        );
+        if best_snake_data.strategy.ban_rules.len() < max_ban_length {
+            // try all remaining ban rules
+            println!("Finding best ban strategy...");
+            let (best_ban_data, best_ban_idx) = find_best_ban_rule(
+                &engine,
+                &best_snake_data,
+                &ban_variants,
+                confidence,
+                max_runs,
+            );
 
-        if &best_ban_data.strategy != &best_snake_data.strategy {
-            println!("New ban rule added.");
-            best_snake_data = best_ban_data;
-            if let Some(idx) = best_ban_idx {
-                ban_variants.remove(idx);
+            if &best_ban_data.strategy != &best_snake_data.strategy {
+                println!("New ban rule added.");
+                best_snake_data = best_ban_data;
+                if let Some(idx) = best_ban_idx {
+                    ban_variants.remove(idx);
+                }
+                continue;
             }
-            continue;
         }
 
-        // try all remaining try rules at the front
-        println!("Finding best try strategy...");
-        let (mut best_front_data, front_variant_idx) = find_best_try_front_rule(
-            &engine,
-            &best_snake_data,
-            &try_variants,
-            confidence,
-            max_runs,
-        );
-        // try all remaining try rules at the back
-        let (mut best_back_data, back_variant_idx) = find_best_try_back_rule(
-            &engine,
-            &best_snake_data,
-            &try_variants,
-            confidence,
-            max_runs,
-        );
+        if best_snake_data.strategy.try_rules.len() < max_try_length {
+            // try all remaining try rules at the front
+            println!("Finding best try strategy...");
+            let (mut best_front_data, front_variant_idx) = find_best_try_front_rule(
+                &engine,
+                &best_snake_data,
+                &try_variants,
+                confidence,
+                max_runs,
+            );
+            // try all remaining try rules at the back
+            let (mut best_back_data, back_variant_idx) = find_best_try_back_rule(
+                &engine,
+                &best_snake_data,
+                &try_variants,
+                confidence,
+                max_runs,
+            );
 
-        let (best_try_data, best_try_idx) = match strategy_duel(
-            &engine,
-            &mut best_front_data,
-            &mut best_back_data,
-            GreedyRuns {
-                current: 10,
-                max: max_runs,
-            },
-            confidence,
-        ) {
-            StrategyDuelResult::Champion(results) => (results, front_variant_idx),
-            StrategyDuelResult::Challenger(results) => (results, back_variant_idx),
-        };
+            let (best_try_data, best_try_idx) = match strategy_duel(
+                &engine,
+                &mut best_front_data,
+                &mut best_back_data,
+                GreedyRuns {
+                    current: 10,
+                    max: max_runs,
+                },
+                confidence,
+            ) {
+                StrategyDuelResult::Champion(results) => (results, front_variant_idx),
+                StrategyDuelResult::Challenger(results) => (results, back_variant_idx),
+            };
 
-        if &best_try_data.strategy != &best_snake_data.strategy {
-            println!("New try rule added.");
-            best_snake_data = best_try_data;
-            if let Some(idx) = best_try_idx {
-                try_variants.remove(idx);
+            if &best_try_data.strategy != &best_snake_data.strategy {
+                println!("New try rule added.");
+                best_snake_data = best_try_data;
+                if let Some(idx) = best_try_idx {
+                    try_variants.remove(idx);
+                }
+                continue;
             }
-            continue;
         }
 
         return best_snake_data;
@@ -404,7 +458,7 @@ fn find_best_try_front_rule(
             None => continue,
         }
         // select the challenger by choosing the best of the fallback permutations
-        challenger = find_best_fallback_set(engine, challenger, confidence, max_runs);
+        challenger = find_best_fallback_set(engine, challenger);
         let duel_results = strategy_duel(
             engine,
             &mut best_snake_data,
@@ -455,7 +509,7 @@ fn find_best_try_back_rule(
             None => continue,
         }
         // select the challenger by choosing the best of the fallback permutations
-        challenger = find_best_fallback_set(engine, challenger, confidence, max_runs);
+        challenger = find_best_fallback_set(engine, challenger);
         let duel_results = strategy_duel(
             engine,
             &mut best_snake_data,
@@ -506,7 +560,7 @@ fn find_best_ban_rule(
             None => continue,
         }
         // select the challenger by choosing the best of the fallback permutations
-        challenger = find_best_fallback_set(engine, challenger, confidence, max_runs);
+        challenger = find_best_fallback_set(engine, challenger);
         let duel_results = strategy_duel(
             engine,
             &mut best_snake_data,
@@ -530,12 +584,7 @@ fn find_best_ban_rule(
     (best_snake_data, rule_added_idx)
 }
 
-fn find_best_fallback_set(
-    engine: &GameEngine,
-    challenger: SnakeData,
-    confidence: Confidence,
-    max_runs: usize,
-) -> SnakeData {
+fn find_best_fallback_set(engine: &GameEngine, challenger: SnakeData) -> SnakeData {
     let mut best_challenger = challenger.to_owned();
     for mut fallback_set in permutations(vec![vec![Move::Left, Move::Down, Move::Up]]) {
         fallback_set.push(Move::Right);
@@ -559,9 +608,9 @@ fn find_best_fallback_set(
             &mut challenger_alt,
             GreedyRuns {
                 current: 10,
-                max: max_runs,
+                max: 100,
             },
-            confidence,
+            Confidence::P05,
         );
         match duel_results {
             StrategyDuelResult::Champion(challenger_more_results) => {

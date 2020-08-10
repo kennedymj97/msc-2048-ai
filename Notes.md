@@ -321,13 +321,14 @@ Average: 12021.85084
 [x] Add random strategy generator
 
 ## 10/08/2020
-[] Add random search for strategy
+[x] Test random strategy generation
+[x] Add random search for strategy
+[x] Add max ban and try length to greedy searches
 [] Local search for strategies (on top of greedy and random)
 [] Add in some permutation for iterated local search
 [~] Add filter for greedy search (not sure if I want to complete this now, instead just set a limit on max ban/try??)
 
 ## Unallocated
-[] Iterated local search for strategies
 [] Fix evaluation of strategies from file
 [] Write formal description of language
 
