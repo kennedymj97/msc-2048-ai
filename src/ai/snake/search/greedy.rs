@@ -1,5 +1,5 @@
 use super::{
-    average, find_best_fallback_set, median, run_strategy, strategy_duel, Runs, SnakeData,
+    find_best_fallback_set, print_best_strategy_info, strategy_duel, Runs, SnakeData,
     StrategyDuelResult,
 };
 use crate::ai::snake::ban_rules::BanMove;
@@ -36,19 +36,7 @@ pub fn greedy(
             greedy_prioritise_best(engine, max_ban_length, max_try_length, confidence, max_runs)
         }
     };
-    println!("\n\nGetting stats for best strategy...");
-    run_strategy(
-        &mut best_strategy_data.strategy,
-        engine,
-        &mut best_strategy_data.results,
-        10000,
-    );
-    let median = median(&best_strategy_data.results);
-    let average = average(&best_strategy_data.results);
-    println!(
-        "Strategy: {}\nMedian: {}\nAverage: {}",
-        best_strategy_data.strategy, median, average
-    );
+    print_best_strategy_info(engine, &mut best_strategy_data);
     best_strategy_data
 }
 

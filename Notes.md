@@ -324,7 +324,7 @@ Average: 12021.85084
 [x] Test random strategy generation
 [x] Add random search for strategy
 [x] Add max ban and try length to greedy searches
-[] Local search for strategies (on top of greedy and random)
+[x] Local search for strategies (on top of greedy and random)
 [] Add in some permutation for iterated local search
 [~] Add filter for greedy search (not sure if I want to complete this now, instead just set a limit on max ban/try??)
 
@@ -339,6 +339,7 @@ Average: 12021.85084
 	1. Only accept the new local optimum if it is better than old
 	2. Always accept the new local optimum
 - Exit after a certain number of iterations
+Have made good progress on iterated local search, but I think there are some bugs. The local search does not seem to be changing rules after they are randomly changed. Sometimes more than one rule is changed randomly. Not sure if this is and issue with the permutation code or the swapping code. Maybe implement some more tests.
 
 ## Unallocated
 [] Fix evaluation of strategies from file

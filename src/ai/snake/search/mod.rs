@@ -11,20 +11,20 @@ use std::path::Path;
 
 pub mod brute_force;
 pub mod greedy;
+pub mod iterated_local;
 pub mod local;
 pub mod progressive_brute_force;
 pub mod random;
 
 pub fn search(max_ban_length: usize, max_try_length: usize) {
     let engine = GameEngine::new();
-    //let greedy_results = greedy::greedy(
-    //    &engine,
-    //    max_ban_length,
-    //    max_try_length,
-    //    greedy::Greedy::PrioritiseTry,
-    //);
-    let random_results = random::random_search(max_ban_length, max_try_length);
-    local::local_search(&engine, random_results);
+    let greedy_results = greedy::greedy(
+        &engine,
+        max_ban_length,
+        max_try_length,
+        greedy::Greedy::PrioritiseTry,
+    );
+    iterated_local::iterated_local_search(&engine, greedy_results);
 }
 
 fn save_results(data: &StrategyDataStore<Snake>, foldername: &Path, runs: usize) {
@@ -114,6 +114,22 @@ fn get_count_mod(len: usize) -> u64 {
     }
 
     100000
+}
+
+fn print_best_strategy_info(engine: &GameEngine, strategy_data: &mut SnakeData) {
+    println!("\n\nGetting stats for best strategy_data...");
+    run_strategy(
+        &mut strategy_data.strategy,
+        &engine,
+        &mut strategy_data.results,
+        10000,
+    );
+    let median = median(&strategy_data.results);
+    let average = average(&strategy_data.results);
+    println!(
+        "Strategy: {}\nMedian: {}\nAverage: {}",
+        strategy_data.strategy, median, average
+    );
 }
 
 fn median<T: Ord + Copy>(items: &Vec<T>) -> T {
