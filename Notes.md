@@ -335,6 +335,7 @@ Average: 12021.85084
 - Exit if there is no change from the original strategy
 
 **Iterated local search thoughts:**
+[Good info on iterated local search](https://www.eit.lth.se/fileadmin/eit/courses/ets061/Lectures/Lecture-H2.pdf)
 - The are 2 options after finding local optimum after perturbation
 	1. Only accept the new local optimum if it is better than old
 	2. Always accept the new local optimum
