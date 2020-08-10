@@ -45,6 +45,15 @@ pub enum Rule {
     Try(TryMove),
 }
 
+impl fmt::Display for Rule {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Rule::Ban(ban_rule) => write!(f, "{}", ban_rule),
+            Rule::Try(try_rule) => write!(f, "{}", try_rule),
+        }
+    }
+}
+
 pub type Rules = Vec<Rule>;
 
 impl Snake {
@@ -99,25 +108,28 @@ impl Snake {
         ban_rules
     }
 
-    pub fn remove_rule(&mut self, rule: Rule) {
-        match rule {
-            Rule::Ban(ban_rule) => {
-                self.ban_rules = self
-                    .ban_rules
-                    .iter()
-                    .copied()
-                    .filter(|&rule| rule != ban_rule)
-                    .collect::<BanRules>()
-            }
-            Rule::Try(try_rule) => {
-                self.try_rules = self
-                    .try_rules
-                    .iter()
-                    .copied()
-                    .filter(|&rule| rule != try_rule)
-                    .collect::<TryRules>()
-            }
-        }
+    pub fn swap_ban_rule(&self, rule_to_swap: BanMove, new_rule: BanMove) -> Option<Self> {
+        Snake::new(
+            &self
+                .ban_rules
+                .iter()
+                .map(|&rule| if rule == rule_to_swap { new_rule } else { rule })
+                .collect::<BanRules>(),
+            &self.try_rules,
+            &self.fallback_moves,
+        )
+    }
+
+    pub fn swap_try_rule(&self, rule_to_swap: TryMove, new_rule: TryMove) -> Option<Self> {
+        Snake::new(
+            &self.ban_rules,
+            &self
+                .try_rules
+                .iter()
+                .map(|&rule| if rule == rule_to_swap { new_rule } else { rule })
+                .collect::<TryRules>(),
+            &self.fallback_moves,
+        )
     }
 }
 
@@ -225,8 +237,8 @@ mod tests {
     }
 
     #[test]
-    fn it_remove_rule() {
-        let mut snake = Snake::new(
+    fn it_swap() {
+        let snake = Snake::new(
             &vec![BanMove::IfColumnNotLocked(Move::Up, Column::Left)],
             &vec![
                 TryMove::ProducesMerge(Move::Up),
@@ -236,14 +248,40 @@ mod tests {
         )
         .unwrap();
 
-        let snake2 = Snake::new(
+        let try_swap_snake = Snake::new(
             &vec![BanMove::IfColumnNotLocked(Move::Up, Column::Left)],
-            &vec![TryMove::ProducesMerge(Move::Up)],
+            &vec![
+                TryMove::IfMergePossible(Move::Left),
+                TryMove::ProducesMerge(Move::Down),
+            ],
             &vec![Move::Left, Move::Down, Move::Up, Move::Right],
         )
         .unwrap();
 
-        snake.remove_rule(Rule::Try(TryMove::ProducesMerge(Move::Down)));
-        assert_eq!(snake, snake2);
+        let ban_swap_snake = Snake::new(
+            &vec![BanMove::IfColumnNotLocked(Move::Down, Column::Left)],
+            &vec![
+                TryMove::IfMergePossible(Move::Left),
+                TryMove::ProducesMerge(Move::Down),
+            ],
+            &vec![Move::Left, Move::Down, Move::Up, Move::Right],
+        )
+        .unwrap();
+
+        let snake2 = snake
+            .swap_try_rule(
+                TryMove::ProducesMerge(Move::Up),
+                TryMove::IfMergePossible(Move::Left),
+            )
+            .unwrap();
+        let snake3 = snake2
+            .swap_ban_rule(
+                BanMove::IfColumnNotLocked(Move::Up, Column::Left),
+                BanMove::IfColumnNotLocked(Move::Down, Column::Left),
+            )
+            .unwrap();
+
+        assert_eq!(try_swap_snake, snake2);
+        assert_eq!(ban_swap_snake, snake3);
     }
 }

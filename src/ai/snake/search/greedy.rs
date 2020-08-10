@@ -1,56 +1,14 @@
-use super::average;
-use super::median;
-use super::run_strategy;
+use super::{
+    average, find_best_fallback_set, median, run_strategy, strategy_duel, Runs, SnakeData,
+    StrategyDuelResult,
+};
 use crate::ai::snake::ban_rules::BanMove;
 use crate::ai::snake::generate_strategies::number_of_possible_strategies;
-use crate::ai::snake::generate_strategies::permutations;
-use crate::ai::snake::mann_whitney::mann_whitney_u_test;
 use crate::ai::snake::mann_whitney::Confidence;
 use crate::ai::snake::try_rules::TryMove;
 use crate::ai::snake::Snake;
 use crate::engine::GameEngine;
 use crate::engine::Move;
-use crate::engine::Score;
-use std::cmp::Ordering;
-
-fn filter(engine: &GameEngine, snake: SnakeData, confidence: Confidence, max_runs: usize) -> Snake {
-    // for every rule in the snake:
-    for rule in snake.strategy.get_rules() {
-        //     clone the snake and remove the rule.
-        let mut reduced_snake = snake.strategy.clone();
-        reduced_snake.remove_rule(rule);
-        //     compare with original snake for specified runs.
-        match strategy_duel(
-            engine,
-            &mut SnakeData {
-                strategy: reduced_snake,
-                results: Vec::new(),
-            },
-            &mut snake.clone(),
-            GreedyRuns {
-                current: 10,
-                max: max_runs,
-            },
-            confidence,
-        ) {
-            //     if greater or equal to original then return a recursive call to the filter function with
-            //     the new snake.
-            StrategyDuelResult::Champion(reduced_snake_data) => {
-                return filter(engine, reduced_snake_data, confidence, max_runs)
-            }
-            //     if less than original then just continue.
-            StrategyDuelResult::Challenger(_) => (),
-        }
-    }
-    // if the end of the for loop is reached return the original snake
-    snake.strategy
-}
-
-#[derive(Clone)]
-struct SnakeData {
-    strategy: Snake,
-    results: Vec<Score>,
-}
 
 pub enum Greedy {
     PrioritiseTry,
@@ -58,47 +16,30 @@ pub enum Greedy {
     PrioritiseBest,
 }
 
-struct GreedyRuns {
-    current: usize,
-    max: usize,
-}
-
 pub fn greedy(
+    engine: &GameEngine,
     max_ban_length: usize,
     max_try_length: usize,
     greedy_type: Greedy,
-    confidence: Confidence,
-    max_runs: usize,
-) {
+) -> SnakeData {
     println!("Starting greedy search");
-    let engine = GameEngine::new();
+    let confidence = Confidence::P05;
+    let max_runs = 1000;
     let mut best_strategy_data = match greedy_type {
-        Greedy::PrioritiseTry => greedy_prioritise_try(
-            &engine,
-            max_ban_length,
-            max_try_length,
-            confidence,
-            max_runs,
-        ),
-        Greedy::PrioritiseBan => greedy_prioritise_ban(
-            &engine,
-            max_ban_length,
-            max_try_length,
-            confidence,
-            max_runs,
-        ),
-        Greedy::PrioritiseBest => greedy_prioritise_best(
-            &engine,
-            max_ban_length,
-            max_try_length,
-            confidence,
-            max_runs,
-        ),
+        Greedy::PrioritiseTry => {
+            greedy_prioritise_try(engine, max_ban_length, max_try_length, confidence, max_runs)
+        }
+        Greedy::PrioritiseBan => {
+            greedy_prioritise_ban(engine, max_ban_length, max_try_length, confidence, max_runs)
+        }
+        Greedy::PrioritiseBest => {
+            greedy_prioritise_best(engine, max_ban_length, max_try_length, confidence, max_runs)
+        }
     };
     println!("\n\nGetting stats for best strategy...");
     run_strategy(
         &mut best_strategy_data.strategy,
-        &engine,
+        engine,
         &mut best_strategy_data.results,
         10000,
     );
@@ -108,6 +49,7 @@ pub fn greedy(
         "Strategy: {}\nMedian: {}\nAverage: {}",
         best_strategy_data.strategy, median, average
     );
+    best_strategy_data
 }
 
 fn greedy_prioritise_best(
@@ -191,7 +133,7 @@ fn greedy_prioritise_best(
             &engine,
             &mut best_front_data,
             &mut best_back_data,
-            GreedyRuns {
+            Runs {
                 current: 10,
                 max: max_runs,
             },
@@ -202,7 +144,7 @@ fn greedy_prioritise_best(
                     &engine,
                     &mut best_front_data,
                     &mut best_ban_data,
-                    GreedyRuns {
+                    Runs {
                         current: 10,
                         max: max_runs,
                     },
@@ -227,7 +169,7 @@ fn greedy_prioritise_best(
                     &engine,
                     &mut best_back_data,
                     &mut best_ban_data,
-                    GreedyRuns {
+                    Runs {
                         current: 10,
                         max: max_runs,
                     },
@@ -295,7 +237,7 @@ fn greedy_prioritise_try(
                 &engine,
                 &mut best_front_data,
                 &mut best_back_data,
-                GreedyRuns {
+                Runs {
                     current: 10,
                     max: max_runs,
                 },
@@ -405,7 +347,7 @@ fn greedy_prioritise_ban(
                 &engine,
                 &mut best_front_data,
                 &mut best_back_data,
-                GreedyRuns {
+                Runs {
                     current: 10,
                     max: max_runs,
                 },
@@ -463,7 +405,7 @@ fn find_best_try_front_rule(
             engine,
             &mut best_snake_data,
             &mut challenger,
-            GreedyRuns {
+            Runs {
                 current: 10,
                 max: max_runs,
             },
@@ -514,7 +456,7 @@ fn find_best_try_back_rule(
             engine,
             &mut best_snake_data,
             &mut challenger,
-            GreedyRuns {
+            Runs {
                 current: 10,
                 max: max_runs,
             },
@@ -565,7 +507,7 @@ fn find_best_ban_rule(
             engine,
             &mut best_snake_data,
             &mut challenger,
-            GreedyRuns {
+            Runs {
                 current: 10,
                 max: max_runs,
             },
@@ -582,87 +524,4 @@ fn find_best_ban_rule(
         }
     }
     (best_snake_data, rule_added_idx)
-}
-
-fn find_best_fallback_set(engine: &GameEngine, challenger: SnakeData) -> SnakeData {
-    let mut best_challenger = challenger.to_owned();
-    for mut fallback_set in permutations(vec![vec![Move::Left, Move::Down, Move::Up]]) {
-        fallback_set.push(Move::Right);
-        let mut challenger_alt;
-        match Snake::new(
-            &challenger.strategy.ban_rules,
-            &challenger.strategy.try_rules,
-            &fallback_set,
-        ) {
-            Some(valid_snake) => {
-                challenger_alt = SnakeData {
-                    strategy: valid_snake,
-                    results: Vec::new(),
-                }
-            }
-            None => continue,
-        }
-        let duel_results = strategy_duel(
-            engine,
-            &mut best_challenger,
-            &mut challenger_alt,
-            GreedyRuns {
-                current: 10,
-                max: 100,
-            },
-            Confidence::P05,
-        );
-        match duel_results {
-            StrategyDuelResult::Champion(challenger_more_results) => {
-                best_challenger = challenger_more_results;
-            }
-            StrategyDuelResult::Challenger(challenger_alt_results) => {
-                best_challenger = challenger_alt_results;
-            }
-        }
-    }
-    best_challenger
-}
-
-enum StrategyDuelResult {
-    Champion(SnakeData),
-    Challenger(SnakeData),
-}
-
-fn strategy_duel(
-    engine: &GameEngine,
-    champion: &mut SnakeData,
-    challenger: &mut SnakeData,
-    runs: GreedyRuns,
-    confidence: Confidence,
-) -> StrategyDuelResult {
-    if runs.current > runs.max {
-        return StrategyDuelResult::Champion(champion.to_owned());
-    }
-    run_strategy(
-        &mut champion.strategy,
-        engine,
-        &mut champion.results,
-        runs.current,
-    );
-    run_strategy(
-        &mut challenger.strategy,
-        engine,
-        &mut challenger.results,
-        runs.current,
-    );
-    match mann_whitney_u_test(&champion.results, &challenger.results, confidence) {
-        Ordering::Less => StrategyDuelResult::Challenger(challenger.to_owned()),
-        Ordering::Equal => strategy_duel(
-            engine,
-            champion,
-            challenger,
-            GreedyRuns {
-                current: runs.current * 2,
-                max: runs.max,
-            },
-            confidence,
-        ),
-        Ordering::Greater => StrategyDuelResult::Champion(champion.to_owned()),
-    }
 }

@@ -328,6 +328,18 @@ Average: 12021.85084
 [] Add in some permutation for iterated local search
 [~] Add filter for greedy search (not sure if I want to complete this now, instead just set a limit on max ban/try??)
 
+**Local search thoughts:**
+- There are 2 possible alternatives:
+	1. Every time a rule is changed restart the search from the beginning
+	2. Go through every strategy finding the best strategy, restart at the end if any strategy has been changed
+- Exit if there is no change from the original strategy
+
+**Iterated local search thoughts:**
+- The are 2 options after finding local optimum after perturbation
+	1. Only accept the new local optimum if it is better than old
+	2. Always accept the new local optimum
+- Exit after a certain number of iterations
+
 ## Unallocated
 [] Fix evaluation of strategies from file
 [] Write formal description of language
