@@ -8,6 +8,7 @@ use std::cmp::Ordering;
 use std::fs::File;
 use std::io::Write;
 use std::path::Path;
+use std::time::SystemTime;
 
 pub mod brute_force;
 pub mod greedy;
@@ -16,15 +17,47 @@ pub mod local;
 pub mod progressive_brute_force;
 pub mod random;
 
-pub fn search(max_ban_length: usize, max_try_length: usize) {
+pub fn search(max_ban_length: usize, max_try_length: usize) -> SnakeData {
     let engine = GameEngine::new();
-    let greedy_results = greedy::greedy(
-        &engine,
-        max_ban_length,
-        max_try_length,
-        greedy::Greedy::PrioritiseTry,
+    let greedy_results = greedy::greedy_prioritise_try(&engine, max_ban_length, max_try_length);
+    iterated_local::ils_mutate_any_accept_if_better(&engine, greedy_results)
+}
+
+pub fn test_search_method(f: fn() -> SnakeData, filename: &str, search_repeats: usize) {
+    println!("Testing search method...");
+    // create csv file to save the results
+    let path = Path::new(filename);
+    let mut file = File::create(path).expect("Failed to create file");
+    // add the column headers to the csv file
+    file.write("score,time".as_bytes())
+        .expect("failed to write headers to file");
+    // repeat the search procecure *search repeats* times
+    let mut medians = Vec::new();
+    let mut times = Vec::new();
+    for search_num in 0..search_repeats {
+        println!(
+            "\nCarrying out search {}/{}\n",
+            search_num + 1,
+            search_repeats
+        );
+        let start_time = SystemTime::now();
+        let search_result = f();
+        let time_elapsed = match start_time.elapsed() {
+            Ok(elapsed) => elapsed.as_millis(),
+            Err(e) => panic!(e),
+        };
+        times.push(time_elapsed as u64);
+        let median = median(&search_result.results);
+        medians.push(median);
+        // save the resulting median and time taken for the search
+        file.write_fmt(format_args!("{},{}", median, time_elapsed))
+            .expect("Failed to save search data");
+    }
+    println!(
+        "\nAverage median score of the search method: {}\nAverage time taken for the search: {}\n",
+        average(&medians),
+        average(&times)
     );
-    iterated_local::iterated_local_search(&engine, greedy_results);
 }
 
 fn save_results(data: &StrategyDataStore<Snake>, foldername: &Path, runs: usize) {

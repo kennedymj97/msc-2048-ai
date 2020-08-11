@@ -1,17 +1,59 @@
 use super::{print_best_strategy_info, strategy_duel, Runs, SnakeData, StrategyDuelResult};
 use crate::ai::snake::{
     ban_rules::BanMove, ban_rules::BanRules, mann_whitney::Confidence, try_rules::TryMove,
-    try_rules::TryRules, Rule,
+    try_rules::TryRules, Rule, Rules, Snake,
 };
 use crate::engine::GameEngine;
 
-pub fn local_search(engine: &GameEngine, snake_data: SnakeData) -> SnakeData {
+pub fn local_search_try_restart(engine: &GameEngine, snake_data: SnakeData) -> SnakeData {
+    local_search(
+        engine,
+        snake_data,
+        Snake::get_rules_try_first,
+        LocalSearchType::RestartOnChange,
+    )
+}
+
+pub fn local_search_try_no_restart(engine: &GameEngine, snake_data: SnakeData) -> SnakeData {
+    local_search(
+        engine,
+        snake_data,
+        Snake::get_rules_try_first,
+        LocalSearchType::TryAllBeforeRestart,
+    )
+}
+
+pub fn local_search_ban_restart(engine: &GameEngine, snake_data: SnakeData) -> SnakeData {
+    local_search(
+        engine,
+        snake_data,
+        Snake::get_rules_ban_first,
+        LocalSearchType::RestartOnChange,
+    )
+}
+
+pub fn local_search_ban_no_restart(engine: &GameEngine, snake_data: SnakeData) -> SnakeData {
+    local_search(
+        engine,
+        snake_data,
+        Snake::get_rules_ban_first,
+        LocalSearchType::TryAllBeforeRestart,
+    )
+}
+
+// need to also allow restart as soon as rule changed vs change all rules before restarting
+fn local_search(
+    engine: &GameEngine,
+    snake_data: SnakeData,
+    get_rules: fn(&Snake) -> Rules,
+    search_type: LocalSearchType,
+) -> SnakeData {
     println!("Starting local search...");
     let mut best_snake_data = snake_data.clone();
     let max_runs = 10000;
     let confidence = Confidence::P01;
     // loop through all of the rules
-    for &rule in snake_data.strategy.get_rules().iter() {
+    for &rule in get_rules(&snake_data.strategy).iter() {
         println!("Trying to find alternatives to: {}", rule);
         // try changing the current rule with all possible alternatives
         match rule {
@@ -48,6 +90,15 @@ pub fn local_search(engine: &GameEngine, snake_data: SnakeData) -> SnakeData {
                                 StrategyDuelResult::Challenger(results) => {
                                     best_snake_data = results;
                                     println!("Rule changed.",);
+                                    if search_type == LocalSearchType::RestartOnChange {
+                                        println!("Restarting search...");
+                                        return local_search(
+                                            engine,
+                                            best_snake_data,
+                                            get_rules,
+                                            search_type,
+                                        );
+                                    }
                                 }
                             }
                         }
@@ -86,6 +137,15 @@ pub fn local_search(engine: &GameEngine, snake_data: SnakeData) -> SnakeData {
                                 StrategyDuelResult::Challenger(results) => {
                                     best_snake_data = results;
                                     println!("Rule changed.",);
+                                    if search_type == LocalSearchType::RestartOnChange {
+                                        println!("Restarting search...");
+                                        return local_search(
+                                            engine,
+                                            best_snake_data,
+                                            get_rules,
+                                            search_type,
+                                        );
+                                    }
                                 }
                             }
                         }
@@ -97,9 +157,15 @@ pub fn local_search(engine: &GameEngine, snake_data: SnakeData) -> SnakeData {
     }
     // if a rule has been changed recursively call the local search on the new best
     if best_snake_data.strategy != snake_data.strategy {
-        return local_search(engine, best_snake_data);
+        return local_search(engine, best_snake_data, get_rules, search_type);
     }
 
     print_best_strategy_info(engine, &mut best_snake_data);
     best_snake_data
+}
+
+#[derive(PartialEq)]
+enum LocalSearchType {
+    RestartOnChange,
+    TryAllBeforeRestart,
 }

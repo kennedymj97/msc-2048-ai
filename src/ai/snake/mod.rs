@@ -93,7 +93,7 @@ impl Snake {
         })
     }
 
-    pub fn get_rules(&self) -> Rules {
+    pub fn get_rules_ban_first(&self) -> Rules {
         let mut ban_rules = self
             .ban_rules
             .iter()
@@ -106,6 +106,21 @@ impl Snake {
             .collect::<Rules>();
         ban_rules.append(&mut try_rules);
         ban_rules
+    }
+
+    pub fn get_rules_try_first(&self) -> Rules {
+        let mut try_rules = self
+            .try_rules
+            .iter()
+            .map(|&rule| Rule::Try(rule))
+            .collect::<Rules>();
+        let mut ban_rules = self
+            .ban_rules
+            .iter()
+            .map(|&rule| Rule::Ban(rule))
+            .collect::<Rules>();
+        try_rules.append(&mut ban_rules);
+        try_rules
     }
 
     pub fn swap_ban_rule(&self, rule_to_swap: BanMove, new_rule: BanMove) -> Option<Self> {
@@ -227,7 +242,7 @@ mod tests {
         )
         .unwrap();
         assert_eq!(
-            snake.get_rules(),
+            snake.get_rules_ban_first(),
             vec![
                 Rule::Ban(BanMove::IfColumnNotLocked(Move::Up, Column::Left)),
                 Rule::Try(TryMove::ProducesMerge(Move::Up)),

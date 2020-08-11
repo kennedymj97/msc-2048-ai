@@ -16,7 +16,46 @@ pub enum Greedy {
     PrioritiseBest,
 }
 
-pub fn greedy(
+pub fn greedy_prioritise_best(
+    engine: &GameEngine,
+    max_ban_length: usize,
+    max_try_length: usize,
+) -> SnakeData {
+    greedy(
+        engine,
+        max_ban_length,
+        max_try_length,
+        Greedy::PrioritiseBest,
+    )
+}
+
+pub fn greedy_prioritise_try(
+    engine: &GameEngine,
+    max_ban_length: usize,
+    max_try_length: usize,
+) -> SnakeData {
+    greedy(
+        engine,
+        max_ban_length,
+        max_try_length,
+        Greedy::PrioritiseTry,
+    )
+}
+
+pub fn greedy_prioritise_ban(
+    engine: &GameEngine,
+    max_ban_length: usize,
+    max_try_length: usize,
+) -> SnakeData {
+    greedy(
+        engine,
+        max_ban_length,
+        max_try_length,
+        Greedy::PrioritiseBan,
+    )
+}
+
+fn greedy(
     engine: &GameEngine,
     max_ban_length: usize,
     max_try_length: usize,
@@ -27,20 +66,20 @@ pub fn greedy(
     let max_runs = 1000;
     let mut best_strategy_data = match greedy_type {
         Greedy::PrioritiseTry => {
-            greedy_prioritise_try(engine, max_ban_length, max_try_length, confidence, max_runs)
+            _greedy_prioritise_try(engine, max_ban_length, max_try_length, confidence, max_runs)
         }
         Greedy::PrioritiseBan => {
-            greedy_prioritise_ban(engine, max_ban_length, max_try_length, confidence, max_runs)
+            _greedy_prioritise_ban(engine, max_ban_length, max_try_length, confidence, max_runs)
         }
         Greedy::PrioritiseBest => {
-            greedy_prioritise_best(engine, max_ban_length, max_try_length, confidence, max_runs)
+            _greedy_prioritise_best(engine, max_ban_length, max_try_length, confidence, max_runs)
         }
     };
     print_best_strategy_info(engine, &mut best_strategy_data);
     best_strategy_data
 }
 
-fn greedy_prioritise_best(
+fn _greedy_prioritise_best(
     engine: &GameEngine,
     max_ban_length: usize,
     max_try_length: usize,
@@ -181,7 +220,7 @@ fn greedy_prioritise_best(
     }
 }
 
-fn greedy_prioritise_try(
+fn _greedy_prioritise_try(
     engine: &GameEngine,
     max_ban_length: usize,
     max_try_length: usize,
@@ -270,7 +309,7 @@ fn greedy_prioritise_try(
     }
 }
 
-fn greedy_prioritise_ban(
+fn _greedy_prioritise_ban(
     engine: &GameEngine,
     max_ban_length: usize,
     max_try_length: usize,

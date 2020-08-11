@@ -325,7 +325,6 @@ Average: 12021.85084
 [x] Add random search for strategy
 [x] Add max ban and try length to greedy searches
 [x] Local search for strategies (on top of greedy and random)
-[] Add in some permutation for iterated local search
 [~] Add filter for greedy search (not sure if I want to complete this now, instead just set a limit on max ban/try??)
 
 **Local search thoughts:**
@@ -341,6 +340,31 @@ Average: 12021.85084
 	2. Always accept the new local optimum
 - Exit after a certain number of iterations
 Have made good progress on iterated local search, but I think there are some bugs. The local search does not seem to be changing rules after they are randomly changed. Sometimes more than one rule is changed randomly. Not sure if this is and issue with the permutation code or the swapping code. Maybe implement some more tests.
+
+## 11/08/2020
+[x] Add in some permutation for iterated local search
+[x] Write a function to test a search method
+[x] Write the variations for local search
+[x] Write the variations for iterated local search
+[x] Check the variations for local search and ils are working
+[] Test the various possible search configurations, try to find the best
+	[] Find best greedy search
+	[] Search try before ban/search ban before try local search
+	[] Find best local search variant
+		[] Every time a rule is change restart
+		[] Change all rules before restarting
+	[] Only randomise try vs randomise try/ban for ils
+	[] Find best ILS variant
+		[] Only accept new solution if better than old
+		[] Always accept new solution
+	[] Test what starting point is best
+
+**Testing notes:**
+What features to test:
+1. Search effectiveness - resulting median score
+2. Time taken
+
+Need to write a function that will repeat a search procedure multiple times, on every iteration recording the median score of the resulting strategy and the time taken and saving the information to a file.
 
 ## Unallocated
 [] Fix evaluation of strategies from file
