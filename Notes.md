@@ -348,11 +348,11 @@ Have made good progress on iterated local search, but I think there are some bug
 [x] Write the variations for iterated local search
 [x] Check the variations for local search and ils are working
 [] Test the various possible search configurations, try to find the best
-	[] Find best greedy search
-	[] Search try before ban/search ban before try local search
-	[] Find best local search variant
-		[] Every time a rule is change restart
-		[] Change all rules before restarting
+	[x] Find best greedy search
+	[x] Search try before ban/search ban before try local search
+	[x] Find best local search variant
+		[x] Every time a rule is change restart
+		[x] Change all rules before restarting
 	[] Only randomise try vs randomise try/ban for ils
 	[] Find best ILS variant
 		[] Only accept new solution if better than old
@@ -365,6 +365,45 @@ What features to test:
 2. Time taken
 
 Need to write a function that will repeat a search procedure multiple times, on every iteration recording the median score of the resulting strategy and the time taken and saving the information to a file.
+
+## 12/08/2020
+[x] Continue testing different search configurations
+[x] Start experimenting with 2048 for user testing site
+[] Work on dissertation
+
+**Notes from meeting:**
+- Produce graphs for different search algorithms, one axis being running time the other score.
+- Test ILS for many iterations, saving the current median score after every iteration, plot a line graph using this data.
+- Pareto optimality can be used to compare search algorithms
+- Once best search method is found:
+	- How will the number of rules effect the quality of the strategy
+	- Make a smaller subset of rules and compare the best search method with brute force, how close is it to optimal?
+	- Does the search method always produce the same strategy?
+
+## 13/08/2020
+[] Continue testing different search configurations
+[] Fix bug in conversion from grid to int
+[] Implement storage for current game string
+[] Embed the game in to a page on sapper
+[] Add the results to the project
+[] Test interaction with wasm, ensure we can call functions from rust
+[] Work on dissertation
+
+## 14/08/2020
+[] Connect a back end to the page to store results
+[] Design the final version of the user testing site
+[] Work on dissertation
+
+## 17/08/2020
+[] Write a description for each of the attributes/rules
+[] Implement the tutorial page (description of the strategy, demo area showing the strategy in action, the user can play, the resulting actions the strategy will take will be shown for every move).
+[] Work on dissertation
+
+## 18/08/2020
+[] Implement the privacy page
+[] Implement the testing page
+[] (Optional) Implement a page to show of different AIs playing the game
+[] Work on dissertation
 
 ## Unallocated
 [] Fix evaluation of strategies from file

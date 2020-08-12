@@ -67,7 +67,7 @@ fn iterated_local_search(
                     &mut current_best,
                     Runs {
                         current: 5,
-                        max: 10000,
+                        max: 50000,
                     },
                     Confidence::P01,
                 ) {
@@ -88,7 +88,7 @@ fn iterated_local_search(
                     &mut mutated_best,
                     Runs {
                         current: 5,
-                        max: 10000,
+                        max: 50000,
                     },
                     Confidence::P01,
                 ) {

@@ -50,7 +50,7 @@ fn local_search(
 ) -> SnakeData {
     println!("Starting local search...");
     let mut best_snake_data = snake_data.clone();
-    let max_runs = 10000;
+    let max_runs = 1000;
     let confidence = Confidence::P01;
     // loop through all of the rules
     for &rule in get_rules(&snake_data.strategy).iter() {

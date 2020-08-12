@@ -23,13 +23,18 @@ pub fn search(max_ban_length: usize, max_try_length: usize) -> SnakeData {
     iterated_local::ils_mutate_any_accept_if_better(&engine, greedy_results)
 }
 
-pub fn test_search_method(f: fn() -> SnakeData, filename: &str, search_repeats: usize) {
+pub fn test_search_method(
+    f: fn(&GameEngine, usize, usize) -> SnakeData,
+    filename: &str,
+    search_repeats: usize,
+) {
+    let engine = GameEngine::new();
     println!("Testing search method...");
     // create csv file to save the results
     let path = Path::new(filename);
     let mut file = File::create(path).expect("Failed to create file");
     // add the column headers to the csv file
-    file.write("score,time".as_bytes())
+    file.write("score,time\n".as_bytes())
         .expect("failed to write headers to file");
     // repeat the search procecure *search repeats* times
     let mut medians = Vec::new();
@@ -41,7 +46,7 @@ pub fn test_search_method(f: fn() -> SnakeData, filename: &str, search_repeats: 
             search_repeats
         );
         let start_time = SystemTime::now();
-        let search_result = f();
+        let search_result = f(&engine, 2, 4);
         let time_elapsed = match start_time.elapsed() {
             Ok(elapsed) => elapsed.as_millis(),
             Err(e) => panic!(e),
@@ -50,7 +55,7 @@ pub fn test_search_method(f: fn() -> SnakeData, filename: &str, search_repeats: 
         let median = median(&search_result.results);
         medians.push(median);
         // save the resulting median and time taken for the search
-        file.write_fmt(format_args!("{},{}", median, time_elapsed))
+        file.write_fmt(format_args!("{},{}\n", median, time_elapsed))
             .expect("Failed to save search data");
     }
     println!(
