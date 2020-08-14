@@ -1,5 +1,6 @@
 import Grid from './grid.js';
 import Tile from './tile.js';
+import axios from 'axios';
 
 export default function GameManager(
   size,
@@ -146,7 +147,7 @@ GameManager.prototype.moveTile = function (tile, cell) {
 };
 
 // Move tiles on the grid in the specified direction
-GameManager.prototype.move = function (direction) {
+GameManager.prototype.move = async function (direction) {
   // 0: up, 1: right, 2: down, 3: left
   var self = this;
 
@@ -215,16 +216,25 @@ GameManager.prototype.move = function (direction) {
     this.gameString += ',';
     console.log(dir_map[direction]);
     this.gameString += (Date.now() - this.lastMoveTime).toString();
-    this.gameString += ',';
+    this.gameString += '\n';
     console.log(Date.now() - this.lastMoveTime);
     this.lastMoveTime = Date.now();
-    this.gameString += this.gridCellsToHexString(this.grid.cells);
-    this.gameString += ',';
-    console.log(self.gridCellsToHexString(this.grid.cells));
 
     if (this.over) {
-      this.gameString = this.gameString.slice(0, -1);
       console.log(this.gameString);
+      try {
+        const response = await axios.post(
+          'https://project-3646707934505305305.firebaseio.com/app.json',
+          { game: this.gameString }
+        );
+        console.log(response);
+      } catch (err) {
+        console.error(err);
+      }
+    } else {
+      this.gameString += this.gridCellsToHexString(this.grid.cells);
+      this.gameString += ',';
+      console.log(self.gridCellsToHexString(this.grid.cells));
     }
 
     this.actuate();

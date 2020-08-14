@@ -11,7 +11,7 @@ use rand::{seq::IteratorRandom, thread_rng};
 
 // Find the best randomly generated snake
 pub fn random_search(engine: &GameEngine, ban_length: usize, try_length: usize) -> SnakeData {
-    let n = 10000;
+    let n = 1000;
     let test_runs = 1000;
     // start with random snake as best
     println!("Generating initial random snake...");

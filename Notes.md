@@ -402,15 +402,27 @@ Need to write a function that will repeat a search procedure multiple times, on 
 	[] Test random search
 [x] Add the sapper implementation to the project
 [x] Test interaction with wasm, ensure we can call functions from rust
-[] Connect a back end to the page to store results
+[x] Connect a back end to the page to store results
 [] Work on dissertation
+
+**About the backend:**
+- https://console.firebase.google.com/project/project-3646707934505305305/database/project-3646707934505305305/data
+- https://firebase.google.com/docs/reference/rest/database
+- curl 'https://project-3646707934505305305.firebaseio.com/app.json?print=pretty'
+	- This gets all the data from the app.json thing
+- When ready need to put it into production mode
+- Need to set up some way of ensuring the post are from a valid source??
 
 ## 15/08/2020 - 16/08/2020
 [] Design the final version of the user testing site
 [] Work on dissertation
 
+## 16/08/2020
+[] Improve greedy best -> make it so it does not just research with the same strategy, the comparisons is messing it up
+	[] re-evaluate times for the greedy best, run overnight if I have to
+
 ## 17/08/2020
-[] Continue testing different search configurations
+[] Continue testing different search configurations (run overnight if I have to)
 	[] Test different ILS configurations
 		[] Random init
 		[] Random search init
@@ -420,14 +432,18 @@ Need to write a function that will repeat a search procedure multiple times, on 
 [] Work on dissertation
 
 ## 18/08/2020
-[] Testing for the chosen search strategy
+[] Testing for the chosen search strategy (run overnight if I have to)
 	[] Test the search strategy for many different numbers of try and ban rules (try each configuration multiple times)
 	[] Once a strategy length has been chosen repeat the search 100 times, record the resulting strategies it produces, find the best strategy
 	[] Run the best strategy many times to get some stats about it
 [] Implement the privacy page
 [] Implement the testing page
+[] Finalise the implementation of the backend
 [] (Optional) Implement a page to show of different AIs playing the game
 [] Work on dissertation
+
+## 19/08/2020
+[] Send out requests to people to do user testing
 
 ## Unallocated
 [] Fix evaluation of strategies from file
