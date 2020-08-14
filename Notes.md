@@ -353,10 +353,10 @@ Have made good progress on iterated local search, but I think there are some bug
 	[x] Find best local search variant
 		[x] Every time a rule is change restart
 		[x] Change all rules before restarting
-	[] Only randomise try vs randomise try/ban for ils
-	[] Find best ILS variant
-		[] Only accept new solution if better than old
-		[] Always accept new solution
+	[x] Only randomise try vs randomise try/ban for ils
+	[x] Find best ILS variant
+		[x] Only accept new solution if better than old
+		[x] Always accept new solution
 	[] Test what starting point is best
 
 **Testing notes:**
@@ -382,24 +382,48 @@ Need to write a function that will repeat a search procedure multiple times, on 
 
 ## 13/08/2020
 [] Continue testing different search configurations
-[] Fix bug in conversion from grid to int
-[] Implement storage for current game string
-[] Embed the game in to a page on sapper
-[] Add the results to the project
-[] Test interaction with wasm, ensure we can call functions from rust
+	[x] Test different number of runs for local search
+		[x] 2000
+		[x] 5000
+		[x] 10000
+[x] Fix bug in conversion from grid to int
+[x] Implement storage for current game string
+[x] Time how long conversion to hex string takes
+[x] Add time taken to make move
+[x] Embed the game in to a page on sapper
 [] Work on dissertation
 
 ## 14/08/2020
+[] Continue testing different search configurations
+	[] Test greedy at more runs
+		[] 2000
+		[] 5000
+		[] 10000
+	[] Test random search
+[] Add the sapper implementation to the project
+[] Test interaction with wasm, ensure we can call functions from rust
 [] Connect a back end to the page to store results
+[] Work on dissertation
+
+## 15/08/2020 - 16/08/2020
 [] Design the final version of the user testing site
 [] Work on dissertation
 
 ## 17/08/2020
+[] Continue testing different search configurations
+	[] Test different ILS configurations
+		[] Random init
+		[] Random search init
+		[] Greedy init
 [] Write a description for each of the attributes/rules
 [] Implement the tutorial page (description of the strategy, demo area showing the strategy in action, the user can play, the resulting actions the strategy will take will be shown for every move).
 [] Work on dissertation
 
 ## 18/08/2020
+[] Testing for the chosen search strategy
+	[] Test the search strategy for many different numbers of try and ban rules (try each configuration multiple times)
+	[] Once a strategy length has been chosen repeat the search 100 times, record the resulting strategies it produces, find the best strategy
+	[] Run the best strategy many times to get some stats about it
 [] Implement the privacy page
 [] Implement the testing page
 [] (Optional) Implement a page to show of different AIs playing the game

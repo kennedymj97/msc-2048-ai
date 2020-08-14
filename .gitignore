@@ -4,7 +4,6 @@
 *.data.old
 *.svg
 /flamegraphs
-node_modules
 dist
 *.csv
 *.txt

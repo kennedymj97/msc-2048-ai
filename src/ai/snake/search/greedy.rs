@@ -62,8 +62,8 @@ fn greedy(
     greedy_type: Greedy,
 ) -> SnakeData {
     println!("Starting greedy search");
-    let confidence = Confidence::P05;
-    let max_runs = 1000;
+    let confidence = Confidence::P01;
+    let max_runs = 2000;
     let mut best_strategy_data = match greedy_type {
         Greedy::PrioritiseTry => {
             _greedy_prioritise_try(engine, max_ban_length, max_try_length, confidence, max_runs)

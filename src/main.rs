@@ -5,11 +5,21 @@ use msc_2048_ai::engine::*;
 fn main() {
     //search::search(3, 4);
     search::test_search_method(
-        |engine, max_ban_length, max_try_length| {
-            let random = search::random::random(engine, max_ban_length, max_try_length);
-            search::iterated_local::ils_mutate_try_always_accept(engine, random)
-        },
-        "./ils_mutate_try_always_accept_100_repeats_random_init.csv",
+        //|engine, max_ban_length, max_try_length| {
+        //    let random = search::random::random(engine, max_ban_length, max_try_length);
+        //    search::local::local_search_ban_restart(engine, random)
+        //},
+        search::greedy::greedy_prioritise_try,
+        "./greedy_prioritise_try_2000_max_runs_P01.csv",
+        100,
+    );
+    search::test_search_method(
+        //|engine, max_ban_length, max_try_length| {
+        //    let random = search::random::random(engine, max_ban_length, max_try_length);
+        //    search::local::local_search_ban_restart(engine, random)
+        //},
+        search::greedy::greedy_prioritise_best,
+        "./greedy_prioritise_best_2000_max_runs_P01.csv",
         100,
     );
     //search::random::random_search(3, 4, 3000, 1000);
