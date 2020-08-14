@@ -1,5 +1,9 @@
 /* tslint:disable */
 /* eslint-disable */
+/**
+* @returns {string} 
+*/
+export function wasm_test_fn(): string;
 export class WasmInterface {
   free(): void;
 /**

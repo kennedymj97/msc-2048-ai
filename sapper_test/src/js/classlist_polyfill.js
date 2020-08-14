@@ -1,13 +1,15 @@
 (function () {
-  if (typeof window.Element === "undefined" ||
-      "classList" in document.documentElement) {
+  if (
+    typeof window.Element === 'undefined' ||
+    'classList' in document.documentElement
+  ) {
     return;
   }
 
   var prototype = Array.prototype,
-      push = prototype.push,
-      splice = prototype.splice,
-      join = prototype.join;
+    push = prototype.push,
+    splice = prototype.splice,
+    join = prototype.join;
 
   function DOMTokenList(el) {
     this.el = el;
@@ -50,7 +52,7 @@
       }
 
       return this.contains(token);
-    }
+    },
   };
 
   window.DOMTokenList = DOMTokenList;
@@ -58,7 +60,7 @@
   function defineElementGetter(obj, prop, getter) {
     if (Object.defineProperty) {
       Object.defineProperty(obj, prop, {
-        get: getter
+        get: getter,
       });
     } else {
       obj.__defineGetter__(prop, getter);

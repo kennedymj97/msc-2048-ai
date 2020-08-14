@@ -20,7 +20,7 @@ export default function LocalStorageManager() {
 
     clear: function () {
       return (this._data = {});
-    }
+    },
   };
 
   var supported = this.localStorageSupported();

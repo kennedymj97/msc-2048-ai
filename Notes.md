@@ -401,7 +401,7 @@ Need to write a function that will repeat a search procedure multiple times, on 
 		[] 10000
 	[] Test random search
 [x] Add the sapper implementation to the project
-[] Test interaction with wasm, ensure we can call functions from rust
+[x] Test interaction with wasm, ensure we can call functions from rust
 [] Connect a back end to the page to store results
 [] Work on dissertation
 

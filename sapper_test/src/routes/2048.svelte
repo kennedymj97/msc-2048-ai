@@ -1,13 +1,10 @@
 <script>
-  /*
-	import GameManager from '../js/game_manager.js';
-	import KeyboardInputManager from '../js/keyboard_input_manager.js';
-	import HTMLActuator from '../js/html_actuator.js';
-	import LocalStorageManager from '../local_storage_manager.js';
-	*/
   import { onMount } from 'svelte';
+
   let gameManager;
   let hexString;
+  let wasm;
+
   onMount(async () => {
     const { default: GameManager } = await import('../js/game_manager.js');
     const { default: KeyboardInputManager } = await import(
@@ -17,6 +14,7 @@
     const { default: LocalStorageManager } = await import(
       '../js/local_storage_manager.js'
     );
+    wasm = await import('msc-2048-ai-wasm');
 
     // Wait till the browser is ready to render the game (avoids glitches)
     window.requestAnimationFrame(function () {
@@ -29,9 +27,13 @@
       hexString = gameManager.gridCellsToHexString(gameManager.grid.cells);
     });
   });
+
   function handleKeydown(event) {
-    hexString = gameManager.gridCellsToHexString(gameManager.grid.cells);
-    console.log(hexString + 'blah');
+    if (!gameManager.over) {
+      hexString = gameManager.gridCellsToHexString(gameManager.grid.cells);
+      console.log(wasm.wasm_test_fn());
+      console.log(hexString + 'blah');
+    }
   }
 </script>
 
@@ -141,9 +143,14 @@
   <hr />
   <p>
     Created by
-    <a class="link" href="http://gabrielecirulli.com" target="_blank">Gabriele Cirulli.</a>
+    <a class="link" href="http://gabrielecirulli.com" target="_blank">
+      Gabriele Cirulli.
+    </a>
     Based on
-    <a class="link" href="https://itunes.apple.com/us/app/1024!/id823499224" target="_blank">
+    <a
+      class="link"
+      href="https://itunes.apple.com/us/app/1024!/id823499224"
+      target="_blank">
       1024 by Veewo Studio
     </a>
     and conceptually similar to

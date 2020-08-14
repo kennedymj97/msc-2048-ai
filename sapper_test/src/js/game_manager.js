@@ -111,7 +111,7 @@ GameManager.prototype.actuate = function () {
     over: this.over,
     won: this.won,
     bestScore: this.storageManager.getBestScore(),
-    terminated: this.isGameTerminated()
+    terminated: this.isGameTerminated(),
   });
 };
 
@@ -124,7 +124,7 @@ GameManager.prototype.serialize = function () {
     won: this.won,
     gameString: this.gameString,
     lastMoveTime: this.lastMoveTime,
-    keepPlaying: this.keepPlaying
+    keepPlaying: this.keepPlaying,
   };
 };
 
@@ -209,7 +209,7 @@ GameManager.prototype.move = function (direction) {
       0: 'up',
       1: 'right',
       2: 'down',
-      3: 'left'
+      3: 'left',
     };
     this.gameString += dir_map[direction];
     this.gameString += ',';
@@ -262,7 +262,7 @@ GameManager.prototype.getVector = function (direction) {
     0: { x: 0, y: -1 }, // Up
     1: { x: 1, y: 0 }, // Right
     2: { x: 0, y: 1 }, // Down
-    3: { x: -1, y: 0 } // Left
+    3: { x: -1, y: 0 }, // Left
   };
 
   return map[direction];
@@ -295,7 +295,7 @@ GameManager.prototype.findFarthestPosition = function (cell, vector) {
 
   return {
     farthest: previous,
-    next: cell // Used to check if a merge is required
+    next: cell, // Used to check if a merge is required
   };
 };
 

@@ -33,3 +33,8 @@ impl WasmInterface {
         self.0.is_game_over(self.1)
     }
 }
+
+#[wasm_bindgen]
+pub fn wasm_test_fn() -> String {
+    String::from("This function is being called from wasm")
+}

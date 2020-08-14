@@ -20,8 +20,8 @@ Tile.prototype.serialize = function () {
   return {
     position: {
       x: this.x,
-      y: this.y
+      y: this.y,
     },
-    value: this.value
+    value: this.value,
   };
 };
