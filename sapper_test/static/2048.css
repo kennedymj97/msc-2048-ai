@@ -58,6 +58,7 @@ h1.title {
   color: white;
   margin-top: 8px;
   text-align: center;
+  box-sizing: content-box;
 }
 .score-container:after,
 .best-container:after {
@@ -87,6 +88,10 @@ h1.title {
   -webkit-animation-fill-mode: both;
   -moz-animation-fill-mode: both;
   animation-fill-mode: both;
+}
+
+.score-addition {
+	pointer-events: none;
 }
 
 .score-container:after {
@@ -652,16 +657,6 @@ hr {
 }
 
 @media screen and (max-width: 520px) {
-  html,
-  body {
-    font-size: 15px;
-  }
-
-  body {
-    margin: 20px 0;
-    padding: 0 20px;
-  }
-
   h1.title {
     font-size: 27px;
     margin-top: 15px;
@@ -670,6 +665,7 @@ hr {
   .container {
     width: 280px;
     margin: 0 auto;
+    font-size: 15px;
   }
 
   .score-container,

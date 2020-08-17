@@ -11,8 +11,8 @@ use rand::{seq::IteratorRandom, thread_rng};
 
 // Find the best randomly generated snake
 pub fn random_search(engine: &GameEngine, ban_length: usize, try_length: usize) -> SnakeData {
-    let n = 1000;
-    let test_runs = 1000;
+    let n = 10000;
+    let max_runs = 1000;
     // start with random snake as best
     println!("Generating initial random snake...");
     let mut best_random_snake = random(&engine, ban_length, try_length);
@@ -32,10 +32,10 @@ pub fn random_search(engine: &GameEngine, ban_length: usize, try_length: usize) 
             &mut best_random_snake,
             &mut random_snake,
             Runs {
-                current: 5,
-                max: test_runs,
+                current: 10,
+                max: max_runs,
             },
-            Confidence::P05,
+            Confidence::P01,
         ) {
             StrategyDuelResult::Champion(results) => {
                 if count as u64 % get_count_mod(n) == 0 && count > 0 {

@@ -394,12 +394,6 @@ Need to write a function that will repeat a search procedure multiple times, on 
 [] Work on dissertation
 
 ## 14/08/2020
-[] Continue testing different search configurations
-	[] Test greedy at more runs
-		[] 2000
-		[] 5000
-		[] 10000
-	[] Test random search
 [x] Add the sapper implementation to the project
 [x] Test interaction with wasm, ensure we can call functions from rust
 [x] Connect a back end to the page to store results
@@ -418,11 +412,14 @@ Need to write a function that will repeat a search procedure multiple times, on 
 [] Work on dissertation
 
 ## 16/08/2020
-[] Improve greedy best -> make it so it does not just research with the same strategy, the comparisons is messing it up
-	[] re-evaluate times for the greedy best, run overnight if I have to
+[x] Improve greedy best -> make it so it does not just research with the same strategy, the comparisons is messing it up
+	[x] re-evaluate times for the greedy best, run overnight if I have to
+[x] Test random search
 
 ## 17/08/2020
 [] Continue testing different search configurations (run overnight if I have to)
+	[x] Rerun all of the greedy strategies previously done
+	[x] Test local search with greedy init
 	[] Test different ILS configurations
 		[] Random init
 		[] Random search init
@@ -436,9 +433,11 @@ Need to write a function that will repeat a search procedure multiple times, on 
 	[] Test the search strategy for many different numbers of try and ban rules (try each configuration multiple times)
 	[] Once a strategy length has been chosen repeat the search 100 times, record the resulting strategies it produces, find the best strategy
 	[] Run the best strategy many times to get some stats about it
-[] Implement the privacy page
+[] Implement the privacy modal (have a cookie to show if they have completed it, if not then show the modal)
 [] Implement the testing page
-[] Finalise the implementation of the backend
+[] Finalise the implementation of the back-end
+	[] Keep record of full games
+	[] Keep separate record for all the individual moves made
 [] (Optional) Implement a page to show of different AIs playing the game
 [] Work on dissertation
 
