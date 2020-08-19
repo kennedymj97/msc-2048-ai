@@ -7,12 +7,17 @@ use std::time::SystemTime;
 
 pub mod default;
 pub mod expectimax;
+pub mod expectimax_old;
 pub mod random;
 pub mod sequence;
 pub mod snake;
 
 pub trait AI {
     fn get_next_move(&mut self, engine: &GameEngine, board: Board) -> Option<Move>;
+}
+
+pub trait AII {
+    fn get_next_move(&self, board: Board) -> Option<crate::engine_unsafe::Move>;
 }
 
 pub fn run_ai<T: AI>(ai: &mut T) {

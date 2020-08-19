@@ -54,7 +54,7 @@ fn iterated_local_search(
     println!("\n\nStarting ILS...");
     let mut global_best = super::local::local_search_ban_restart(engine, snake_data);
     let mut current_best = global_best.clone();
-    let max_count = 3;
+    let max_count = 20;
     for count in 0..max_count {
         println!("Mutating {}/{}", count + 1, max_count);
         let mutated = mutation_fn(&current_best);
@@ -272,6 +272,9 @@ enum ILSVariation {
 }
 
 fn permutate_try_only(current_best: &SnakeData) -> SnakeData {
+    if current_best.strategy.try_rules.len() == 0 {
+        return current_best.to_owned();
+    }
     let mut mutated = current_best.clone();
     let mut rng = thread_rng();
     // select random rule

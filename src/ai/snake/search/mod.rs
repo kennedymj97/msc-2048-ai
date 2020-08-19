@@ -17,10 +17,66 @@ pub mod local;
 pub mod progressive_brute_force;
 pub mod random;
 
-pub fn search(max_ban_length: usize, max_try_length: usize) -> SnakeData {
+pub fn test_chosen_length(filename: &str) {
+    let path = Path::new(filename);
+    let mut file = File::create(path).expect("Failed to create file");
+    file.write("iteration,strategy,median_score,average_score,search_time\n".as_bytes())
+        .expect("failed to write headers to file");
     let engine = GameEngine::new();
-    let greedy_results = greedy::greedy_prioritise_try(&engine, max_ban_length, max_try_length);
-    iterated_local::ils_mutate_any_accept_if_better(&engine, greedy_results)
+    let mut count = 0;
+    loop {
+        count += 1;
+        let start_time = SystemTime::now();
+        let result = search(&engine, 1, 4);
+        let time_elapsed = match start_time.elapsed() {
+            Ok(elapsed) => elapsed.as_millis(),
+            Err(e) => panic!(e),
+        };
+        file.write_fmt(format_args!(
+            "{},{},{},{},{}\n",
+            count,
+            result.strategy,
+            median(&result.results),
+            average(&result.results),
+            time_elapsed
+        ))
+        .expect("Failed to save search data");
+    }
+}
+
+pub fn test_different_lengths(filename: &str) {
+    let path = Path::new(filename);
+    let mut file = File::create(path).expect("Failed to create file");
+    file.write(
+        "ban_length,try_length,strategy,median_score,average_score,search_time\n".as_bytes(),
+    )
+    .expect("failed to write headers to file");
+    let engine = GameEngine::new();
+    for ban_length in 0..4 {
+        for try_length in 0..6 {
+            let start_time = SystemTime::now();
+            let result = search(&engine, ban_length, try_length);
+            let time_elapsed = match start_time.elapsed() {
+                Ok(elapsed) => elapsed.as_millis(),
+                Err(e) => panic!(e),
+            };
+            file.write_fmt(format_args!(
+                "{},{},{},{},{},{}\n",
+                ban_length,
+                try_length,
+                result.strategy,
+                median(&result.results),
+                average(&result.results),
+                time_elapsed
+            ))
+            .expect("Failed to save search data");
+        }
+    }
+}
+
+pub fn search(engine: &GameEngine, max_ban_length: usize, max_try_length: usize) -> SnakeData {
+    let greedy_results = greedy::greedy_prioritise_best(engine, max_ban_length, max_try_length);
+    iterated_local::ils_mutate_try_accept_if_better(engine, greedy_results)
 }
 
 pub fn test_search_method(
