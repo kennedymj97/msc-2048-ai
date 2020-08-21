@@ -17,6 +17,7 @@ export default function GameManager(
   this.storageManager = new StorageManager(name);
   this.actuator = new Actuator();
   this.isTesting = isTesting;
+  this.name = name;
   if (isTesting) {
     this.wasm = wasm;
   }

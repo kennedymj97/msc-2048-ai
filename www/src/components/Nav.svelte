@@ -1,5 +1,11 @@
 <script>
+  import { onMount } from 'svelte';
   export let segment;
+	
+  let baseUrl;
+  onMount(() => {
+	  baseUrl = window.location.origin;
+  });
 </script>
 
 <style>
@@ -69,7 +75,7 @@
       </a>
     </li>
     <li>
-      <a aria-current={segment === 'testing' ? 'page' : undefined} href="testing">
+	  <a aria-current={segment === 'testing' ? 'page' : undefined} href="{baseUrl}/testing">
         Testing
       </a>
     </li>
