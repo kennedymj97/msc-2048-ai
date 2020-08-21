@@ -1,4 +1,4 @@
 [build]
-  base    = "sapper_test"
+  base    = "www"
   publish = "__sapper__/export"
   command = "npm run export"

@@ -112,8 +112,7 @@
   <title>2048</title>
 
   <link href="/2048.css" rel="stylesheet" type="text/css" />
-  <link rel="shortcut icon" href="/2048-app/favicon.ico" />
-  <link rel="apple-touch-icon" href="/2048-app/meta/apple-touch-icon.png" />
+  <link rel="apple-touch-icon" href="meta/apple-touch-icon.png" />
   <link
     rel="apple-touch-startup-image"
     href="meta/apple-touch-startup-image-640x1096.png"
@@ -121,8 +120,8 @@
     (-webkit-device-pixel-ratio: 2)" />
   <!-- iPhone 5+ -->
   <link
-    rel="/2048-app/apple-touch-startup-image"
-    href="/2048-app/meta/apple-touch-startup-image-640x920.png"
+    rel="apple-touch-startup-image"
+    href="meta/apple-touch-startup-image-640x920.png"
     media="(device-width: 320px) and (device-height: 480px) and
     (-webkit-device-pixel-ratio: 2)" />
   <!-- iPhone, retina -->
