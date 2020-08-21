@@ -1,14 +1,14 @@
 use super::get_count_mod;
 use super::run_strategy;
 use crate::ai::snake::generate_strategies::get_snake_iterator;
-use crate::engine::GameEngine;
+use crate::engine::GameEngineStores;
 use std::fs::File;
 use std::io::Write;
 use std::path::Path;
 
 pub fn brute_force(max_ban_length: usize, max_try_length: usize, runs: usize, filename: &str) {
     println!("Creating engine...");
-    let engine = GameEngine::new();
+    let engine = GameEngineStores::new();
     println!("Generating snakes...");
     let snakes_iter = get_snake_iterator(max_ban_length, max_try_length);
     let mut f = File::create(Path::new(filename)).expect("Failed to create file");

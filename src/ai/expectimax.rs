@@ -1,4 +1,5 @@
 use crate::ai::AI;
+use crate::engine;
 use crate::engine::Board;
 use crate::engine::GameEngine;
 use crate::engine::Move;
@@ -51,15 +52,15 @@ impl Expectimax {
 }
 
 impl AI for Expectimax {
-    fn get_next_move(&mut self, engine: &GameEngine, board: Board) -> Option<Move> {
+    fn get_next_move<T: GameEngine>(&mut self, engine: &T, board: Board) -> Option<Move> {
         let depth = 3.max(count_unique(board) - 2) as u64;
         let depth = depth.min(6);
         expectimax(engine, board, Node::Max, depth, 1., &mut HashMap::new()).move_dir
     }
 }
 
-fn expectimax(
-    engine: &GameEngine,
+fn expectimax<T: GameEngine>(
+    engine: &T,
     board: Board,
     node: Node,
     move_depth: u64,
@@ -72,8 +73,8 @@ fn expectimax(
     }
 }
 
-fn evaluate_max(
-    engine: &GameEngine,
+fn evaluate_max<T: GameEngine>(
+    engine: &T,
     board: Board,
     move_depth: u64,
     cum_prob: f32,
@@ -104,8 +105,8 @@ fn evaluate_max(
     }
 }
 
-fn evaluate_chance(
-    engine: &GameEngine,
+fn evaluate_chance<T: GameEngine>(
+    engine: &T,
     board: Board,
     move_depth: u64,
     cum_prob: f32,
@@ -130,7 +131,7 @@ fn evaluate_chance(
         }
     }
 
-    let num_empty_tiles = GameEngine::count_empty(board);
+    let num_empty_tiles = engine::count_empty(board);
     let mut tiles_searched = 0;
     let mut tmp = board;
     let mut insert_tile = 1;
@@ -282,10 +283,10 @@ fn count_unique(board: Board) -> i32 {
 }
 
 fn get_heurisitic_score(board: Board) -> f64 {
-    let transpose_board = GameEngine::transpose(board);
+    let transpose_board = engine::transpose(board);
     (0..4).fold(0., |score, line_idx| {
-        let row_val = GameEngine::extract_line(board, line_idx);
-        let col_val = GameEngine::extract_line(transpose_board, line_idx);
+        let row_val = engine::extract_line(board, line_idx);
+        let col_val = engine::extract_line(transpose_board, line_idx);
         let row_score = unsafe { HEURISTIC_SCORES.get_unchecked(row_val as usize) };
         let col_score = unsafe { HEURISTIC_SCORES.get_unchecked(col_val as usize) };
         score + row_score + col_score
@@ -295,7 +296,7 @@ fn get_heurisitic_score(board: Board) -> f64 {
 // The heuristics developed by Nneonneo were used: https://github.com/nneonneo/2048-ai/blob/master/2048.cpp
 fn calc_heuristic_score(line: u64) -> f64 {
     const LOST_PENALTY: f64 = 200000.;
-    let tiles = GameEngine::line_to_vec(line);
+    let tiles = engine::line_to_vec(line);
     LOST_PENALTY + calc_empty(&tiles) + calc_merges(&tiles)
         - calc_monotonicity(&tiles)
         - calc_sum(&tiles)

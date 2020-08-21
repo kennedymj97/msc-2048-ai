@@ -27,7 +27,7 @@ pub enum TryMove {
 }
 
 impl TryMove {
-    pub fn execute(&self, engine: &GameEngine, board: Board) -> Option<Move> {
+    pub fn execute<T: GameEngine>(&self, engine: &T, board: Board) -> Option<Move> {
         match self {
             TryMove::Always(direction) => always_try_move(engine, board, *direction),
             TryMove::ProducesMerge(direction) => {
@@ -152,15 +152,19 @@ impl fmt::Display for TryMove {
     }
 }
 
-pub fn force_move_if_possible(engine: &GameEngine, board: Board, direction: Move) -> Option<Move> {
+pub fn force_move_if_possible<T: GameEngine>(
+    engine: &T,
+    board: Board,
+    direction: Move,
+) -> Option<Move> {
     if attributes::is_move_possible(engine, board, direction) {
         return Some(direction);
     }
     None
 }
 
-fn try_move_if_produces_potential_merge(
-    engine: &GameEngine,
+fn try_move_if_produces_potential_merge<T: GameEngine>(
+    engine: &T,
     board: Board,
     direction: Move,
 ) -> Option<Move> {
@@ -186,8 +190,8 @@ fn try_move_if_merge_possible(board: Board, direction: Move) -> Option<Move> {
     None
 }
 
-fn try_move_if_moves_largest_tile_to_corner(
-    engine: &GameEngine,
+fn try_move_if_moves_largest_tile_to_corner<T: GameEngine>(
+    engine: &T,
     board: Board,
     direction: Move,
     corner: Corner,
@@ -201,15 +205,15 @@ fn try_move_if_moves_largest_tile_to_corner(
     None
 }
 
-fn always_try_move(engine: &GameEngine, board: Board, direction: Move) -> Option<Move> {
+fn always_try_move<T: GameEngine>(engine: &T, board: Board, direction: Move) -> Option<Move> {
     if attributes::is_move_possible(engine, board, direction) {
         return Some(direction);
     }
     None
 }
 
-fn try_move_if_makes_2_largest_tiles_adjacent(
-    engine: &GameEngine,
+fn try_move_if_makes_2_largest_tiles_adjacent<T: GameEngine>(
+    engine: &T,
     board: Board,
     direction: Move,
 ) -> Option<Move> {
@@ -222,8 +226,8 @@ fn try_move_if_makes_2_largest_tiles_adjacent(
     None
 }
 
-fn try_move_if_creates_monotonic_column(
-    engine: &GameEngine,
+fn try_move_if_creates_monotonic_column<T: GameEngine>(
+    engine: &T,
     board: Board,
     direction: Move,
     column: Column,
@@ -237,8 +241,8 @@ fn try_move_if_creates_monotonic_column(
     None
 }
 
-fn try_move_if_creates_monotonic_row(
-    engine: &GameEngine,
+fn try_move_if_creates_monotonic_row<T: GameEngine>(
+    engine: &T,
     board: Board,
     direction: Move,
     row: Row,
@@ -252,8 +256,8 @@ fn try_move_if_creates_monotonic_row(
     None
 }
 
-fn try_move_if_locks_column(
-    engine: &GameEngine,
+fn try_move_if_locks_column<T: GameEngine>(
+    engine: &T,
     board: Board,
     direction: Move,
     column: Column,
@@ -267,8 +271,8 @@ fn try_move_if_locks_column(
     None
 }
 
-fn try_move_if_locks_row(
-    engine: &GameEngine,
+fn try_move_if_locks_row<T: GameEngine>(
+    engine: &T,
     board: Board,
     direction: Move,
     row: Row,
@@ -296,8 +300,8 @@ fn try_move_if_row_locked(board: Board, direction: Move, row: Row) -> Option<Mov
     None
 }
 
-fn try_move_if_empties_column(
-    engine: &GameEngine,
+fn try_move_if_empties_column<T: GameEngine>(
+    engine: &T,
     board: Board,
     direction: Move,
     column: Column,
@@ -311,8 +315,8 @@ fn try_move_if_empties_column(
     None
 }
 
-fn try_move_if_empties_row(
-    engine: &GameEngine,
+fn try_move_if_empties_row<T: GameEngine>(
+    engine: &T,
     board: Board,
     direction: Move,
     row: Row,

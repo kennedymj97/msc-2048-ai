@@ -1,7 +1,6 @@
-export default function LocalStorageManager() {
-  this.bestScoreKey = 'bestScore';
-  this.gameStateKey = 'gameState';
-  this.gameStringKey = 'gameString';
+export default function LocalStorageManager(name) {
+  this.bestScoreKey = name + '_bestScore';
+  this.gameStateKey = name + '_gameState';
 
   window.fakeStorage = {
     _data: {},

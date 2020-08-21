@@ -417,15 +417,15 @@ Need to write a function that will repeat a search procedure multiple times, on 
 [x] Test random search
 
 ## 17/08/2020
-[] Continue testing different search configurations (run overnight if I have to)
+[x] Continue testing different search configurations (run overnight if I have to)
 	[x] Rerun all of the greedy strategies previously done
 	[x] Test local search with greedy init
-	[] Test different ILS configurations
-		[] Random init
-		[] Random search init
-		[] Greedy init
+	[x] Test different ILS configurations
+		[x] Random init
+		[x] Random search init
+		[x] Greedy init
 [] Write a description for each of the attributes/rules
-[] Implement the tutorial page (description of the strategy, demo area showing the strategy in action, the user can play, the resulting actions the strategy will take will be shown for every move).
+[x] Implement the tutorial page (description of the strategy, demo area showing the strategy in action, the user can play, the resulting actions the strategy will take will be shown for every move).
 [] Work on dissertation
 
 ## 18/08/2020
@@ -433,11 +433,11 @@ Need to write a function that will repeat a search procedure multiple times, on 
 	[] Test the search strategy for many different numbers of try and ban rules (try each configuration multiple times)
 	[] Once a strategy length has been chosen repeat the search 100 times, record the resulting strategies it produces, find the best strategy
 	[] Run the best strategy many times to get some stats about it
-[] Implement the privacy modal (have a cookie to show if they have completed it, if not then show the modal)
-[] Implement the testing page
-[] Finalise the implementation of the back-end
-	[] Keep record of full games
-	[] Keep separate record for all the individual moves made
+[x] Implement the privacy modal (have a cookie to show if they have completed it, if not then show the modal)
+[x] Implement the testing page
+[x] Finalise the implementation of the back-end
+	[x] Keep record of full games
+	[x] Keep separate record for all the individual moves made
 [] (Optional) Implement a page to show of different AIs playing the game
 [] Work on dissertation
 

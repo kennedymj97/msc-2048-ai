@@ -26,7 +26,7 @@ pub enum BanMove {
 }
 
 impl BanMove {
-    pub fn execute(&self, engine: &GameEngine, board: Board) -> Option<Move> {
+    pub fn execute<T: GameEngine>(&self, engine: &T, board: Board) -> Option<Move> {
         match self {
             BanMove::Always(direction) => Some(*direction),
             BanMove::IfColumnNotLocked(direction, column) => {
@@ -161,8 +161,8 @@ fn ban_move_if_row_not_locked(board: Board, direction: Move, row: Row) -> Option
     Some(direction)
 }
 
-fn ban_move_if_breaks_monotonicity_of_column(
-    engine: &GameEngine,
+fn ban_move_if_breaks_monotonicity_of_column<T: GameEngine>(
+    engine: &T,
     board: Board,
     direction: Move,
     column: Column,
@@ -176,8 +176,8 @@ fn ban_move_if_breaks_monotonicity_of_column(
     None
 }
 
-fn ban_move_if_breaks_monotonicity_of_row(
-    engine: &GameEngine,
+fn ban_move_if_breaks_monotonicity_of_row<T: GameEngine>(
+    engine: &T,
     board: Board,
     direction: Move,
     row: Row,
@@ -191,8 +191,8 @@ fn ban_move_if_breaks_monotonicity_of_row(
     None
 }
 
-fn ban_move_if_seperates_2_largest_tiles(
-    engine: &GameEngine,
+fn ban_move_if_seperates_2_largest_tiles<T: GameEngine>(
+    engine: &T,
     board: Board,
     direction: Move,
 ) -> Option<Move> {
@@ -205,8 +205,8 @@ fn ban_move_if_seperates_2_largest_tiles(
     None
 }
 
-fn ban_move_if_unlocks_column(
-    engine: &GameEngine,
+fn ban_move_if_unlocks_column<T: GameEngine>(
+    engine: &T,
     board: Board,
     direction: Move,
     column: Column,
@@ -220,8 +220,8 @@ fn ban_move_if_unlocks_column(
     None
 }
 
-fn ban_move_if_unlocks_row(
-    engine: &GameEngine,
+fn ban_move_if_unlocks_row<T: GameEngine>(
+    engine: &T,
     board: Board,
     direction: Move,
     row: Row,
@@ -235,8 +235,8 @@ fn ban_move_if_unlocks_row(
     None
 }
 
-fn ban_move_if_removes_potential_merge(
-    engine: &GameEngine,
+fn ban_move_if_removes_potential_merge<T: GameEngine>(
+    engine: &T,
     board: Board,
     direction: Move,
 ) -> Option<Move> {
@@ -255,8 +255,8 @@ fn ban_move_if_removes_potential_merge(
     None
 }
 
-fn ban_move_if_moves_largest_tile_out_of_corner(
-    engine: &GameEngine,
+fn ban_move_if_moves_largest_tile_out_of_corner<T: GameEngine>(
+    engine: &T,
     board: Board,
     direction: Move,
     corner: Corner,
@@ -270,8 +270,8 @@ fn ban_move_if_moves_largest_tile_out_of_corner(
     None
 }
 
-fn ban_move_if_fills_column(
-    engine: &GameEngine,
+fn ban_move_if_fills_column<T: GameEngine>(
+    engine: &T,
     board: Board,
     direction: Move,
     column: Column,
@@ -285,8 +285,8 @@ fn ban_move_if_fills_column(
     None
 }
 
-fn ban_move_if_fills_row(
-    engine: &GameEngine,
+fn ban_move_if_fills_row<T: GameEngine>(
+    engine: &T,
     board: Board,
     direction: Move,
     row: Row,

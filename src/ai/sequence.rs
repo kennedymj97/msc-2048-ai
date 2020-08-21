@@ -2,7 +2,8 @@ use std::fs::File;
 use std::io::prelude::Write;
 
 use crate::ai::AI;
-use crate::engine::{Board, GameEngine, Move, Score};
+use crate::engine;
+use crate::engine::{Board, GameEngine, GameEngineStores, Move, Score};
 
 type MoveSequence = Vec<Move>;
 
@@ -23,7 +24,7 @@ impl Sequence {
 }
 
 impl AI for Sequence {
-    fn get_next_move(&mut self, engine: &GameEngine, board: Board) -> Option<Move> {
+    fn get_next_move<T: GameEngine>(&mut self, engine: &T, board: Board) -> Option<Move> {
         if engine.is_game_over(board) {
             return None;
         }
@@ -58,7 +59,7 @@ impl AI for Sequence {
 
 pub fn evaluate_sequences(length: u32, runs: u32) {
     // create file buffer with information about length and runs
-    let engine = GameEngine::new();
+    let engine = GameEngineStores::new();
     let mut f = File::create("results.txt").expect("Failed to create file");
     f.write_fmt(format_args!(
         "Sequence length: {}. Number of test runs for each sequence: {}\n",
@@ -68,8 +69,8 @@ pub fn evaluate_sequences(length: u32, runs: u32) {
     evaluate_sequences_aux(&engine, length, runs, vec![], &mut f);
 }
 
-fn evaluate_sequences_aux(
-    engine: &GameEngine,
+fn evaluate_sequences_aux<T: GameEngine>(
+    engine: &T,
     length: u32,
     runs: u32,
     sequence: MoveSequence,
@@ -97,14 +98,14 @@ fn evaluate_sequences_aux(
         })
 }
 
-fn get_average_score(sequence: MoveSequence, engine: &GameEngine, runs: u32) -> f32 {
+fn get_average_score<T: GameEngine>(sequence: MoveSequence, engine: &T, runs: u32) -> f32 {
     (0..runs).fold(0., |score, _| {
         score + run_sequence(sequence.clone(), engine) as f32
     }) / runs as f32
 }
 
-fn run_sequence(sequence: MoveSequence, engine: &GameEngine) -> Score {
-    let mut board = GameEngine::new_board();
+fn run_sequence<T: GameEngine>(sequence: MoveSequence, engine: &T) -> Score {
+    let mut board = engine::new_board();
     let mut sequence_ai = Sequence::new(sequence);
     loop {
         let next_move = sequence_ai.get_next_move(engine, board);

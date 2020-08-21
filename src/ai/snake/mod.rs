@@ -149,7 +149,7 @@ impl Snake {
 }
 
 impl AI for Snake {
-    fn get_next_move(&mut self, engine: &GameEngine, board: Board) -> Option<Move> {
+    fn get_next_move<T: GameEngine>(&mut self, engine: &T, board: Board) -> Option<Move> {
         let mut banned_moves = Vec::new();
         for ban_rule in self.ban_rules.iter() {
             match ban_rule.execute(engine, board) {

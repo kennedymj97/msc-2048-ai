@@ -12,7 +12,7 @@ impl Default {
 }
 
 impl AI for Default {
-    fn get_next_move(&mut self, engine: &GameEngine, board: Board) -> Option<Move> {
+    fn get_next_move<T: GameEngine>(&mut self, engine: &T, board: Board) -> Option<Move> {
         let new_board = engine.make_move(board, Move::Left);
         if new_board != board {
             return Some(Move::Left);

@@ -10,12 +10,12 @@ use crate::engine::GameEngine;
 use rand::{seq::IteratorRandom, thread_rng};
 
 // Find the best randomly generated snake
-pub fn random_search(engine: &GameEngine, ban_length: usize, try_length: usize) -> SnakeData {
+pub fn random_search<T: GameEngine>(engine: &T, ban_length: usize, try_length: usize) -> SnakeData {
     let n = 10000;
     let max_runs = 1000;
     // start with random snake as best
     println!("Generating initial random snake...");
-    let mut best_random_snake = random(&engine, ban_length, try_length);
+    let mut best_random_snake = random(engine, ban_length, try_length);
     // generate random snakes and compare with current best
     let mut count = 0;
     println!("Starting search...");
@@ -25,10 +25,10 @@ pub fn random_search(engine: &GameEngine, ban_length: usize, try_length: usize) 
             print_best_strategy_info(engine, &mut best_random_snake);
             return best_random_snake;
         }
-        let mut random_snake = random(&engine, ban_length, try_length);
+        let mut random_snake = random(engine, ban_length, try_length);
         // if better then replace best snake
         match strategy_duel(
-            &engine,
+            engine,
             &mut best_random_snake,
             &mut random_snake,
             Runs {
@@ -54,7 +54,7 @@ pub fn random_search(engine: &GameEngine, ban_length: usize, try_length: usize) 
 }
 
 // Create a random snake
-pub fn random(engine: &GameEngine, ban_length: usize, try_length: usize) -> SnakeData {
+pub fn random<T: GameEngine>(engine: &T, ban_length: usize, try_length: usize) -> SnakeData {
     let ban_variants = BanMove::generate_all_variations();
     let try_variants = TryMove::generate_all_variations();
 

@@ -5,7 +5,7 @@ use crate::ai::snake::{
 };
 use crate::engine::GameEngine;
 
-pub fn local_search_try_restart(engine: &GameEngine, snake_data: SnakeData) -> SnakeData {
+pub fn local_search_try_restart<T: GameEngine>(engine: &T, snake_data: SnakeData) -> SnakeData {
     local_search(
         engine,
         snake_data,
@@ -14,7 +14,7 @@ pub fn local_search_try_restart(engine: &GameEngine, snake_data: SnakeData) -> S
     )
 }
 
-pub fn local_search_try_no_restart(engine: &GameEngine, snake_data: SnakeData) -> SnakeData {
+pub fn local_search_try_no_restart<T: GameEngine>(engine: &T, snake_data: SnakeData) -> SnakeData {
     local_search(
         engine,
         snake_data,
@@ -23,7 +23,7 @@ pub fn local_search_try_no_restart(engine: &GameEngine, snake_data: SnakeData) -
     )
 }
 
-pub fn local_search_ban_restart(engine: &GameEngine, snake_data: SnakeData) -> SnakeData {
+pub fn local_search_ban_restart<T: GameEngine>(engine: &T, snake_data: SnakeData) -> SnakeData {
     local_search(
         engine,
         snake_data,
@@ -32,7 +32,7 @@ pub fn local_search_ban_restart(engine: &GameEngine, snake_data: SnakeData) -> S
     )
 }
 
-pub fn local_search_ban_no_restart(engine: &GameEngine, snake_data: SnakeData) -> SnakeData {
+pub fn local_search_ban_no_restart<T: GameEngine>(engine: &T, snake_data: SnakeData) -> SnakeData {
     local_search(
         engine,
         snake_data,
@@ -42,8 +42,8 @@ pub fn local_search_ban_no_restart(engine: &GameEngine, snake_data: SnakeData) -
 }
 
 // need to also allow restart as soon as rule changed vs change all rules before restarting
-fn local_search(
-    engine: &GameEngine,
+fn local_search<T: GameEngine>(
+    engine: &T,
     snake_data: SnakeData,
     get_rules: fn(&Snake) -> Rules,
     search_type: LocalSearchType,

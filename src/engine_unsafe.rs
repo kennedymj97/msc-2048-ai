@@ -363,7 +363,7 @@ mod tests {
 
     #[test]
     fn test_move_left() {
-        new_game();
+        new();
         let game = 0x1234133220021002;
         let game = shift(game, Move::Left);
         assert_eq!(game, 0x1234142030001200);
@@ -371,7 +371,7 @@ mod tests {
 
     #[test]
     fn test_move_up() {
-        new_game();
+        new();
         let game = 0x1121230033004222;
         let game = shift(game, Move::Up);
         assert_eq!(game, 0x1131240232004000);
@@ -379,7 +379,7 @@ mod tests {
 
     #[test]
     fn test_move_right() {
-        new_game();
+        new();
         let game = 0x1234133220021002;
         let game = shift(game, Move::Right);
         assert_eq!(game, 0x1234014200030012);
@@ -387,7 +387,7 @@ mod tests {
 
     #[test]
     fn test_move_down() {
-        new_game();
+        new();
         let game = 0x1121230033004222;
         let game = shift(game, Move::Down);
         assert_eq!(game, 0x1000210034014232);

@@ -1,6 +1,6 @@
 use crate::engine::Board;
-use crate::engine::GameEngine;
 use crate::engine::Move;
+use crate::engine::{get_tile, GameEngine};
 use std::fmt;
 use std::iter::Iterator;
 
@@ -111,7 +111,7 @@ impl fmt::Display for Corner {
     }
 }
 
-pub fn is_move_possible(engine: &GameEngine, board: Board, direction: Move) -> bool {
+pub fn is_move_possible<T: GameEngine>(engine: &T, board: Board, direction: Move) -> bool {
     let new_board = engine.shift(board, direction);
     board != new_board
 }
@@ -121,7 +121,7 @@ pub fn is_column_locked(board: Board, column: Column) -> bool {
     let col_idx = column.get_idx();
     for i in 0..4 {
         let idx = (i * 4) + col_idx;
-        let val = GameEngine::get_tile(board, idx);
+        let val = get_tile(board, idx);
         if val == 0 || val == previous_val {
             return false;
         }
@@ -135,7 +135,7 @@ pub fn is_row_locked(board: Board, row: Row) -> bool {
     let row_idx = row.get_idx();
     for i in 0..4 {
         let idx = (row_idx * 4) + i;
-        let val = GameEngine::get_tile(board, idx);
+        let val = get_tile(board, idx);
         if val == 0 || val == previous_val {
             return false;
         }
@@ -151,8 +151,8 @@ pub fn is_merge_possible(board: Board, direction: Move) -> bool {
         for j in 0..4 {
             let idx_row = (i * 4) + j;
             let idx_col = (j * 4) + i;
-            let val_row = GameEngine::get_tile(board, idx_row);
-            let val_col = GameEngine::get_tile(board, idx_col);
+            let val_row = get_tile(board, idx_row);
+            let val_col = get_tile(board, idx_col);
             match direction {
                 Move::Left | Move::Right => {
                     if val_row == previous_val_row && val_row != 0 {
@@ -181,7 +181,7 @@ pub fn is_largest_tile_in_corner(board: Board, corner: Corner) -> bool {
     let mut largest_tile_val = 0;
     let corner_idx = corner.get_idx();
     for idx in 0..16 {
-        let tile_val = GameEngine::get_tile(board, idx);
+        let tile_val = get_tile(board, idx);
         if tile_val > largest_tile_val {
             largest_tile_val = tile_val;
             largest_tile_idx = idx;
@@ -196,10 +196,10 @@ pub fn is_largest_tile_in_corner(board: Board, corner: Corner) -> bool {
 
 pub fn is_column_monotonic(board: Board, column: Column) -> bool {
     let col_idx = column.get_idx();
-    let tile1 = GameEngine::get_tile(board, 12 + col_idx);
-    let tile2 = GameEngine::get_tile(board, 8 + col_idx);
-    let tile3 = GameEngine::get_tile(board, 4 + col_idx);
-    let tile4 = GameEngine::get_tile(board, 0 + col_idx);
+    let tile1 = get_tile(board, 12 + col_idx);
+    let tile2 = get_tile(board, 8 + col_idx);
+    let tile3 = get_tile(board, 4 + col_idx);
+    let tile4 = get_tile(board, 0 + col_idx);
     if tile1 == 0 && tile2 == 0 && tile3 == 0 && tile4 == 0 {
         return false;
     }
@@ -214,10 +214,10 @@ pub fn is_column_monotonic(board: Board, column: Column) -> bool {
 
 pub fn is_row_monotonic(board: Board, row: Row) -> bool {
     let row_starting_idx = 4 * row.get_idx();
-    let tile1 = GameEngine::get_tile(board, row_starting_idx);
-    let tile2 = GameEngine::get_tile(board, row_starting_idx + 1);
-    let tile3 = GameEngine::get_tile(board, row_starting_idx + 2);
-    let tile4 = GameEngine::get_tile(board, row_starting_idx + 3);
+    let tile1 = get_tile(board, row_starting_idx);
+    let tile2 = get_tile(board, row_starting_idx + 1);
+    let tile3 = get_tile(board, row_starting_idx + 2);
+    let tile4 = get_tile(board, row_starting_idx + 3);
     if tile1 == 0 && tile2 == 0 && tile3 == 0 && tile4 == 0 {
         return false;
     }
@@ -235,7 +235,7 @@ pub fn are_2_largest_tiles_adjacent(board: Board) -> bool {
     let mut largest_tile_idxs = Vec::new();
     let mut largest_tile_val = 0;
     for idx in 0..16 {
-        let tile_val = GameEngine::get_tile(board, idx);
+        let tile_val = get_tile(board, idx);
         if tile_val > largest_tile_val {
             largest_tile_val = tile_val;
             largest_tile_idxs = vec![idx];
@@ -250,7 +250,7 @@ pub fn are_2_largest_tiles_adjacent(board: Board) -> bool {
         if largest_tile_idxs.contains(&idx) {
             continue;
         }
-        let tile_val = GameEngine::get_tile(board, idx);
+        let tile_val = get_tile(board, idx);
         if tile_val > second_largest_tile_val {
             second_largest_tile_val = tile_val;
             second_largest_tile_idxs = vec![idx];
@@ -338,10 +338,10 @@ pub fn are_2_largest_tiles_adjacent(board: Board) -> bool {
 
 pub fn is_column_empty(board: Board, column: Column) -> bool {
     let col_idx = column.get_idx();
-    let tile1 = GameEngine::get_tile(board, 12 + col_idx);
-    let tile2 = GameEngine::get_tile(board, 8 + col_idx);
-    let tile3 = GameEngine::get_tile(board, 4 + col_idx);
-    let tile4 = GameEngine::get_tile(board, 0 + col_idx);
+    let tile1 = get_tile(board, 12 + col_idx);
+    let tile2 = get_tile(board, 8 + col_idx);
+    let tile3 = get_tile(board, 4 + col_idx);
+    let tile4 = get_tile(board, 0 + col_idx);
     if tile1 == 0 && tile2 == 0 && tile3 == 0 && tile4 == 0 {
         return true;
     }
@@ -350,10 +350,10 @@ pub fn is_column_empty(board: Board, column: Column) -> bool {
 
 pub fn is_row_empty(board: Board, row: Row) -> bool {
     let row_starting_idx = 4 * row.get_idx();
-    let tile1 = GameEngine::get_tile(board, row_starting_idx);
-    let tile2 = GameEngine::get_tile(board, row_starting_idx + 1);
-    let tile3 = GameEngine::get_tile(board, row_starting_idx + 2);
-    let tile4 = GameEngine::get_tile(board, row_starting_idx + 3);
+    let tile1 = get_tile(board, row_starting_idx);
+    let tile2 = get_tile(board, row_starting_idx + 1);
+    let tile3 = get_tile(board, row_starting_idx + 2);
+    let tile4 = get_tile(board, row_starting_idx + 3);
     if tile1 == 0 && tile2 == 0 && tile3 == 0 && tile4 == 0 {
         return true;
     }
@@ -363,6 +363,7 @@ pub fn is_row_empty(board: Board, row: Row) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::engine::GameEngineNoStores;
 
     #[test]
     fn it_2_largest_adjacent() {
@@ -448,7 +449,7 @@ mod tests {
 
     #[test]
     fn it_is_move_possible() {
-        let engine = GameEngine::new();
+        let engine = GameEngineNoStores;
         assert_eq!(
             is_move_possible(&engine, 0x1111222233334444, Move::Left),
             true

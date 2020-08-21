@@ -3,7 +3,7 @@ use super::generate_strategies::permutations;
 use super::mann_whitney::{mann_whitney_u_test, Confidence};
 use super::Snake;
 use crate::ai::AI;
-use crate::engine::{GameEngine, Move, Score};
+use crate::engine::{get_highest_tile_val, new_board, GameEngine, GameEngineStores, Move, Score};
 use std::cmp::Ordering;
 use std::fs::File;
 use std::io::Write;
@@ -22,7 +22,7 @@ pub fn test_chosen_length(filename: &str) {
     let mut file = File::create(path).expect("Failed to create file");
     file.write("iteration,strategy,median_score,average_score,search_time\n".as_bytes())
         .expect("failed to write headers to file");
-    let engine = GameEngine::new();
+    let engine = GameEngineStores::new();
     let mut count = 0;
     loop {
         count += 1;
@@ -51,7 +51,7 @@ pub fn test_different_lengths(filename: &str) {
         "ban_length,try_length,strategy,median_score,average_score,search_time\n".as_bytes(),
     )
     .expect("failed to write headers to file");
-    let engine = GameEngine::new();
+    let engine = GameEngineStores::new();
     for ban_length in 0..4 {
         for try_length in 0..6 {
             let start_time = SystemTime::now();
@@ -74,17 +74,21 @@ pub fn test_different_lengths(filename: &str) {
     }
 }
 
-pub fn search(engine: &GameEngine, max_ban_length: usize, max_try_length: usize) -> SnakeData {
+pub fn search<T: GameEngine>(
+    engine: &T,
+    max_ban_length: usize,
+    max_try_length: usize,
+) -> SnakeData {
     let greedy_results = greedy::greedy_prioritise_best(engine, max_ban_length, max_try_length);
     iterated_local::ils_mutate_try_accept_if_better(engine, greedy_results)
 }
 
 pub fn test_search_method(
-    f: fn(&GameEngine, usize, usize) -> SnakeData,
+    f: fn(&GameEngineStores, usize, usize) -> SnakeData,
     filename: &str,
     search_repeats: usize,
 ) {
-    let engine = GameEngine::new();
+    let engine = GameEngineStores::new();
     println!("Testing search method...");
     // create csv file to save the results
     let path = Path::new(filename);
@@ -140,15 +144,15 @@ fn save_results(data: &StrategyDataStore<Snake>, foldername: &Path, runs: usize)
     });
 }
 
-fn run_strategy<T: AI>(
+fn run_strategy<T: AI, E: GameEngine>(
     ai: &mut T,
-    engine: &GameEngine,
+    engine: &E,
     current_results: &mut Vec<Score>,
     runs: usize,
 ) {
     let mut current_runs = current_results.len();
     while current_runs < runs {
-        let mut board = GameEngine::new_board();
+        let mut board = new_board();
         loop {
             let best_move = ai.get_next_move(engine, board);
             match best_move {
@@ -164,12 +168,12 @@ fn run_strategy<T: AI>(
 }
 
 fn run_strategy_save_results(mut ai: Snake) {
-    let engine = GameEngine::new();
+    let engine = GameEngineStores::new();
     let mut f = File::create(Path::new("strategy.csv")).expect("Failed to create file");
     f.write("score,highest tile\n".as_bytes())
         .expect("Failed to write strategy");
     (0..10000).for_each(|_| {
-        let mut board = GameEngine::new_board();
+        let mut board = new_board();
         loop {
             let best_move = ai.get_next_move(&engine, board);
             match best_move {
@@ -180,7 +184,7 @@ fn run_strategy_save_results(mut ai: Snake) {
             }
         }
         let score = engine.get_score(board);
-        let highest_tile = GameEngine::get_highest_tile_val(board);
+        let highest_tile = get_highest_tile_val(board);
         f.write_fmt(format_args!("{},{}\n", score, highest_tile))
             .expect("failed to write data to file");
     });
@@ -210,11 +214,11 @@ fn get_count_mod(len: usize) -> u64 {
     100000
 }
 
-fn print_best_strategy_info(engine: &GameEngine, strategy_data: &mut SnakeData) {
+fn print_best_strategy_info<T: GameEngine>(engine: &T, strategy_data: &mut SnakeData) {
     println!("\n\nGetting stats for best strategy_data...");
     run_strategy(
         &mut strategy_data.strategy,
-        &engine,
+        engine,
         &mut strategy_data.results,
         10000,
     );
@@ -236,7 +240,7 @@ fn average(items: &Vec<u64>) -> f64 {
     items.iter().fold(0., |acc, &ele| acc + ele as f64) / items.len() as f64
 }
 
-fn find_best_fallback_set(engine: &GameEngine, snake: SnakeData) -> SnakeData {
+fn find_best_fallback_set<T: GameEngine>(engine: &T, snake: SnakeData) -> SnakeData {
     let mut best_snake = snake.to_owned();
     for mut fallback_set in permutations(vec![vec![Move::Left, Move::Down, Move::Up]]) {
         fallback_set.push(Move::Right);
@@ -292,8 +296,8 @@ enum StrategyDuelResult {
     Challenger(SnakeData),
 }
 
-fn strategy_duel(
-    engine: &GameEngine,
+fn strategy_duel<T: GameEngine>(
+    engine: &T,
     champion: &mut SnakeData,
     challenger: &mut SnakeData,
     runs: Runs,

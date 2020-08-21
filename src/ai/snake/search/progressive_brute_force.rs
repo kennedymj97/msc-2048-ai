@@ -11,13 +11,13 @@ use crate::ai::snake::generate_strategies::get_snake_iterator_fixed_fallback;
 use crate::ai::snake::generate_strategies::Iter;
 use crate::ai::snake::generate_strategies::IterFixedFallback;
 use crate::ai::snake::Snake;
-use crate::engine::GameEngine;
+use crate::engine::{GameEngine, GameEngineStores};
 use std::fs::DirBuilder;
 use std::path::Path;
 
 pub fn progressive_brute_force_no_save(max_ban_length: usize, max_try_length: usize) {
     println!("Creating engine...");
-    let engine = GameEngine::new();
+    let engine = GameEngineStores::new();
     println!("Getting snakes iterator...");
     let snakes_iter = get_snake_iterator(max_ban_length, max_try_length);
     let best_initial_strategies = progressive_brute_force_initial_run(snakes_iter, &engine, 10);
@@ -32,9 +32,9 @@ pub fn progressive_brute_force_no_save(max_ban_length: usize, max_try_length: us
         .for_each(|(snake, median)| println!("{}: {}", snake, median));
 }
 
-fn progressive_brute_force_initial_run(
+fn progressive_brute_force_initial_run<T: GameEngine>(
     snake_iter: Iter,
-    engine: &GameEngine,
+    engine: &T,
     runs: usize,
 ) -> StrategyDataStore<Snake> {
     println!("Initial @ {} runs", runs);
@@ -58,7 +58,7 @@ pub fn progressive_brute_force_no_save_fixed_fallback(
     max_try_length: usize,
 ) {
     println!("Creating engine...");
-    let engine = GameEngine::new();
+    let engine = GameEngineStores::new();
     println!("Getting snakes iterator");
     let snakes_iter = get_snake_iterator_fixed_fallback(max_ban_length, max_try_length);
     let best_initial_strategies =
@@ -74,9 +74,9 @@ pub fn progressive_brute_force_no_save_fixed_fallback(
         .for_each(|(snake, median)| println!("{}: {}", snake, median));
 }
 
-fn progressive_brute_force_fixed_fallback_initial_run(
+fn progressive_brute_force_fixed_fallback_initial_run<T: GameEngine>(
     snake_iter: IterFixedFallback,
-    engine: &GameEngine,
+    engine: &T,
     runs: usize,
 ) -> StrategyDataStore<Snake> {
     println!("Initial @ {} runs", runs);
@@ -94,9 +94,9 @@ fn progressive_brute_force_fixed_fallback_initial_run(
     }
     best_strategies
 }
-fn progressive_brute_force_no_save_aux(
+fn progressive_brute_force_no_save_aux<T: GameEngine>(
     current_best: StrategyDataStore<Snake>,
-    engine: &GameEngine,
+    engine: &T,
     runs: usize,
 ) -> StrategyDataStore<Snake> {
     if runs >= 100000 {
@@ -121,7 +121,7 @@ fn progressive_brute_force_no_save_aux(
 
 pub fn progressive_brute_force(max_ban_length: usize, max_try_length: usize, foldername: &str) {
     println!("engine...");
-    let engine = GameEngine::new();
+    let engine = GameEngineStores::new();
     let path = Path::new(foldername);
     let dir_builder = DirBuilder::new();
     dir_builder.create(path).expect("Failed to create folder");
@@ -143,9 +143,9 @@ pub fn progressive_brute_force(max_ban_length: usize, max_try_length: usize, fol
         .for_each(|(snake, median)| println!("{}: {}", snake, median));
 }
 
-fn progressive_brute_force_aux(
+fn progressive_brute_force_aux<T: GameEngine>(
     data: StrategyDataStore<Snake>,
-    engine: &GameEngine,
+    engine: &T,
     runs: usize,
     foldername: &Path,
 ) -> StrategyDataStore<Snake> {

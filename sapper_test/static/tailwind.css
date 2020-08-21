@@ -1,6 +1,6 @@
 @tailwind base;
 html {
-	margin-left: calc(100vw - 100%);
+	overflow-y: scroll;
 }
 @tailwind components;
 @tailwind utilities;

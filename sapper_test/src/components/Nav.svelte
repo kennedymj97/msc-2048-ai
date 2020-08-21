@@ -8,6 +8,8 @@
     font-weight: 300;
     padding: 0 1em;
 	z-index: 200;
+	background: white;
+	width: 100%;
   }
 
   ul {
@@ -49,7 +51,7 @@
   }
 </style>
 
-<nav class="mb-4">
+<nav class="fixed top-0 left-0">
   <ul>
     <li>
       <a aria-current={segment === undefined ? 'page' : undefined} href=".">
@@ -69,6 +71,11 @@
     <li>
       <a aria-current={segment === 'testing' ? 'page' : undefined} href="testing">
         Testing
+      </a>
+    </li>
+    <li>
+      <a aria-current={segment === 'ai' ? 'page' : undefined} href="ai">
+        AI
       </a>
     </li>
   </ul>

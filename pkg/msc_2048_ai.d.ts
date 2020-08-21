@@ -1,26 +1,26 @@
 /* tslint:disable */
 /* eslint-disable */
-/**
-* @returns {string} 
-*/
-export function wasm_test_fn(): string;
-export class WasmInterface {
+export class WasmExpectimax {
   free(): void;
 /**
-* @returns {WasmInterface} 
+* @returns {WasmExpectimax} 
 */
-  static new(): WasmInterface;
+  static new(): WasmExpectimax;
 /**
-*/
-  make_move(): void;
-/**
-* @param {number} row_idx 
-* @param {number} col_idx 
+* @param {BigInt} board 
 * @returns {number} 
 */
-  get_tile_val(row_idx: number, col_idx: number): number;
+  get_next_move(board: BigInt): number;
+}
+export class WasmSnake {
+  free(): void;
 /**
-* @returns {boolean} 
+* @returns {WasmSnake} 
 */
-  is_game_over(): boolean;
+  static new(): WasmSnake;
+/**
+* @param {BigInt} board 
+* @returns {number} 
+*/
+  get_next_move(board: BigInt): number;
 }

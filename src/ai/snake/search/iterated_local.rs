@@ -9,7 +9,7 @@ use std::io::Write;
 use std::path::Path;
 use std::time::SystemTime;
 
-pub fn ils_mutate_try_always_accept(engine: &GameEngine, snake_data: SnakeData) -> SnakeData {
+pub fn ils_mutate_try_always_accept<T: GameEngine>(engine: &T, snake_data: SnakeData) -> SnakeData {
     iterated_local_search(
         engine,
         snake_data,
@@ -18,7 +18,7 @@ pub fn ils_mutate_try_always_accept(engine: &GameEngine, snake_data: SnakeData) 
     )
 }
 
-pub fn ils_mutate_any_always_accept(engine: &GameEngine, snake_data: SnakeData) -> SnakeData {
+pub fn ils_mutate_any_always_accept<T: GameEngine>(engine: &T, snake_data: SnakeData) -> SnakeData {
     iterated_local_search(
         engine,
         snake_data,
@@ -27,7 +27,10 @@ pub fn ils_mutate_any_always_accept(engine: &GameEngine, snake_data: SnakeData) 
     )
 }
 
-pub fn ils_mutate_try_accept_if_better(engine: &GameEngine, snake_data: SnakeData) -> SnakeData {
+pub fn ils_mutate_try_accept_if_better<T: GameEngine>(
+    engine: &T,
+    snake_data: SnakeData,
+) -> SnakeData {
     iterated_local_search(
         engine,
         snake_data,
@@ -36,7 +39,10 @@ pub fn ils_mutate_try_accept_if_better(engine: &GameEngine, snake_data: SnakeDat
     )
 }
 
-pub fn ils_mutate_any_accept_if_better(engine: &GameEngine, snake_data: SnakeData) -> SnakeData {
+pub fn ils_mutate_any_accept_if_better<T: GameEngine>(
+    engine: &T,
+    snake_data: SnakeData,
+) -> SnakeData {
     iterated_local_search(
         engine,
         snake_data,
@@ -45,8 +51,8 @@ pub fn ils_mutate_any_accept_if_better(engine: &GameEngine, snake_data: SnakeDat
     )
 }
 
-fn iterated_local_search(
-    engine: &GameEngine,
+fn iterated_local_search<T: GameEngine>(
+    engine: &T,
     snake_data: SnakeData,
     mutation_fn: fn(&SnakeData) -> SnakeData,
     variation: ILSVariation,
@@ -114,8 +120,8 @@ fn iterated_local_search(
     global_best
 }
 
-pub fn ils_mutate_try_always_accept_save(
-    engine: &GameEngine,
+pub fn ils_mutate_try_always_accept_save<T: GameEngine>(
+    engine: &T,
     snake_data: SnakeData,
     filename: &str,
 ) {
@@ -128,8 +134,8 @@ pub fn ils_mutate_try_always_accept_save(
     )
 }
 
-pub fn ils_mutate_try_accept_if_better_save(
-    engine: &GameEngine,
+pub fn ils_mutate_try_accept_if_better_save<T: GameEngine>(
+    engine: &T,
     snake_data: SnakeData,
     filename: &str,
 ) {
@@ -142,8 +148,8 @@ pub fn ils_mutate_try_accept_if_better_save(
     )
 }
 
-fn iterated_local_search_save(
-    engine: &GameEngine,
+fn iterated_local_search_save<T: GameEngine>(
+    engine: &T,
     snake_data: SnakeData,
     mutation_fn: fn(&SnakeData) -> SnakeData,
     variation: ILSVariation,

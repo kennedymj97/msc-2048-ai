@@ -7,7 +7,7 @@ use rand::Rng;
 pub struct Random;
 
 impl AI for Random {
-    fn get_next_move(&mut self, engine: &GameEngine, board: Board) -> Option<Move> {
+    fn get_next_move<T: GameEngine>(&mut self, engine: &T, board: Board) -> Option<Move> {
         if engine.is_game_over(board) {
             return None;
         }

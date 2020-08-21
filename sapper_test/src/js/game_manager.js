@@ -6,22 +6,35 @@ export default function GameManager(
   size,
   InputManager,
   Actuator,
-  StorageManager
+  StorageManager,
+  name,
+  wasm,
+  isTesting,
+  isAi
 ) {
   this.size = size; // Size of the grid
-  this.inputManager = new InputManager();
-  this.storageManager = new StorageManager();
+  this.inputManager = new InputManager(name);
+  this.storageManager = new StorageManager(name);
   this.actuator = new Actuator();
+  this.isTesting = isTesting;
+  if (isTesting) {
+    this.wasm = wasm;
+  }
+  this.isAi = isAi;
 
   this.startTiles = 2;
 
-  this.inputManager.on('move', this.move.bind(this));
-  this.inputManager.on('restart', this.restart.bind(this));
-  this.inputManager.on('keepPlaying', this.keepPlaying.bind(this));
+  this.inputManager.on(name + '_move', this.move.bind(this));
+  this.inputManager.on(name + '_restart', this.restart.bind(this));
+  this.inputManager.on(name + '_keepPlaying', this.keepPlaying.bind(this));
 
   this.setup();
 
   return this;
+}
+
+GameManager.prototype.refresh = function () {
+	return this;
 }
 
 // Restart the game
@@ -53,16 +66,21 @@ GameManager.prototype.setup = function () {
     this.over = previousState.over;
     this.won = previousState.won;
     this.keepPlaying = previousState.keepPlaying;
-    this.gameString = previousState.gameString;
-    this.lastMoveTime = previousState.lastMoveTime;
+    if (this.isTesting) {
+      this.gameString = previousState.gameString;
+      this.lastMoveTime = previousState.lastMoveTime;
+      this.state = previousState.state;
+    }
   } else {
     this.grid = new Grid(this.size);
     this.score = 0;
     this.over = false;
     this.won = false;
     this.keepPlaying = false;
-    this.gameString = '';
-    this.lastMoveTime = Date.now();
+    if (this.isTesting) {
+      this.gameString = '';
+      this.lastMoveTime = Date.now();
+    }
 
     // Add the initial tiles
     this.addStartTiles();
@@ -71,9 +89,11 @@ GameManager.prototype.setup = function () {
   // Update the actuator
   this.actuate();
 
-  // print initial state
-  this.gameString += this.gridCellsToHexString(this.grid.cells);
-  this.gameString += ',';
+  if (this.isTesting) {
+    this.state = this.gridCellsToHexString(this.grid.cells);
+    this.gameString += this.gridCellsToHexString(this.grid.cells);
+    this.gameString += ',';
+  }
   console.log(this.gridCellsToHexString(this.grid.cells));
 };
 
@@ -118,15 +138,26 @@ GameManager.prototype.actuate = function () {
 
 // Represent the current game as an object
 GameManager.prototype.serialize = function () {
-  return {
-    grid: this.grid.serialize(),
-    score: this.score,
-    over: this.over,
-    won: this.won,
-    gameString: this.gameString,
-    lastMoveTime: this.lastMoveTime,
-    keepPlaying: this.keepPlaying,
-  };
+  if (this.isTesting) {
+    return {
+      grid: this.grid.serialize(),
+      score: this.score,
+      over: this.over,
+      won: this.won,
+      state: this.state,
+      gameString: this.gameString,
+      lastMoveTime: this.lastMoveTime,
+      keepPlaying: this.keepPlaying,
+    };
+  } else {
+    return {
+      grid: this.grid.serialize(),
+      score: this.score,
+      over: this.over,
+      won: this.won,
+      keepPlaying: this.keepPlaying,
+    };
+  }
 };
 
 // Save all tile positions and remove merger info
@@ -147,7 +178,7 @@ GameManager.prototype.moveTile = function (tile, cell) {
 };
 
 // Move tiles on the grid in the specified direction
-GameManager.prototype.move = async function (direction) {
+GameManager.prototype.move = async function (direction, noPost) {
   // 0: up, 1: right, 2: down, 3: left
   var self = this;
 
@@ -187,7 +218,7 @@ GameManager.prototype.move = async function (direction) {
           self.score += merged.value;
 
           // The mighty 2048 tile
-          if (merged.value === 2048) self.won = true;
+          if (merged.value === 2048 && !this.isAi) self.won = true;
         } else {
           self.moveTile(tile, positions.farthest);
         }
@@ -206,38 +237,74 @@ GameManager.prototype.move = async function (direction) {
       this.over = true; // Game over!
     }
 
-    var dir_map = {
-      0: 'up',
-      1: 'right',
-      2: 'down',
-      3: 'left',
-    };
-    this.gameString += dir_map[direction];
-    this.gameString += ',';
-    console.log(dir_map[direction]);
-    this.gameString += (Date.now() - this.lastMoveTime).toString();
-    this.gameString += '\n';
-    console.log(Date.now() - this.lastMoveTime);
-    this.lastMoveTime = Date.now();
+    let moveDirection;
+    let aiMoveDirection;
+    let moveTime;
+    let state;
+	const shouldPost = document.getElementById("ai-move") === null;
+    if (this.isTesting) {
+      var dir_map = {
+        0: 'up',
+        1: 'right',
+        2: 'down',
+        3: 'left',
+      };
+      moveDirection = dir_map[direction];
+      moveTime = Date.now() - this.lastMoveTime;
+      state = this.state;
+      aiMoveDirection = this.wasm.get_next_move(
+        this.hexStringStateToInt(state)
+      );
+      aiMoveDirection = dir_map[aiMoveDirection];
+      this.state = this.gridCellsToHexString(this.grid.cells);
+      console.log('user: ' + moveDirection);
+      console.log('ai: ' + aiMoveDirection);
+      console.log(moveTime);
 
-    if (this.over) {
-      console.log(this.gameString);
+      this.gameString += moveDirection;
+      this.gameString += ',';
+	  this.gameString += aiMoveDirection;
+	  this.gameString += ',';
+      this.gameString += moveTime.toString();
+      this.gameString += '\n';
+      this.lastMoveTime = Date.now();
+
+      if (this.over && shouldPost) {
+        console.log(this.gameString);
+        try {
+          const response = await axios.post(
+            'https://project-3646707934505305305.firebaseio.com/complete_games.json',
+            { game: this.gameString }
+          );
+          console.log(response);
+        } catch (err) {
+          console.error(err);
+        }
+      } else {
+        this.gameString += state;
+        this.gameString += ',';
+        console.log(state);
+      }
+    }
+
+    this.actuate();
+
+    if (this.isTesting && state && moveTime && moveDirection && shouldPost) {
       try {
         const response = await axios.post(
-          'https://project-3646707934505305305.firebaseio.com/app.json',
-          { game: this.gameString }
+          'https://project-3646707934505305305.firebaseio.com/moves.json',
+          {
+            state: state,
+            user_direction: moveDirection,
+            ai_direction: aiMoveDirection,
+            time_taken: moveTime,
+          }
         );
         console.log(response);
       } catch (err) {
         console.error(err);
       }
-    } else {
-      this.gameString += this.gridCellsToHexString(this.grid.cells);
-      this.gameString += ',';
-      console.log(self.gridCellsToHexString(this.grid.cells));
     }
-
-    this.actuate();
   }
 };
 
@@ -263,6 +330,13 @@ GameManager.prototype.gridCellsToInt = function (cells) {
 GameManager.prototype.gridCellsToHexString = function (cells) {
   let hexString = this.gridCellsToInt(cells).toString(16);
   return hexString.padStart(16, '0');
+};
+
+GameManager.prototype.hexStringStateToInt = function () {
+  if (!this.isTesting) {
+    return;
+  }
+  return BigInt('0x' + this.state);
 };
 
 // Get the vector representing the chosen direction

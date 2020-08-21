@@ -1,4 +1,4 @@
-export default function KeyboardInputManager() {
+export default function KeyboardInputManager(name) {
   this.events = {};
 
   if (window.navigator.msPointerEnabled) {
@@ -12,6 +12,7 @@ export default function KeyboardInputManager() {
     this.eventTouchend = 'touchend';
   }
 
+  this.name = name;
   this.listen();
 }
 
@@ -57,8 +58,10 @@ KeyboardInputManager.prototype.listen = function () {
 
     if (!modifiers) {
       if (mapped !== undefined) {
-        event.preventDefault();
-        self.emit('move', mapped);
+        if (document.URL.includes(self.name)) {
+          event.preventDefault();
+          self.emit(self.name + '_move', mapped);
+        }
       }
     }
 
@@ -126,19 +129,22 @@ KeyboardInputManager.prototype.listen = function () {
 
     if (Math.max(absDx, absDy) > 10) {
       // (right : left) : (down : up)
-      self.emit('move', absDx > absDy ? (dx > 0 ? 1 : 3) : dy > 0 ? 2 : 0);
+      self.emit(
+        self.name + '_move',
+        absDx > absDy ? (dx > 0 ? 1 : 3) : dy > 0 ? 2 : 0
+      );
     }
   });
 };
 
 KeyboardInputManager.prototype.restart = function (event) {
   event.preventDefault();
-  this.emit('restart');
+  this.emit(this.name + '_restart');
 };
 
 KeyboardInputManager.prototype.keepPlaying = function (event) {
   event.preventDefault();
-  this.emit('keepPlaying');
+  this.emit(this.name + '_keepPlaying');
 };
 
 KeyboardInputManager.prototype.bindButtonPress = function (selector, fn) {

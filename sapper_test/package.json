@@ -3,9 +3,10 @@
   "description": "TODO",
   "version": "0.0.1",
   "scripts": {
-	"watch:tailwind": "postcss static/tailwind.css -o static/index.css -w",
-	"build:tailwind": "NODE_ENV=production postcss static/tailwind.css -o static/index.css",
-    "dev": "sapper dev --no-hot",
+    "watch:tailwind": "postcss static/tailwind.css -o static/index.css -w",
+    "build:tailwind": "NODE_ENV=production postcss static/tailwind.css -o static/index.css",
+    "devv": "sapper dev --no-hot",
+    "dev": "npx npm-run-all --parallel devv watch:tailwind",
     "build": "npm run build:tailwind && sapper build",
     "export": "npm run build:tailwind && sapper export",
     "start": "node __sapper__/build",
