@@ -29,7 +29,7 @@ doing the testing. You can come back to this page at any time during the
 testing, your progress in the game will be saved.</p>
 
 <p>This flowchart is designed to help you follow the strategy when doing the test. Refer back to it if you are not sure what move to make. Before reading the flowchart it may be useful to go through the rest of the tutorial below.</p>
-<img src="Strategy.svg" alt="flow diagram for the strategy" />
+<img src="./tutorial_images/strategy.svg" alt="flow diagram for the strategy" />
 
 <h2 class="mt-4 mb-2 text-2xl font-semibold">What is a strategy?</h2>
 <p class="text-justify">A strategy consists of a set of rules to decide which move you should make given

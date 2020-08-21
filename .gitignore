@@ -2,7 +2,6 @@
 /oprofile_data
 *.data
 *.data.old
-*.svg
 /flamegraphs
 dist
 *.csv
