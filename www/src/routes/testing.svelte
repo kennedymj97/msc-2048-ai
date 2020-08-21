@@ -1,4 +1,5 @@
 <script>
+  import { onMount, onDestroy } from 'svelte';
   import Game from '../components/2048.svelte';
 
   let aiMove;
@@ -20,6 +21,22 @@
     }
     showAiMove = !showAiMove;
   }
+
+  onMount(() => {
+    if( window.localStorage ) {
+      if( !localStorage.getItem('firstLoad') ) {
+        localStorage['firstLoad'] = true;
+	    window.location.reload();
+	  }
+	}
+  });
+
+  onDestroy(() => {
+	  if (window.localStorage) {
+		  localStorage.removeItem('firstLoad');
+	  }
+  });
+
 </script>
 
 <div class="flex flex-col items-center lg:flex-row lg:items-start">

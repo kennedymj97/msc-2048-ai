@@ -1,11 +1,5 @@
 <script>
-  import { onMount } from 'svelte';
   import Rule from '../components/rule.svelte';
-
-  let baseUrl;
-  onMount(() => {
-    baseUrl = window.location.origin;
-  });
 
   let ban_rules = ['Ban move up if left column not locked'];
   let try_rules = [
@@ -25,7 +19,7 @@
 </svelte:head>
 
 <div class="flex flex-row justify-center mb-4">
-  <a class="font-semibold underline" href="{baseUrl}/testing"
+  <a class="font-semibold underline" href="testing"
     >Go to testing -></a
   >
 </div>
@@ -106,7 +100,7 @@ first move that is possible.</p>
 {/each}
 
 <div class="flex flex-row justify-center mb-4">
-	<a class="font-semibold underline" href="{baseUrl}/testing"
+	<a class="font-semibold underline" href="testing"
     >Go to testing -></a
   >
 </div>

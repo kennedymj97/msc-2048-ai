@@ -1,12 +1,3 @@
-<script>
-	import { onMount } from 'svelte';
-
-	let baseUrl;
-	onMount(() => {
-		baseUrl = window.location.origin;
-	});
-</script>
-
 <svelte:head>
   <title>Introduction</title>
 </svelte:head>
@@ -34,7 +25,7 @@
     explains how the strategy works.
   </li>
   <li class="mb-2">
-	  Do the <a class="font-semibold underline" href="{baseUrl}/testing">testing.</a> Try to
+	  Do the <a class="font-semibold underline" href="testing">testing.</a> Try to
     make moves following the strategy. Do this for as long as you are willing,
     don't feel the need to finish a full game if it is taking a long time.
     Before starting the testing you should do some practice. Try to go through
