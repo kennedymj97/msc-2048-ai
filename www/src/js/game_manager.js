@@ -94,7 +94,6 @@ GameManager.prototype.setup = function () {
     this.gameString += this.gridCellsToHexString(this.grid.cells);
     this.gameString += ',';
   }
-  console.log(this.gridCellsToHexString(this.grid.cells));
 };
 
 // Set up the initial tiles to start the game with
@@ -257,9 +256,6 @@ GameManager.prototype.move = async function (direction, noPost) {
       );
       aiMoveDirection = dir_map[aiMoveDirection];
       this.state = this.gridCellsToHexString(this.grid.cells);
-      console.log('user: ' + moveDirection);
-      console.log('ai: ' + aiMoveDirection);
-      console.log(moveTime);
 
       this.gameString += moveDirection;
       this.gameString += ',';
@@ -270,20 +266,17 @@ GameManager.prototype.move = async function (direction, noPost) {
       this.lastMoveTime = Date.now();
 
       if (this.over && shouldPost) {
-        console.log(this.gameString);
         try {
-          const response = await axios.post(
+          await axios.post(
             'https://project-3646707934505305305.firebaseio.com/complete_games.json',
             { game: this.gameString }
           );
-          console.log(response);
         } catch (err) {
           console.error(err);
         }
       } else {
         this.gameString += state;
         this.gameString += ',';
-        console.log(state);
       }
     }
 
@@ -291,7 +284,7 @@ GameManager.prototype.move = async function (direction, noPost) {
 
     if (this.isTesting && state && moveTime && moveDirection && shouldPost) {
       try {
-        const response = await axios.post(
+        await axios.post(
           'https://project-3646707934505305305.firebaseio.com/moves.json',
           {
             state: state,
@@ -300,7 +293,6 @@ GameManager.prototype.move = async function (direction, noPost) {
             time_taken: moveTime,
           }
         );
-        console.log(response);
       } catch (err) {
         console.error(err);
       }
