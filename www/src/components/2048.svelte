@@ -203,16 +203,8 @@
   </p>
   <hr />
   <p>
-    <strong class="important">Note:</strong>
-    This site is the official version of 2048. You can play it on your phone via
-    <a class="link" href="http://git.io/2048">http://git.io/2048.</a>
-    All other apps or sites are derivatives or fakes, and should be used with
-    caution.
-  </p>
-  <hr />
-  <p>
-    Created by
-    <a class="link" href="http://gabrielecirulli.com" target="_blank">
+    Forked by Matthew Kennedy. Originally created by
+    <a class="link" href="https://play2048.co/" target="_blank">
       Gabriele Cirulli.
     </a>
     Based on

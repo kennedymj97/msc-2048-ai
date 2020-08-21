@@ -12,6 +12,10 @@
   }
 </script>
 
+<svelte:head>
+	<title>Consent Form</title>
+</svelte:head>
+
 <div
   class="flex flex-col px-12 pt-4 pb-6 mx-auto text-justify bg-white rounded-md"
   style="max-width: 1024px;"
@@ -76,7 +80,9 @@
   </h2>
   <p class="mb-3 leading-5">
     If you wish to file a complaint or exercise you rights you can contact the
-    Ethics Committe at the following address: cs-ethicsadmin@cs.nott.ac.uk
+    Ethics Committe at the following address:
+	<br />
+	<span>cs-ethicsadmin@cs.nott.ac.uk</span>
   </p>
   <label class="self-center mt-3">
     <input type="checkbox" bind:checked="{hasChecked}" />

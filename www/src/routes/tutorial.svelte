@@ -18,10 +18,18 @@
   <title>Introduction</title>
 </svelte:head>
 
+<div class="flex flex-row justify-center mb-4">
+  <a class="font-semibold underline" href="testing"
+    >Go to testing -></a
+  >
+</div>
 <h1 class="mt-4 mb-2 text-3xl font-semibold">Tutorial</h1>
-<p class="text-justify">This tutorial will describe how to follow the strategy. Please read it before
+<p class="mb-2 text-justify">This tutorial will describe how to follow the strategy. Please read it before
 doing the testing. You can come back to this page at any time during the
 testing, your progress in the game will be saved.</p>
+
+<p>This flowchart is designed to help you follow the strategy when doing the test. Refer back to it if you are not sure what move to make. Before reading the flowchart it may be useful to go through the rest of the tutorial below.</p>
+<img src="Strategy.svg" alt="flow diagram for the strategy" />
 
 <h2 class="mt-4 mb-2 text-2xl font-semibold">What is a strategy?</h2>
 <p class="text-justify">A strategy consists of a set of rules to decide which move you should make given
@@ -90,9 +98,9 @@ first move that is possible.</p>
 {#each try_rule_info as {name, description, examples}}
 <Rule {name} {description} {examples} />
 {/each}
-<!--
-<figure>
-  <img alt="Success Kid" src="successkid.jpg" />
-  <figcaption>Hve fun with Sapper!</figcaption>
-</figure>
--->
+
+<div class="flex flex-row justify-center mb-4">
+  <a class="font-semibold underline" href="testing"
+    >Go to testing -></a
+  >
+</div>

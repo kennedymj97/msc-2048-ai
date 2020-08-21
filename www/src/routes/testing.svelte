@@ -23,7 +23,7 @@
 </script>
 
 <div class="flex flex-col items-center lg:flex-row lg:items-start">
-  <div class="flex flex-col max-w-sm px-6 lg:mt-24">
+  <div class="flex flex-col max-w-sm px-6 lg:mt-16">
     <p class="italic">
       If you are unsure, you can check the tutorial page. Progress made in the
       game will be saved.
@@ -52,14 +52,14 @@
     <div class="flex flex-col">
       {#if showAiMove}
       <button class="self-center px-4 py-2 mb-2 font-semibold text-white bg-green-400 rounded" on:click="{toggleShowMove}">
-        Hide strategy move
+        Hide answer
       </button>
       <span class="self-center mt-2 text-lg font-semibold uppercase" id="ai-move">{aiMove}</span>
       {:else}
-      <button class="self-center px-4 py-2 mb-2 font-semibold text-white bg-green-400 rounded" on:click="{toggleShowMove}">Show strategy move</button>
+      <button class="self-center px-4 py-2 mb-2 font-semibold text-white bg-green-400 rounded" on:click="{toggleShowMove}">Check answer</button>
       {/if}
     </div>
-	<p class="mt-2">Use this to help practice. If you are showing the move the data will <strong>NOT</strong> be inluded in the study. <strong>Please hide the move to do the testing.</strong> When you hide the move it will be made by the computer to ensure there is no cheating.</p>
+	<p class="mt-2">Use this button to check your answers when practicing. Try to go through the strategy before checking the answer. When you are confident hide the answer and stop checking it. If you are showing the answer the data will <strong>NOT</strong> be inluded in the study. <strong>When you start the test make sure the answers are hidden.</strong></p>
   </div>
   <Game
     name="testing"
