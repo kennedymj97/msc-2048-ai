@@ -12,7 +12,7 @@
 <div class="flex flex-row flex-wrap mb-8">
   {#each examples as { imagePath, result, reason }}
   <div class="flex flex-col my-3 mr-10" style="width: 300px">
-    <img class="mb-2" style="height: 300px" src="{imagePath}" />
+	<img class="mb-2" style="height: 300px" src="{imagePath}" alt="example image for rule {name}"/>
 	<span class="text-justify"><span class="font-semibold">Result: </span>{result}</span>
 	<span class="text-justify"><span class="font-semibold">Reason: </span>{reason}</span>
   </div>

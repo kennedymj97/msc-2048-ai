@@ -7,10 +7,9 @@
   // IMPORTANT: the name of the game component must be the same as the unique path for the page in the url, this is to ensure that the keyboard/move events only act on the current page
   export let name;
   export let isTesting = false;
-  export let postMove = false;
   export let isAi = false;
   export let aiMove = '';
-  export let makeMove = (move) => {
+  export const makeMove = (move) => {
 	  if (gameManager) {
 		  const dir_map = {
 			  "up": 0,
