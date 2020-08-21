@@ -8,7 +8,7 @@
     "devv": "sapper dev --no-hot",
     "dev": "npx npm-run-all --parallel devv watch:tailwind",
     "build": "npm run build:tailwind && sapper build",
-    "export": "npm run build:tailwind && sapper export",
+    "export": "npm run build:tailwind && sapper export --entry \"/ /2048 /tutorial /testing /ai\"",
     "start": "node __sapper__/build",
     "cy:run": "cypress run",
     "cy:open": "cypress open",
