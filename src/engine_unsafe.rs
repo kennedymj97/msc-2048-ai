@@ -341,6 +341,7 @@ mod tests {
 
     #[test]
     fn test_shift_left() {
+        new();
         assert_eq!(shift(0x0000, Move::Left), 0x0000);
         assert_eq!(shift(0x0002, Move::Left), 0x2000);
         assert_eq!(shift(0x2020, Move::Left), 0x3000);
@@ -352,6 +353,7 @@ mod tests {
 
     #[test]
     fn test_shift_right() {
+        new();
         assert_eq!(shift(0x0000, Move::Right), 0x0000);
         assert_eq!(shift(0x2000, Move::Right), 0x0002);
         assert_eq!(shift(0x2020, Move::Right), 0x0003);

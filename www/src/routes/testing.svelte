@@ -55,6 +55,7 @@
     </div>
     <hr />
     <span class="mb-2 text-lg font-semibold">Strategy</span>
+	<p class="italic mb-2">Please check flow chart before making a move until fully confident.</p>
     <span class="font-semibold">Ban rules:</span>
     <ul class="pl-5 mb-2 list-disc list-outside">
       {#each ban_rules as ban_rule}

@@ -404,6 +404,11 @@ mod tests {
     }
 
     #[test]
+    fn it_is_row_monotonic() {
+        assert_eq!(is_row_monotonic(0x0000100122002000, Row::MiddleTop), false);
+    }
+
+    #[test]
     fn it_is_largest_tile_in_corner() {
         assert_eq!(
             is_largest_tile_in_corner(0x0000000000003000, Corner::BottomLeft),

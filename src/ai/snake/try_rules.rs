@@ -503,3 +503,23 @@ fn try_move_if_empties_row_variations() -> Vec<TryMove> {
     }
     variations
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::engine::GameEngineNoStores;
+
+    #[test]
+    fn it_monotic_row() {
+        let engine = GameEngineNoStores;
+        assert_eq!(
+            try_move_if_creates_monotonic_row(
+                &engine,
+                0x0000100122002000,
+                Move::Down,
+                Row::MiddleTop
+            ),
+            None
+        );
+    }
+}
