@@ -10,7 +10,7 @@
   let try_rules = [
     'Try move left if moves largest tile to bottom left corner',
     'Try move up if produces potential merge in the left/right direction',
-    'Try move down if produces merge merge in the left/right direction',
+    'Try move down if produces potential merge merge in the left/right direction',
     'Try move down if creates monotonic middle top row',
   ];
   let fallback = ['Left', 'Down', 'Up', 'Right'];
