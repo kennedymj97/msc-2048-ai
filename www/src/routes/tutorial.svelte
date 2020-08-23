@@ -65,7 +65,7 @@
     {
       name: 'Try move up if produces potential merge in the left/right direction',
       description:
-        'This rule checks if moving up will produce a potential merge in the left or right direction. You will try the move up when there is currently no merge possible in the left or right direction, and making the move up creates a possible move in the left or right direction. Make sure to check if the move up is banned. The rule "Try move down if produces merge in the left/right direction" has the same conditions but considers the move down instead of up.',
+        'This rule checks if moving up will produce a potential merge in the left or right direction. You will try the move up when there is currently no merge possible in the left or right direction, and making the move up creates a possible move in the left or right direction. Make sure to check if the move up is banned. The rule "Try move down if produces potential merge in the left/right direction" has the same conditions but considers the move down instead of up.',
       examples: [
         {
           imagePath:
