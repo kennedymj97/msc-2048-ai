@@ -4,8 +4,8 @@
   let ban_rules = ['Ban move up if left column not locked'];
   let try_rules = [
     'Try move left if moves largest tile to bottom left corner',
-    'Try move up if produces merge',
-    'Try move down if produces merge',
+    'Try move up if produces potential merge in the left/right direction',
+    'Try move down if produces potential merge in the left/right direction',
     'Try move down if creates monotonic middle top row',
   ];
   let fallback = ['Left', 'Down', 'Up', 'Right'];
@@ -14,7 +14,7 @@
     {
       name: 'Ban move up if left column not locked',
       description:
-        "If the leftmost column is full and no merges are possible it is 'locked'. Making a move in the vertical direction will not change the state fo the column. For this rule, if the leftmost column is NOT locked the the move up is banned.",
+        "If the leftmost column is full and no merges are possible it is 'locked'. Making a move in the vertical direction will not change the state of the column. For this rule, if the leftmost column is NOT locked the move up is banned.",
       examples: [
         {
           imagePath: './tutorial_images/ban/not_full.png',
@@ -63,9 +63,9 @@
       ],
     },
     {
-      name: 'Try move up/down if produces merge in the left/right direction',
+      name: 'Try move up if produces potential merge in the left/right direction',
       description:
-        'This rule checks if moving up will produce a merge in the left or right direction. You will try the move up when there is currently no merge possible in the left or right direction, and making the move up creates a possible move in the left or right direction. Try move down if produces merge is exactly the same but considers the move down instead of up. The examples are for the move up. Make sure to check if the move up is banned.',
+        'This rule checks if moving up will produce a potential merge in the left or right direction. You will try the move up when there is currently no merge possible in the left or right direction, and making the move up creates a possible move in the left or right direction. Make sure to check if the move up is banned. The rule "Try move down if produces merge in the left/right direction" has the same conditions but considers the move down instead of up.',
       examples: [
         {
           imagePath:
