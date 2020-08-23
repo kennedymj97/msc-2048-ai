@@ -27,11 +27,13 @@
   <li class="mb-2">
     Do the <a class="font-semibold underline" href="testing">testing.</a>
     Before starting the testing you should do some practice. Try to go through
-    the strategy and check your answer. When you are confident you understand
-    the strategy hide the answer and stop checking it. Make the moves you think
-    the strategy would make. If you show the answer the data will not be saved
-    and included in the study. Do this for as long as you are willing, don't
-    feel the need to finish a full game if it is taking a long time.
+    the strategy and check your answer. We recommend keeping the tutorial page
+    open in a separate tab so you can quickly switch between them if needed.
+    When you are confident you understand the strategy hide the answer and stop
+    checking it. Make the moves you think the strategy would make. If you show
+    the answer the data will not be saved and included in the study. Do this for
+    as long as you are willing, don't feel the need to finish a full game if it
+    is taking a long time.
   </li>
   <li class="mb-2">
     (Optional)

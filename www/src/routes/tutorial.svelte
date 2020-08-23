@@ -63,7 +63,8 @@
       ],
     },
     {
-      name: 'Try move up if produces potential merge in the left/right direction',
+      name:
+        'Try move up if produces potential merge in the left/right direction',
       description:
         'This rule checks if moving up will produce a potential merge in the left or right direction. You will try the move up when there is currently no merge possible in the left or right direction, and making the move up creates a possible move in the left or right direction. Make sure to check if the move up is banned. The rule "Try move down if produces potential merge in the left/right direction" has the same conditions but considers the move down instead of up.',
       examples: [
@@ -129,13 +130,17 @@
 </svelte:head>
 
 <div class="flex flex-row justify-center mb-4">
-  <a class="font-semibold underline" href="testing">Go to testing &rarr;</a>
+  <a class="font-semibold underline" target="_blank" href="testing"
+    >Go to testing (opens in a new tab) &rarr;</a
+  >
 </div>
 <h1 class="mt-4 mb-2 text-3xl font-semibold">Tutorial</h1>
 <p class="mb-2 text-justify">
   This tutorial will describe how to follow the strategy. Please read it before
-  doing the testing. You can come back to this page at any time during the
-  testing, your progress in the game will be saved.
+  doing the testing, when doing the testing we recommend having the testing page
+  and the tutorial page open in separate tabs so you can quickly switch between
+  them. You can come back to this page at any time during the testing, your
+  progress in the game will be saved.
 </p>
 
 <p>
@@ -233,5 +238,7 @@
 {/each}
 
 <div class="flex flex-row justify-center mb-4">
-  <a class="font-semibold underline" href="testing">Go to testing &rarr;</a>
+  <a class="font-semibold underline" target="_blank" href="testing"
+    >Go to testing (opens in a new tab) &rarr;</a
+  >
 </div>

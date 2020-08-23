@@ -10,7 +10,7 @@
   let try_rules = [
     'Try move left if moves largest tile to bottom left corner',
     'Try move up if produces potential merge in the left/right direction',
-    'Try move down if produces potential merge merge in the left/right direction',
+    'Try move down if produces potential merge in the left/right direction',
     'Try move down if creates monotonic middle top row',
   ];
   let fallback = ['Left', 'Down', 'Up', 'Right'];
@@ -43,13 +43,15 @@
     <p>
       <strong>
         All moves made when the answer is hidden will be used in the study.
-        Please do not start making moves with the answer hidden until you are
-        confident you understand the strategy.</strong
-	><br />If you are unsure, you can check the tutorial page. Progress made in the
-      game will be saved.
+        Please check your answers before making a move until you are confident
+        you understand the strategy.</strong
+      ><br />If you are unsure, you can check the tutorial page. Progress made
+      in the game will be saved.
     </p>
     <div class="flex flex-row justify-center mb-4">
-      <a class="font-semibold underline" href="tutorial">&larr; Go to tutorial</a>
+      <a class="font-semibold underline" href="tutorial"
+        >&larr; Go to tutorial</a
+      >
     </div>
     <hr />
     <span class="mb-2 text-lg font-semibold">Strategy</span>
@@ -96,9 +98,13 @@
     </div>
     <p class="mt-2">
       Use this button to check your answers when practicing. Try to go through
-      the strategy before checking the answer. When you are confident hide the
-      answer and stop checking it. If you are showing the answer the data will
-      <strong>NOT</strong> be inluded in the study.
+      the strategy before checking the answer. After checking we recommend you
+      hide the answer,
+      <strong
+        >the computer will make the move for you when you hide the answer to
+        prevent cheating</strong
+      >. If you are showing the answer the data will <strong>NOT</strong> be
+      inluded in the study.
       <strong>When you start the test make sure the answers are hidden.</strong>
     </p>
   </div>
