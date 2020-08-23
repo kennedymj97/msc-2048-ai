@@ -39,7 +39,7 @@
 </script>
 
 <div class="flex flex-col items-center lg:flex-row lg:items-start">
-  <div class="flex flex-col max-w-sm px-6">
+  <div class="flex flex-col px-6">
     <p>
       <strong>
         All moves made when the answer is hidden will be used in the study.
@@ -55,7 +55,7 @@
     </div>
     <hr />
     <span class="mb-2 text-lg font-semibold">Strategy</span>
-	<p class="italic mb-2">Please check flow chart before making a move until fully confident.</p>
+	<p class="mb-2 italic">Please check flow chart before making a move until fully confident.</p>
     <span class="font-semibold">Ban rules:</span>
     <ul class="pl-5 mb-2 list-disc list-outside">
       {#each ban_rules as ban_rule}
@@ -75,16 +75,16 @@
       {/each}
     </ol>
     <hr />
-    <div class="flex flex-col">
+    <div class="flex flex-row items-center">
       {#if showAiMove}
       <button
-        class="self-center px-4 py-2 mb-2 font-semibold text-white bg-green-400 rounded"
+        class="px-4 py-2 mb-2 font-semibold text-white bg-green-400 rounded"
         on:click="{toggleShowMove}"
       >
         Hide answer
       </button>
       <span
-        class="self-center mt-2 text-lg font-semibold uppercase"
+        class="ml-6 text-lg font-semibold uppercase"
         id="ai-move"
         >{aiMove}</span
       >
