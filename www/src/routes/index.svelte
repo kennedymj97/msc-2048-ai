@@ -6,8 +6,8 @@
 <p class="mb-3 text-justify">
   This study uses Artificial Intelligence methods to try and find strategies for
   the game of 2048 that a human player can understand. The purpose of this site
-  is to gather data of people trying to follow a strategy, so I can evaluate how
-  well people can actually understand a strategy.
+  is to gather data of people trying to follow a strategy, so the ability of
+  people to actually understand a strategy can be evaluated.
 </p>
 <h2 class="mb-3 font-semibold">Please do the following:</h2>
 <ol class="pl-4 mt-2 mb-6 text-justify list-decimal list-outside">

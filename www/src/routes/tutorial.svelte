@@ -187,8 +187,8 @@
   been made move on to the fall back sequence. The flowchart goes into exactly
   what you should check for each try rule. The examples and descriptions below
   may also help. For these try rules you have to consider the current state of
-  the board and what the state of the will be after making the move before
-  deciding if to "try" making the move or skip to the next rule.
+  the board and what the state of the board will be after making the move before
+  deciding whether to "try" making the move or to skip to the next rule.
 </p>
 
 <h3 class="mt-4 mb-2 text-xl font-semibold">Fall back sequence</h3>
