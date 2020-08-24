@@ -54,8 +54,8 @@
       >
     </div>
     <hr />
-    <span class="mb-2 text-lg font-semibold">Strategy</span>
 	<p class="mb-2 italic">Please check flow chart before making a move until fully confident.</p>
+	<p class="mb-2 italic"><span class="font-bold">MERGES!</span> If considering the state after making a move remember to merge the tiles.</p>
     <span class="font-semibold">Ban rules:</span>
     <ul class="pl-5 mb-2 list-disc list-outside">
       {#each ban_rules as ban_rule}
