@@ -56,19 +56,19 @@
     <hr />
 	<p class="mb-2 italic">Please check flow chart before making a move until fully confident.</p>
 	<p class="mb-2 italic"><span class="font-bold">MERGES!</span> If considering the state after making a move remember to merge the tiles.</p>
-    <span class="font-semibold">Ban rules:</span>
+    <span class="font-bold">Ban rules:</span>
     <ul class="pl-5 mb-2 list-disc list-outside">
       {#each ban_rules as ban_rule}
       <li>{ban_rule}</li>
       {/each}
     </ul>
-    <span class="font-semibold">Try rules:</span>
+    <span class="font-bold">Try rules:</span>
     <ol class="pl-4 mb-2 list-decimal list-outside">
       {#each try_rules as try_rule}
       <li>{try_rule}</li>
       {/each}
     </ol>
-    <span class="font-semibold">Fall back sequence:</span>
+    <span class="font-bold">Fall back sequence:</span>
     <ol class="pl-4 mb-2 list-decimal list-outside">
       {#each fallback as direction}
       <li>{direction}</li>
