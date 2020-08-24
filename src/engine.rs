@@ -302,6 +302,45 @@ fn vec_to_col(tiles: Vec<Tile>) -> Line {
     tiles[0] << 48 | tiles[1] << 32 | tiles[2] << 16 | tiles[3]
 }
 
+pub struct UnoptimiseEngine;
+
+impl UnoptimiseEngine {
+    pub fn shift(state: Vec<Vec<u64>>, direction: Move) -> Vec<Vec<u64>> {
+        match direction {
+            Move::Left | Move::Right => state
+                .iter()
+                .cloned()
+                .map(|row| shift_vec(row, direction))
+                .collect::<Vec<Vec<u64>>>(),
+            Move::Up | Move::Down => {
+                let mut new_cols = Vec::new();
+                for col_idx in 0..4 {
+                    new_cols.push(shift_vec(Self::get_col(state.clone(), col_idx), direction));
+                }
+                Self::cols_to_rows(new_cols)
+            }
+        }
+    }
+
+    fn cols_to_rows(cols: Vec<Vec<u64>>) -> Vec<Vec<u64>> {
+        let mut rows = vec![Vec::new(), Vec::new(), Vec::new(), Vec::new()];
+        for row_idx in 0..4 {
+            for col in cols.clone() {
+                rows[row_idx].push(col[row_idx]);
+            }
+        }
+        rows
+    }
+
+    fn get_col(state: Vec<Vec<u64>>, idx: usize) -> Vec<Tile> {
+        let mut col = Vec::new();
+        for row_idx in 0..4 {
+            col.push(state[row_idx][idx]);
+        }
+        col
+    }
+}
+
 fn shift_vec(vec: Vec<Tile>, direction: Move) -> Vec<Tile> {
     match direction {
         Move::Left | Move::Up => shift_vec_left(vec),
@@ -417,6 +456,102 @@ mod tests {
             game = insert_random_tile(game);
         }
         assert_eq!(count_empty(game), 0);
+    }
+
+    #[test]
+    fn test_unoptimised_shift() {
+        let state1 = vec![
+            vec![1, 1, 1, 1],
+            vec![2, 2, 2, 2],
+            vec![3, 3, 3, 3],
+            vec![4, 4, 4, 4],
+        ];
+        let state2 = vec![
+            vec![1, 2, 3, 4],
+            vec![1, 2, 3, 4],
+            vec![1, 2, 3, 4],
+            vec![1, 2, 3, 4],
+        ];
+        let left_result1 = vec![
+            vec![2, 2, 0, 0],
+            vec![3, 3, 0, 0],
+            vec![4, 4, 0, 0],
+            vec![5, 5, 0, 0],
+        ];
+        let right_result1 = vec![
+            vec![0, 0, 2, 2],
+            vec![0, 0, 3, 3],
+            vec![0, 0, 4, 4],
+            vec![0, 0, 5, 5],
+        ];
+        let up_result1 = vec![
+            vec![1, 1, 1, 1],
+            vec![2, 2, 2, 2],
+            vec![3, 3, 3, 3],
+            vec![4, 4, 4, 4],
+        ];
+        let down_result1 = vec![
+            vec![1, 1, 1, 1],
+            vec![2, 2, 2, 2],
+            vec![3, 3, 3, 3],
+            vec![4, 4, 4, 4],
+        ];
+        let left_result2 = vec![
+            vec![1, 2, 3, 4],
+            vec![1, 2, 3, 4],
+            vec![1, 2, 3, 4],
+            vec![1, 2, 3, 4],
+        ];
+        let right_result2 = vec![
+            vec![1, 2, 3, 4],
+            vec![1, 2, 3, 4],
+            vec![1, 2, 3, 4],
+            vec![1, 2, 3, 4],
+        ];
+        let up_result2 = vec![
+            vec![2, 3, 4, 5],
+            vec![2, 3, 4, 5],
+            vec![0, 0, 0, 0],
+            vec![0, 0, 0, 0],
+        ];
+        let down_result2 = vec![
+            vec![0, 0, 0, 0],
+            vec![0, 0, 0, 0],
+            vec![2, 3, 4, 5],
+            vec![2, 3, 4, 5],
+        ];
+        assert_eq!(
+            UnoptimiseEngine::shift(state1.clone(), Move::Left),
+            left_result1
+        );
+        assert_eq!(
+            UnoptimiseEngine::shift(state1.clone(), Move::Right),
+            right_result1
+        );
+        assert_eq!(
+            UnoptimiseEngine::shift(state1.clone(), Move::Up),
+            up_result1
+        );
+        assert_eq!(
+            UnoptimiseEngine::shift(state1.clone(), Move::Down),
+            down_result1
+        );
+        assert_eq!(
+            UnoptimiseEngine::shift(state2.clone(), Move::Left),
+            left_result2
+        );
+        assert_eq!(
+            UnoptimiseEngine::shift(state2.clone(), Move::Right),
+            right_result2
+        );
+        assert_eq!(
+            UnoptimiseEngine::shift(state2.clone(), Move::Up),
+            up_result2
+        );
+        assert_eq!(
+            UnoptimiseEngine::shift(state2.clone(), Move::Down),
+            down_result2
+        );
     }
 
     #[test]
