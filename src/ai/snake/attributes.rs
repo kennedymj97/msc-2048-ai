@@ -243,6 +243,20 @@ pub fn are_2_largest_tiles_adjacent(board: Board) -> bool {
             largest_tile_idxs.push(idx);
         }
     }
+    for &largest_tile_idx in &largest_tile_idxs {
+        let are_largest_tiles_adjacent =
+            are_2_largest_tiles_adjacent_aux(largest_tile_idx, &largest_tile_idxs);
+        if are_largest_tiles_adjacent {
+            return true;
+        }
+    }
+    // If there are multiple largest tiles of the same value and they are not adjacent then return
+    // false
+    if largest_tile_idxs.len() >= 2 {
+        return false;
+    }
+
+    // If there is only one largest tile see if adjacent to any of the second largest tiles
     let mut second_largest_tile_idxs = Vec::new();
     let mut second_largest_tile_val = 0;
     for idx in 0..16 {
@@ -258,79 +272,88 @@ pub fn are_2_largest_tiles_adjacent(board: Board) -> bool {
             second_largest_tile_idxs.push(idx);
         }
     }
-    for largest_tile_idx in &largest_tile_idxs {
-        for second_largest_tile_idx in &second_largest_tile_idxs {
-            // if they are adjacent return true
-            let is_adjacent = match largest_tile_idx {
-                0 => match second_largest_tile_idx {
-                    1 | 4 => true,
-                    _ => false,
-                },
-                1 => match second_largest_tile_idx {
-                    0 | 2 | 5 => true,
-                    _ => false,
-                },
-                2 => match second_largest_tile_idx {
-                    1 | 3 | 6 => true,
-                    _ => false,
-                },
-                3 => match second_largest_tile_idx {
-                    2 | 7 => true,
-                    _ => false,
-                },
-                4 => match second_largest_tile_idx {
-                    0 | 5 | 8 => true,
-                    _ => false,
-                },
-                5 => match second_largest_tile_idx {
-                    1 | 4 | 6 | 9 => true,
-                    _ => false,
-                },
-                6 => match second_largest_tile_idx {
-                    2 | 5 | 7 | 10 => true,
-                    _ => false,
-                },
-                7 => match second_largest_tile_idx {
-                    3 | 6 | 11 => true,
-                    _ => false,
-                },
-                8 => match second_largest_tile_idx {
-                    4 | 9 | 12 => true,
-                    _ => false,
-                },
-                9 => match second_largest_tile_idx {
-                    5 | 8 | 10 | 13 => true,
-                    _ => false,
-                },
-                10 => match second_largest_tile_idx {
-                    6 | 9 | 11 | 14 => true,
-                    _ => false,
-                },
-                11 => match second_largest_tile_idx {
-                    7 | 10 | 15 => true,
-                    _ => false,
-                },
-                12 => match second_largest_tile_idx {
-                    8 | 13 => true,
-                    _ => false,
-                },
-                13 => match second_largest_tile_idx {
-                    9 | 12 | 14 => true,
-                    _ => false,
-                },
-                14 => match second_largest_tile_idx {
-                    10 | 13 | 15 => true,
-                    _ => false,
-                },
-                15 => match second_largest_tile_idx {
-                    11 | 14 => true,
-                    _ => false,
-                },
+    for &largest_tile_idx in &largest_tile_idxs {
+        let are_largest_and_second_largest_adjacent =
+            are_2_largest_tiles_adjacent_aux(largest_tile_idx, &second_largest_tile_idxs);
+        if are_largest_and_second_largest_adjacent {
+            return true;
+        }
+    }
+    false
+}
+
+fn are_2_largest_tiles_adjacent_aux(largest_tile_idx: usize, large_tile_idxs: &Vec<usize>) -> bool {
+    for idx in large_tile_idxs {
+        // if they are adjacent return true
+        let is_adjacent = match largest_tile_idx {
+            0 => match idx {
+                1 | 4 => true,
                 _ => false,
-            };
-            if is_adjacent {
-                return true;
-            }
+            },
+            1 => match idx {
+                0 | 2 | 5 => true,
+                _ => false,
+            },
+            2 => match idx {
+                1 | 3 | 6 => true,
+                _ => false,
+            },
+            3 => match idx {
+                2 | 7 => true,
+                _ => false,
+            },
+            4 => match idx {
+                0 | 5 | 8 => true,
+                _ => false,
+            },
+            5 => match idx {
+                1 | 4 | 6 | 9 => true,
+                _ => false,
+            },
+            6 => match idx {
+                2 | 5 | 7 | 10 => true,
+                _ => false,
+            },
+            7 => match idx {
+                3 | 6 | 11 => true,
+                _ => false,
+            },
+            8 => match idx {
+                4 | 9 | 12 => true,
+                _ => false,
+            },
+            9 => match idx {
+                5 | 8 | 10 | 13 => true,
+                _ => false,
+            },
+            10 => match idx {
+                6 | 9 | 11 | 14 => true,
+                _ => false,
+            },
+            11 => match idx {
+                7 | 10 | 15 => true,
+                _ => false,
+            },
+            12 => match idx {
+                8 | 13 => true,
+                _ => false,
+            },
+            13 => match idx {
+                9 | 12 | 14 => true,
+                _ => false,
+            },
+            14 => match idx {
+                10 | 13 | 15 => true,
+                _ => false,
+            },
+            15 => match idx {
+                11 | 14 => true,
+                _ => false,
+            },
+            _ => false,
+        };
+        if is_adjacent {
+            return true;
         }
     }
     false
