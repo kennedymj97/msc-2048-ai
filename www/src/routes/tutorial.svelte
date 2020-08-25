@@ -93,7 +93,7 @@
     {
       name: 'Try move down if creates monotonic middle top row',
       description:
-        'The middle top row is the one below the top row. Monotonicity means the values for the tiles in the row are decreasing/equal all the way across the row. A fully empty row does not count as being monotonic. It can be monotonic either left to right or right to left. If the middle top row is not currently monotonic and making the move down makes it monotonic, then try making the move down. An empty tile counts as 0. This rule often applies when there are tiles on the middle top row seperated by empty tiles, in this case the row is not monotonic. If after making the move down there are no longer tiles seperated by empty tiles you should try making the move down.',
+        'The middle top row is the one below the top row. Monotonicity means the values for the tiles in the row are decreasing/equal all the way across the row. A fully empty row does not count as being monotonic. It can be monotonic either left to right or right to left. An empty tile counts as 0. For example, the rows: [16, 0, 0, 0], [4, 4, 4, 4], [16, 16, 8, 8], [16, 8, 4, 2] are all monotonic. Whereas the rows: [16, 0, 0, 2], [16, 4, 4, 8], [16, 4, 2, 4], [4, 8, 0, 0] are not monotonic. If the middle top row is not currently monotonic and making the move down makes it monotonic, then try making the move down. This rule often applies when there are tiles on the middle top row seperated by empty tiles, in this case the row is not monotonic. If after making the move down there are no longer tiles seperated by empty tiles you should try making the move down.',
       examples: [
         {
           imagePath: './tutorial_images/monotonic/already_monotonic.png',
