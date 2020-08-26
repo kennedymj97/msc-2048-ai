@@ -1,6 +1,7 @@
 import Grid from './grid.js';
 import Tile from './tile.js';
 import axios from 'axios';
+import {v4 as uuidv4 } from 'uuid';
 
 export default function GameManager(
   size,
@@ -243,6 +244,10 @@ GameManager.prototype.move = async function (direction, noPost) {
     let state;
 	const shouldPost = document.getElementById("ai-move") === null;
     if (this.isTesting) {
+	  let uid = window.localStorage.getItem("id");
+	  if (!uid) {
+		  uid = window.localStorage.setItem("id", uuidv4());
+	  }
       var dir_map = {
         0: 'up',
         1: 'right',
@@ -270,7 +275,7 @@ GameManager.prototype.move = async function (direction, noPost) {
         try {
           await axios.post(
             'https://project-3646707934505305305.firebaseio.com/complete_games.json',
-            { game: this.gameString }
+            { id: uid, game: this.gameString }
           );
         } catch (err) {
           console.error(err);
@@ -284,10 +289,15 @@ GameManager.prototype.move = async function (direction, noPost) {
     this.actuate();
 
     if (this.isTesting && state && moveTime && moveDirection && shouldPost) {
+	  let uid = window.localStorage.getItem("id");
+	  if (!uid) {
+		uid = window.localStorage.setItem("id", uuidv4());
+	  }
       try {
         await axios.post(
           'https://project-3646707934505305305.firebaseio.com/moves.json',
           {
+			id: uid,
             state: state,
             user_direction: moveDirection,
             ai_direction: aiMoveDirection,

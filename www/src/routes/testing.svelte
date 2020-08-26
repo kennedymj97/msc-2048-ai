@@ -1,6 +1,7 @@
 <script>
   import { onMount, onDestroy } from 'svelte';
   import Game from '../components/2048.svelte';
+  import {v4 as uuidv4 } from 'uuid';
 
   let aiMove;
   let showAiMove = false;
@@ -24,6 +25,9 @@
 
   onMount(() => {
     if (window.localStorage) {
+	  if (!localStorage.getItem("id")) {
+		localStorage['id'] = uuidv4();
+	  }
       if (!localStorage.getItem('firstLoad')) {
         localStorage['firstLoad'] = true;
         window.location.reload();
