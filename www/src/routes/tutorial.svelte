@@ -144,9 +144,11 @@
   progress in the game will be saved.
 </p>
 <p class="mb-2 text-justify">The steps below describe how to follow the strategy. If this is not detailed enough for you to accurately predict the strategies moves, please read the more detailed flowchart and description of how the strategy works below.</p>
-<hr class="mb-1"/>
+<hr class="my-4"/>
 <Declarative></Declarative>
-<hr class="mt-1 mb-4"/>
+<hr class="my-4"/>
+<p class="mt-2 text-justify">The term monotonic means the values for the tiles in the row are decreasing/equal all the way across the row. A fully empty row does not count as being monotonic. It can be monotonic either left to right or right to left. An empty tile counts as 0. For example, the rows: [16, 0, 0, 0], [4, 4, 4, 4], [16, 16, 8, 8] and [16, 8, 4, 2] are all monotonic. Whereas the rows: [16, 0, 0, 2], [0, 0, 0, 0], [16, 4, 4, 8], [16, 4, 2, 4] and [4, 8, 0, 0] are not monotonic.</p>
+<hr class="my-4"/>
 <p class="mt-2 text-justify">
   This flowchart is designed to help you follow the strategy when doing the
   test. Refer back to it if you are not sure what move to make. Before reading
