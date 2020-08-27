@@ -1,5 +1,5 @@
 <p class="mb-1 font-semibold">After making a move return to step 1.</p>
-<ol class="ml-4 list-decimal list-outside">
+<ol class="ml-4 text-justify list-decimal list-outside">
   <li class="mb-1">
     If the bottom left corner does not contain a tile with a value equal to the
     largest on the grid and after moving left it will contain a tile with a
