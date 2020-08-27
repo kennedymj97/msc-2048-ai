@@ -1,5 +1,6 @@
 <script>
   import Rule from '../components/rule.svelte';
+  import Declarative from '../components/declarative_strategy.svelte';
 
   let ban_rules = ['Ban move up if left column not locked'];
   let try_rules = [
@@ -126,7 +127,7 @@
 </script>
 
 <svelte:head>
-  <title>Introduction</title>
+  <title>Tutorial</title>
 </svelte:head>
 
 <div class="flex flex-row justify-center mb-4">
@@ -142,13 +143,21 @@
   them. You can come back to this page at any time during the testing, your
   progress in the game will be saved.
 </p>
-
-<p>
+<p class="mb-2 text-justify">The steps below describe how to follow the strategy. If this is not detailed enough for you to accurately predict the strategies moves, please read the more detailed flowchart and description of how the strategy works below.</p>
+<hr class="mb-1"/>
+<Declarative></Declarative>
+<hr class="mt-1 mb-4"/>
+<p class="mt-2 text-justify">
   This flowchart is designed to help you follow the strategy when doing the
   test. Refer back to it if you are not sure what move to make. Before reading
   the flowchart it may be useful to go through the rest of the tutorial below.
 </p>
-<img src="./tutorial_images/strategy.svg" alt="flow diagram for the strategy" />
+<div class="flex justify-center w-full">
+  <img
+    src="./tutorial_images/strategy.svg"
+    alt="flow diagram for the strategy"
+  />
+</div>
 
 <h2 class="mt-4 mb-2 text-2xl font-semibold">What is a strategy?</h2>
 <p class="mb-2 text-justify">

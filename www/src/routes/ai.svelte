@@ -2,4 +2,8 @@
   import Game from '../components/2048.svelte';
 </script>
 
-<Game name="ai" isAi={true}></Game>
+<svelte:head>
+  <title>AI</title>
+</svelte:head>
+
+<Game name="ai" isAi="{true}"></Game>

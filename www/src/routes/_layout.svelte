@@ -43,10 +43,9 @@
 
 <style>
   main {
-    position: relative;
     background-color: white;
     box-sizing: border-box;
-	max-width: 1024px;
+	max-width: 1200px;
 	margin: 50px auto 50px auto;
   }
 
@@ -56,7 +55,7 @@
 	}
   }
 
-  @media(max-width: 1124px) and (min-width: 500px) {
+  @media(max-width: 1300px) and (min-width: 500px) {
 	main {
 	  margin: 50px 50px 50px 50px;
 	}

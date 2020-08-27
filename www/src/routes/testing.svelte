@@ -2,6 +2,7 @@
   import { onMount, onDestroy } from 'svelte';
   import Game from '../components/2048.svelte';
   import {v4 as uuidv4 } from 'uuid';
+  import Declarative from '../components/declarative_strategy.svelte';
 
   let aiMove;
   let showAiMove = false;
@@ -42,6 +43,10 @@
   });
 </script>
 
+<svelte:head>
+	<title>Testing</title>
+</svelte:head>
+
 <div class="flex flex-col items-center lg:flex-row lg:items-start">
   <div class="flex flex-col px-6">
     <p>
@@ -58,26 +63,8 @@
       >
     </div>
     <hr />
-	<p class="mb-2 italic">Please check flow chart before making a move until fully confident.</p>
 	<p class="mb-2 italic"><span class="font-bold">MERGES!</span> If considering the state after making a move remember to merge the tiles.</p>
-    <span class="font-bold">Ban rules:</span>
-    <ul class="pl-5 mb-2 list-disc list-outside">
-      {#each ban_rules as ban_rule}
-      <li>{ban_rule}</li>
-      {/each}
-    </ul>
-    <span class="font-bold">Try rules:</span>
-    <ol class="pl-4 mb-2 list-decimal list-outside">
-      {#each try_rules as try_rule}
-      <li>{try_rule}</li>
-      {/each}
-    </ol>
-    <span class="font-bold">Fall back sequence:</span>
-    <ol class="pl-4 mb-2 list-decimal list-outside">
-      {#each fallback as direction}
-      <li>{direction}</li>
-      {/each}
-    </ol>
+	<Declarative></Declarative>
     <hr />
     <div class="flex flex-row items-center">
       {#if showAiMove}
