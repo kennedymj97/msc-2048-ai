@@ -3,7 +3,9 @@ use super::generate_strategies::permutations;
 use super::mann_whitney::{mann_whitney_u_test, Confidence};
 use super::Snake;
 use crate::ai::AI;
-use crate::engine::{get_highest_tile_val, new_board, GameEngine, GameEngineStores, Move, Score};
+use crate::engine::{
+    get_highest_tile_val, new_board, Board, GameEngine, GameEngineStores, Move, Score,
+};
 use std::cmp::Ordering;
 use std::fs::File;
 use std::io::Write;
@@ -94,7 +96,7 @@ pub fn test_search_method(
     let path = Path::new(filename);
     let mut file = File::create(path).expect("Failed to create file");
     // add the column headers to the csv file
-    file.write("score,time\n".as_bytes())
+    file.write("strategy,median_score,average_score,time\n".as_bytes())
         .expect("failed to write headers to file");
     // repeat the search procecure *search repeats* times
     let mut medians = Vec::new();
@@ -106,17 +108,27 @@ pub fn test_search_method(
             search_repeats
         );
         let start_time = SystemTime::now();
-        let search_result = f(&engine, 2, 4);
+        let mut search_result = f(&engine, 1, 4);
+        run_strategy(
+            &mut search_result.strategy,
+            &engine,
+            &mut search_result.results,
+            50000,
+        );
         let time_elapsed = match start_time.elapsed() {
             Ok(elapsed) => elapsed.as_millis(),
             Err(e) => panic!(e),
         };
         times.push(time_elapsed as u64);
         let median = median(&search_result.results);
+        let average = average(&search_result.results);
         medians.push(median);
         // save the resulting median and time taken for the search
-        file.write_fmt(format_args!("{},{}\n", median, time_elapsed))
-            .expect("Failed to save search data");
+        file.write_fmt(format_args!(
+            "{},{},{},{}\n",
+            search_result.strategy, median, average, time_elapsed
+        ))
+        .expect("Failed to save search data");
     }
     println!(
         "\nAverage median score of the search method: {}\nAverage time taken for the search: {}\n",
@@ -144,7 +156,7 @@ fn save_results(data: &StrategyDataStore<Snake>, foldername: &Path, runs: usize)
     });
 }
 
-fn run_strategy<T: AI, E: GameEngine>(
+pub fn run_strategy<T: AI, E: GameEngine>(
     ai: &mut T,
     engine: &E,
     current_results: &mut Vec<Score>,
@@ -167,12 +179,12 @@ fn run_strategy<T: AI, E: GameEngine>(
     }
 }
 
-fn run_strategy_save_results(mut ai: Snake) {
+pub fn run_strategy_save_results(mut ai: Snake, filename: &str) {
     let engine = GameEngineStores::new();
-    let mut f = File::create(Path::new("strategy.csv")).expect("Failed to create file");
+    let mut f = File::create(Path::new(filename)).expect("Failed to create file");
     f.write("score,highest tile\n".as_bytes())
         .expect("Failed to write strategy");
-    (0..10000).for_each(|_| {
+    (0..100000).for_each(|_| {
         let mut board = new_board();
         loop {
             let best_move = ai.get_next_move(&engine, board);
@@ -214,7 +226,7 @@ fn get_count_mod(len: usize) -> u64 {
     100000
 }
 
-fn print_best_strategy_info<T: GameEngine>(engine: &T, strategy_data: &mut SnakeData) {
+pub fn print_best_strategy_info<T: GameEngine>(engine: &T, strategy_data: &mut SnakeData) {
     println!("\n\nGetting stats for best strategy_data...");
     run_strategy(
         &mut strategy_data.strategy,
@@ -230,7 +242,7 @@ fn print_best_strategy_info<T: GameEngine>(engine: &T, strategy_data: &mut Snake
     );
 }
 
-fn median<T: Ord + Copy>(items: &Vec<T>) -> T {
+pub fn median<T: Ord + Copy>(items: &Vec<T>) -> T {
     let mut items = items.clone();
     items.sort();
     items[items.len() / 2]
@@ -332,4 +344,93 @@ fn strategy_duel<T: GameEngine>(
         ),
         Ordering::Greater => StrategyDuelResult::Champion(champion.to_owned()),
     }
+}
+
+use super::attributes::{is_move_possible, Column, Corner, Row};
+use super::ban_rules::BanMove;
+use super::try_rules::TryMove;
+use crate::engine::GameEngineNoStores;
+use std::io::{self, BufRead};
+
+pub fn add_used_rule_to_data(filename: &str) {
+    let mut new_fname = filename.split('.').collect::<Vec<&str>>()[0].to_string();
+    new_fname.push_str("_adapted.csv");
+    let mut f = File::create(Path::new(&new_fname)).expect("Failed to create file");
+    if let Ok(lines) = read_lines(Path::new(&filename)) {
+        for line in lines {
+            if let Ok(content) = line {
+                let board = content.split(',').collect::<Vec<&str>>()[2];
+                let board = board.replace("\"", "");
+                match u64::from_str_radix(&board, 16) {
+                    Ok(int_board) => {
+                        let mut new_content = content.clone();
+                        new_content.push_str(&format!(",{}\n", find_used_rule(int_board)));
+                        f.write(new_content.as_bytes())
+                            .expect("Failed to write new row");
+                    }
+                    Err(_) => {
+                        let mut new_content = content.clone();
+                        new_content.push_str(",action\n");
+                        f.write(new_content.as_bytes())
+                            .expect("failed to write new header");
+                    }
+                }
+            }
+        }
+    }
+}
+
+fn find_used_rule(board: Board) -> String {
+    let engine = GameEngineNoStores;
+    let is_up_banned =
+        match BanMove::IfColumnNotLocked(Move::Up, Column::Left).execute(&engine, board) {
+            Some(_) => true,
+            None => false,
+        };
+    match TryMove::IfMovesLargestTileToCorner(Move::Left, Corner::BottomLeft)
+        .execute(&GameEngineNoStores, board)
+    {
+        Some(_) => {
+            return TryMove::IfMovesLargestTileToCorner(Move::Left, Corner::BottomLeft).to_string()
+        }
+        None => (),
+    }
+    if !is_up_banned {
+        match TryMove::ProducesMerge(Move::Up).execute(&engine, board) {
+            Some(_) => return TryMove::ProducesMerge(Move::Up).to_string(),
+            None => (),
+        }
+    }
+    match TryMove::ProducesMerge(Move::Down).execute(&engine, board) {
+        Some(_) => return TryMove::ProducesMerge(Move::Down).to_string(),
+        None => (),
+    }
+    match TryMove::CreatesMonotonicRow(Move::Down, Row::MiddleTop).execute(&engine, board) {
+        Some(_) => return TryMove::CreatesMonotonicRow(Move::Down, Row::MiddleTop).to_string(),
+        None => (),
+    }
+    if is_move_possible(&engine, board, Move::Left) {
+        return "initial fallback left".to_string();
+    }
+    if is_move_possible(&engine, board, Move::Down) {
+        return "initial fallback down".to_string();
+    }
+    if is_move_possible(&engine, board, Move::Up) && !is_up_banned {
+        return "initial fallback up".to_string();
+    }
+    if is_move_possible(&engine, board, Move::Right) {
+        return "initial fallback right".to_string();
+    }
+    if is_move_possible(&engine, board, Move::Up) {
+        return "up forced in fallback".to_string();
+    }
+    return "no possible move".to_string();
+}
+
+fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>>
+where
+    P: AsRef<Path>,
+{
+    let file = File::open(filename)?;
+    Ok(io::BufReader::new(file).lines())
 }

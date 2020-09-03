@@ -80,6 +80,9 @@ impl TryMove {
         variations.append(&mut try_move_if_column_locked_variations());
         variations.append(&mut try_move_if_empties_column_variations());
         variations.append(&mut try_move_if_empties_row_variations());
+        //variations.append(&mut try_move_if_produces_potential_merge_variations_subset());
+        //variations.append(&mut try_move_if_merge_possible_variations_subset());
+        //variations.append(&mut try_move_if_moves_largest_tile_to_corner_variations_subset());
         variations
     }
 
@@ -337,11 +340,22 @@ fn try_move_if_produces_potential_merge_variations() -> Vec<TryMove> {
     })
 }
 
+fn try_move_if_produces_potential_merge_variations_subset() -> Vec<TryMove> {
+    vec![
+        TryMove::ProducesMerge(Move::Up),
+        TryMove::ProducesMerge(Move::Down),
+    ]
+}
+
 fn try_move_if_merge_possible_variations() -> Vec<TryMove> {
     Move::iterator().fold(Vec::new(), |mut variations, direction| {
         variations.push(TryMove::IfMergePossible(direction));
         variations
     })
+}
+
+fn try_move_if_merge_possible_variations_subset() -> Vec<TryMove> {
+    try_move_if_merge_possible_variations()
 }
 
 fn try_move_if_moves_largest_tile_to_corner_variations() -> Vec<TryMove> {
@@ -391,6 +405,13 @@ fn try_move_if_moves_largest_tile_to_corner_variations() -> Vec<TryMove> {
         }
     }
     variations
+}
+
+fn try_move_if_moves_largest_tile_to_corner_variations_subset() -> Vec<TryMove> {
+    vec![
+        TryMove::IfMovesLargestTileToCorner(Move::Left, Corner::BottomLeft),
+        TryMove::IfMovesLargestTileToCorner(Move::Down, Corner::BottomLeft),
+    ]
 }
 
 fn always_try_variations() -> Vec<TryMove> {

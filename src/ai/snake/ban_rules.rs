@@ -79,6 +79,8 @@ impl BanMove {
         variations.append(&mut ban_move_if_moves_largest_tile_out_of_corner_variations());
         variations.append(&mut ban_move_if_fills_column_variations());
         variations.append(&mut ban_move_if_fills_row_variations());
+        //variations.append(&mut ban_move_if_column_not_locked_variations_subset());
+        //variations.append(&mut ban_move_if_breaks_monotonicity_of_column_variations_subset());
         variations
     }
 
@@ -309,6 +311,14 @@ fn ban_move_if_column_not_locked_variations() -> Vec<BanMove> {
     variations
 }
 
+fn ban_move_if_column_not_locked_variations_subset() -> Vec<BanMove> {
+    let mut variations = Vec::new();
+    for direction in Move::iterator() {
+        variations.push(BanMove::IfColumnNotLocked(direction, Column::Left));
+    }
+    variations
+}
+
 fn ban_move_if_row_not_locked_variations() -> Vec<BanMove> {
     let mut variations = Vec::new();
     for row in Row::iterator() {
@@ -323,6 +333,17 @@ fn ban_move_if_breaks_monotonicity_of_column_variations() -> Vec<BanMove> {
     for column in Column::iterator() {
         variations.push(BanMove::IfBreaksMonotonicityOfColumn(Move::Left, column));
         variations.push(BanMove::IfBreaksMonotonicityOfColumn(Move::Right, column));
+    }
+    variations
+}
+
+fn ban_move_if_breaks_monotonicity_of_column_variations_subset() -> Vec<BanMove> {
+    let mut variations = Vec::new();
+    for direction in Move::iterator() {
+        variations.push(BanMove::IfBreaksMonotonicityOfColumn(
+            direction,
+            Column::Left,
+        ));
     }
     variations
 }

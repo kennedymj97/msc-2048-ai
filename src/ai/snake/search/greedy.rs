@@ -100,7 +100,7 @@ fn _greedy_prioritise_best<T: GameEngine>(
     let mut ban_variants = BanMove::generate_all_variations();
     println!(
         "Total number of possible strategies: {}",
-        number_of_possible_strategies(4, ban_variants.len(), 5, try_variants.len())
+        number_of_possible_strategies(1, ban_variants.len(), 4, try_variants.len())
     );
     loop {
         println!("\n\nNew best strategy: {}", best_snake_data.strategy);
