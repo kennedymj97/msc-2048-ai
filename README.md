@@ -31,6 +31,8 @@ You can change the time taken between moves by entering another argument after -
 ./target/release/msc-2048-ai --play 100
 ```
 
+The site developed for user testing can be found [here](https://msc.mattkennedy.io).
+
 ## Structure
 
 ### benches/  
@@ -84,3 +86,6 @@ The code to execute the Mann-Whitney test. The [rustats](https://docs.rs/rustats
 
 ### src/ai/strategy/search/
 This directory contains the code for all of the search methods.
+
+### www/
+The www/ directory contains all the front end web code. The resulting site can be found [here](https://msc.mattkennedy.io).
