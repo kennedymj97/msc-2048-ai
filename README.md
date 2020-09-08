@@ -19,7 +19,7 @@ From the root directory the executable can be run:
 
 By default this executable will run the iterated local search to find a strategy with 1 ban rule and 4 try rules.
 
-It is possible to watch the best strategy found using this search by passing the --play argument.
+It is possible to watch the best strategy found using this search by passing the --play argument. By default the time taken between moves is 500 milliseconds.
 
 ```shell
 ./target/release/msc-2048-ai --play
@@ -54,13 +54,13 @@ Defines what the executable does.
 **wasm.rs**  
 Defines the interface to use with js that compiling to wasm will produce.
 
-#### ai/
+### src/ai/
 A variety of different agents were implemented. The most important being the strategy agent.
 
 **mod.rs**
 Contains functions that can be used to run any agent and defines what interface and agent must have.
 
-##### strategy/
+### src/ai/strategy/
 **mod.rs**  
 The mod file contains the definition for a strategy.
 
@@ -82,5 +82,5 @@ Has iterators that are used by brute force methods to generate all possible stra
 **mann_whitney.rs**  
 The code to execute the Mann-Whitney test. The [rustats](https://docs.rs/rustats/0.1.0/rustats/hypothesis_testings/index.html) library was inspiration for the implementation.
 
-###### search/
+### src/ai/strategy/search/
 This directory contains the code for all of the search methods.
