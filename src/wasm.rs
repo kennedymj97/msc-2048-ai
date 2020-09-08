@@ -1,7 +1,7 @@
 use crate::ai::expectimax_old::Expectimaxx;
-use crate::ai::snake::{
+use crate::ai::strategy::{
     attributes::Column, attributes::Corner, attributes::Row, ban_rules::BanMove,
-    try_rules::TryMove, Snake,
+    try_rules::TryMove, Strategy,
 };
 use crate::ai::{AI, AII};
 use crate::engine::{GameEngineNoStores, Move};
@@ -36,7 +36,7 @@ impl WasmExpectimax {
 }
 
 #[wasm_bindgen]
-pub struct WasmSnake(Snake);
+pub struct WasmSnake(Strategy);
 
 #[wasm_bindgen]
 impl WasmSnake {
@@ -49,8 +49,8 @@ impl WasmSnake {
             TryMove::CreatesMonotonicRow(Move::Down, Row::MiddleTop),
         ];
         let fallback = vec![Move::Left, Move::Down, Move::Up, Move::Right];
-        let snake = Snake::new(&ban_rules, &try_rules, &fallback).unwrap();
-        WasmSnake(snake)
+        let strategy = Strategy::new(&ban_rules, &try_rules, &fallback).unwrap();
+        WasmSnake(strategy)
     }
 
     pub fn get_next_move(&mut self, board: Board) -> i32 {

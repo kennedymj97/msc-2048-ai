@@ -1,6 +1,6 @@
 use super::ban_rules::BanMove;
 use super::try_rules::TryMove;
-use super::Snake;
+use super::Strategy;
 use crate::engine::Move;
 use num_bigint::{BigUint, ToBigUint};
 use permutohedron::Heap;
@@ -21,7 +21,7 @@ impl IterFixedFallback {
 }
 
 impl Iterator for IterFixedFallback {
-    type Item = Snake;
+    type Item = Strategy;
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.try_idx == self.try_sets.len() {
@@ -33,14 +33,14 @@ impl Iterator for IterFixedFallback {
             return None;
         }
 
-        match Snake::new(
+        match Strategy::new(
             &self.ban_sets[self.ban_idx],
             &self.try_sets[self.try_idx],
             &vec![Move::Left, Move::Down, Move::Up, Move::Right],
         ) {
-            Some(valid_snake) => {
+            Some(valid_strategy) => {
                 self.try_idx += 1;
-                Some(valid_snake)
+                Some(valid_strategy)
             }
             None => {
                 self.try_idx += 1;
@@ -50,7 +50,7 @@ impl Iterator for IterFixedFallback {
     }
 }
 
-pub fn get_snake_iterator_fixed_fallback(
+pub fn get_strategy_iterator_fixed_fallback(
     max_ban_length: usize,
     max_try_length: usize,
 ) -> IterFixedFallback {
@@ -96,7 +96,7 @@ impl Iter {
 }
 
 impl Iterator for Iter {
-    type Item = Snake;
+    type Item = Strategy;
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.fallback_idx == self.fallback_sets.len() {
@@ -113,14 +113,14 @@ impl Iterator for Iter {
             return None;
         }
 
-        match Snake::new(
+        match Strategy::new(
             &self.ban_sets[self.ban_idx],
             &self.try_sets[self.try_idx],
             &self.fallback_sets[self.fallback_idx],
         ) {
-            Some(valid_snake) => {
+            Some(valid_strategy) => {
                 self.fallback_idx += 1;
-                Some(valid_snake)
+                Some(valid_strategy)
             }
             None => {
                 self.fallback_idx += 1;
@@ -130,7 +130,7 @@ impl Iterator for Iter {
     }
 }
 
-pub fn get_snake_iterator(max_ban_length: usize, max_try_length: usize) -> Iter {
+pub fn get_strategy_iterator(max_ban_length: usize, max_try_length: usize) -> Iter {
     // Generate all possible ban variations
     // power_set and permutations up to certain length
     let ban_variations = BanMove::generate_all_variations();
@@ -166,7 +166,7 @@ pub fn get_snake_iterator(max_ban_length: usize, max_try_length: usize) -> Iter 
     }
 }
 
-pub fn generate_snakes(max_ban_length: usize, max_try_length: usize) -> Vec<Snake> {
+pub fn generate_strategys(max_ban_length: usize, max_try_length: usize) -> Vec<Strategy> {
     // Generate all possible ban variations
     // power_set and permutations up to certain length
     let ban_variations = BanMove::generate_all_variations();
@@ -194,23 +194,23 @@ pub fn generate_snakes(max_ban_length: usize, max_try_length: usize) -> Vec<Snak
 
     // 3 nest for loops, for each ban variation add every try variation, for every ban and try
     //   variation and every fallback variation
-    let mut snakes = Vec::new();
+    let mut strategys = Vec::new();
     for ban_set in ban_sets.iter() {
         for try_set in try_sets.iter() {
             for fallback_set in fallback_sets.iter() {
-                let snake;
-                match Snake::new(ban_set, try_set, fallback_set) {
-                    Some(valid_snake) => {
-                        snake = valid_snake;
+                let strategy;
+                match Strategy::new(ban_set, try_set, fallback_set) {
+                    Some(valid_strategy) => {
+                        strategy = valid_strategy;
                     }
                     None => continue,
                 }
-                snakes.push(snake);
+                strategys.push(strategy);
             }
         }
     }
-    assert!(ban_sets.len() * try_sets.len() * fallback_sets.len() > snakes.len());
-    snakes
+    assert!(ban_sets.len() * try_sets.len() * fallback_sets.len() > strategys.len());
+    strategys
 }
 
 fn power_set<T: Copy>(set: &[T], max_length: usize) -> Vec<Vec<T>> {

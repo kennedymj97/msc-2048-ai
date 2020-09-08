@@ -1,7 +1,8 @@
 use super::{
-    average, median, print_best_strategy_info, strategy_duel, Runs, SnakeData, StrategyDuelResult,
+    average, median, print_best_strategy_info, strategy_duel, Runs, StrategyData,
+    StrategyDuelResult,
 };
-use crate::ai::snake::{ban_rules::BanMove, mann_whitney::Confidence, try_rules::TryMove, Rule};
+use crate::ai::strategy::{ban_rules::BanMove, mann_whitney::Confidence, try_rules::TryMove, Rule};
 use crate::engine::GameEngine;
 use rand::{seq::IteratorRandom, thread_rng};
 use std::fs::File;
@@ -9,19 +10,25 @@ use std::io::Write;
 use std::path::Path;
 use std::time::SystemTime;
 
-pub fn ils_mutate_try_always_accept<T: GameEngine>(engine: &T, snake_data: SnakeData) -> SnakeData {
+pub fn ils_mutate_try_always_accept<T: GameEngine>(
+    engine: &T,
+    strategy_data: StrategyData,
+) -> StrategyData {
     iterated_local_search(
         engine,
-        snake_data,
+        strategy_data,
         permutate_try_only,
         ILSVariation::AlwaysAccept,
     )
 }
 
-pub fn ils_mutate_any_always_accept<T: GameEngine>(engine: &T, snake_data: SnakeData) -> SnakeData {
+pub fn ils_mutate_any_always_accept<T: GameEngine>(
+    engine: &T,
+    strategy_data: StrategyData,
+) -> StrategyData {
     iterated_local_search(
         engine,
-        snake_data,
+        strategy_data,
         permutate_any,
         ILSVariation::AlwaysAccept,
     )
@@ -29,11 +36,11 @@ pub fn ils_mutate_any_always_accept<T: GameEngine>(engine: &T, snake_data: Snake
 
 pub fn ils_mutate_try_accept_if_better<T: GameEngine>(
     engine: &T,
-    snake_data: SnakeData,
-) -> SnakeData {
+    strategy_data: StrategyData,
+) -> StrategyData {
     iterated_local_search(
         engine,
-        snake_data,
+        strategy_data,
         permutate_try_only,
         ILSVariation::OnlyAcceptIfBetter,
     )
@@ -41,11 +48,11 @@ pub fn ils_mutate_try_accept_if_better<T: GameEngine>(
 
 pub fn ils_mutate_any_accept_if_better<T: GameEngine>(
     engine: &T,
-    snake_data: SnakeData,
-) -> SnakeData {
+    strategy_data: StrategyData,
+) -> StrategyData {
     iterated_local_search(
         engine,
-        snake_data,
+        strategy_data,
         permutate_any,
         ILSVariation::OnlyAcceptIfBetter,
     )
@@ -53,12 +60,12 @@ pub fn ils_mutate_any_accept_if_better<T: GameEngine>(
 
 fn iterated_local_search<T: GameEngine>(
     engine: &T,
-    snake_data: SnakeData,
-    mutation_fn: fn(&SnakeData) -> SnakeData,
+    strategy_data: StrategyData,
+    mutation_fn: fn(&StrategyData) -> StrategyData,
     variation: ILSVariation,
-) -> SnakeData {
+) -> StrategyData {
     println!("\n\nStarting ILS...");
-    let mut global_best = super::local::local_search_ban_restart(engine, snake_data);
+    let mut global_best = super::local::local_search_ban_restart(engine, strategy_data);
     let mut current_best = global_best.clone();
     let max_count = 20;
     for count in 0..max_count {
@@ -122,12 +129,12 @@ fn iterated_local_search<T: GameEngine>(
 
 pub fn ils_mutate_try_always_accept_save<T: GameEngine>(
     engine: &T,
-    snake_data: SnakeData,
+    strategy_data: StrategyData,
     filename: &str,
 ) {
     iterated_local_search_save(
         engine,
-        snake_data,
+        strategy_data,
         permutate_try_only,
         ILSVariation::AlwaysAccept,
         filename,
@@ -136,12 +143,12 @@ pub fn ils_mutate_try_always_accept_save<T: GameEngine>(
 
 pub fn ils_mutate_try_accept_if_better_save<T: GameEngine>(
     engine: &T,
-    snake_data: SnakeData,
+    strategy_data: StrategyData,
     filename: &str,
 ) {
     iterated_local_search_save(
         engine,
-        snake_data,
+        strategy_data,
         permutate_try_only,
         ILSVariation::OnlyAcceptIfBetter,
         filename,
@@ -150,8 +157,8 @@ pub fn ils_mutate_try_accept_if_better_save<T: GameEngine>(
 
 fn iterated_local_search_save<T: GameEngine>(
     engine: &T,
-    snake_data: SnakeData,
-    mutation_fn: fn(&SnakeData) -> SnakeData,
+    strategy_data: StrategyData,
+    mutation_fn: fn(&StrategyData) -> StrategyData,
     variation: ILSVariation,
     filename: &str,
 ) {
@@ -161,7 +168,7 @@ fn iterated_local_search_save<T: GameEngine>(
     file.write("run,strategy,median_score,average_score,time\n".as_bytes())
         .expect("failed to write headers to file");
     println!("\n\nStarting ILS...");
-    let mut global_best = super::local::local_search_ban_restart(engine, snake_data);
+    let mut global_best = super::local::local_search_ban_restart(engine, strategy_data);
     let mut current_best = global_best.clone();
     let mut count = 0;
     let start_time = SystemTime::now();
@@ -277,7 +284,7 @@ enum ILSVariation {
     OnlyAcceptIfBetter,
 }
 
-fn permutate_try_only(current_best: &SnakeData) -> SnakeData {
+fn permutate_try_only(current_best: &StrategyData) -> StrategyData {
     if current_best.strategy.try_rules.len() == 0 {
         return current_best.to_owned();
     }
@@ -301,8 +308,8 @@ fn permutate_try_only(current_best: &SnakeData) -> SnakeData {
             .choose(&mut rng)
             .expect("failed to select new rule");
         match mutated.strategy.swap_try_rule(rule_to_change, new_rule) {
-            Some(valid_snake) => {
-                mutated.strategy = valid_snake;
+            Some(valid_strategy) => {
+                mutated.strategy = valid_strategy;
                 mutated.results = Vec::new();
                 return mutated;
             }
@@ -311,7 +318,7 @@ fn permutate_try_only(current_best: &SnakeData) -> SnakeData {
     }
 }
 
-fn permutate_any(current_best: &SnakeData) -> SnakeData {
+fn permutate_any(current_best: &StrategyData) -> StrategyData {
     let mut mutated = current_best.clone();
     let mut rng = thread_rng();
     // select random rule
@@ -334,8 +341,8 @@ fn permutate_any(current_best: &SnakeData) -> SnakeData {
                     .choose(&mut rng)
                     .expect("failed to select new rule");
                 match mutated.strategy.swap_try_rule(try_rule, new_rule) {
-                    Some(valid_snake) => {
-                        mutated.strategy = valid_snake;
+                    Some(valid_strategy) => {
+                        mutated.strategy = valid_strategy;
                         mutated.results = Vec::new();
                         return mutated;
                     }
@@ -351,8 +358,8 @@ fn permutate_any(current_best: &SnakeData) -> SnakeData {
                     .choose(&mut rng)
                     .expect("failed to select new rule");
                 match mutated.strategy.swap_ban_rule(ban_rule, new_rule) {
-                    Some(valid_snake) => {
-                        mutated.strategy = valid_snake;
+                    Some(valid_strategy) => {
+                        mutated.strategy = valid_strategy;
                         mutated.results = Vec::new();
                         return mutated;
                     }
@@ -366,12 +373,12 @@ fn permutate_any(current_best: &SnakeData) -> SnakeData {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::ai::snake::{attributes::Column, Snake};
+    use crate::ai::strategy::{attributes::Column, Strategy};
     use crate::engine::Move;
 
     #[test]
     fn it_permutate() {
-        let snake = Snake::new(
+        let strategy = Strategy::new(
             &vec![BanMove::IfColumnNotLocked(Move::Up, Column::Left)],
             &vec![
                 TryMove::ProducesMerge(Move::Up),
@@ -380,23 +387,26 @@ mod tests {
             &vec![Move::Left, Move::Down, Move::Up, Move::Right],
         )
         .unwrap();
-        let mut snake_data = SnakeData {
-            strategy: snake,
+        let mut strategy_data = StrategyData {
+            strategy,
             results: Vec::new(),
         };
         for _ in 0..1000 {
-            let new_snake_data = permutate_try_only(&snake_data);
-            println!("Starting try_rules: {:?}", snake_data.strategy.try_rules);
-            println!("New try_rules: {:?}", new_snake_data.strategy.try_rules);
-            let common_rule_count = snake_data
+            let new_strategy_data = permutate_try_only(&strategy_data);
+            println!("Starting try_rules: {:?}", strategy_data.strategy.try_rules);
+            println!("New try_rules: {:?}", new_strategy_data.strategy.try_rules);
+            let common_rule_count = strategy_data
                 .strategy
                 .try_rules
                 .iter()
-                .zip(&new_snake_data.strategy.try_rules)
+                .zip(&new_strategy_data.strategy.try_rules)
                 .filter(|&(original_rule, new_rule)| original_rule == new_rule)
                 .count();
-            assert_eq!(common_rule_count, snake_data.strategy.try_rules.len() - 1);
-            snake_data = new_snake_data;
+            assert_eq!(
+                common_rule_count,
+                strategy_data.strategy.try_rules.len() - 1
+            );
+            strategy_data = new_strategy_data;
         }
     }
 }

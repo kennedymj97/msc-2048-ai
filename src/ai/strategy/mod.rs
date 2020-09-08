@@ -6,10 +6,10 @@
  * [] improve evaluation framework for ai
  *      [x] need to be able to print rules for a record
  *      [x] make a rule trait, must implement fmt::Display, each rule will then be a struct that
- *      takes whatever, snake will be a list of things that implement rule trait
+ *      takes whatever, strategy will be a list of things that implement rule trait
  *      [x] adapt the sequence code so there is a generic function that takes a list of inputs and
  *      generates all possible mutations
- *      [] change snake ai to have field for the backup case
+ *      [] change strategy ai to have field for the backup case
  * [] automate generation of strategies
  * [] does left merge harm monotonicity
  * [] how to deal with a move right/up when not wanted
@@ -33,7 +33,7 @@ pub mod search;
 pub mod try_rules;
 
 #[derive(Clone, PartialEq, Debug)]
-pub struct Snake {
+pub struct Strategy {
     ban_rules: BanRules,
     try_rules: TryRules,
     fallback_moves: Vec<Move>,
@@ -56,13 +56,13 @@ impl fmt::Display for Rule {
 
 pub type Rules = Vec<Rule>;
 
-impl Snake {
+impl Strategy {
     pub fn new(
         ban_rules: &BanRules,
         try_rules: &TryRules,
         fallback_moves: &Vec<Move>,
     ) -> Option<Self> {
-        // if last try move direction is same as first fallback move it is a redundant snake
+        // if last try move direction is same as first fallback move it is a redundant strategy
         if let Some(try_rule) = try_rules.last() {
             let last_try_direction = try_rule.get_move();
             if let Some(first_fallback_direction) = fallback_moves.first() {
@@ -72,7 +72,7 @@ impl Snake {
             }
         }
 
-        // if ban rule direction is not in try sequence it is a redundant snake
+        // if ban rule direction is not in try sequence it is a redundant strategy
         //let try_rule_directions = try_rules
         //    .iter()
         //    .map(|&try_rule| try_rule.get_move())
@@ -86,7 +86,7 @@ impl Snake {
 
         // TODO: ensure no 2 rules are the same in try_rules or ban rules
 
-        Some(Snake {
+        Some(Strategy {
             ban_rules: ban_rules.clone(),
             try_rules: try_rules.clone(),
             fallback_moves: fallback_moves.clone(),
@@ -124,7 +124,7 @@ impl Snake {
     }
 
     pub fn swap_ban_rule(&self, rule_to_swap: BanMove, new_rule: BanMove) -> Option<Self> {
-        Snake::new(
+        Strategy::new(
             &self
                 .ban_rules
                 .iter()
@@ -136,7 +136,7 @@ impl Snake {
     }
 
     pub fn swap_try_rule(&self, rule_to_swap: TryMove, new_rule: TryMove) -> Option<Self> {
-        Snake::new(
+        Strategy::new(
             &self.ban_rules,
             &self
                 .try_rules
@@ -148,7 +148,7 @@ impl Snake {
     }
 }
 
-impl AI for Snake {
+impl AI for Strategy {
     fn get_next_move<T: GameEngine>(&mut self, engine: &T, board: Board) -> Option<Move> {
         let mut banned_moves = Vec::new();
         for ban_rule in self.ban_rules.iter() {
@@ -188,7 +188,7 @@ impl AI for Snake {
     }
 }
 
-impl fmt::Display for Snake {
+impl fmt::Display for Strategy {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
@@ -218,10 +218,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn it_new_snake() {
+    fn it_new_strategy() {
         let fallback_moves = vec![Move::Left, Move::Down, Move::Up, Move::Left];
         assert_eq!(
-            Snake::new(
+            Strategy::new(
                 &vec![],
                 &vec![TryMove::IfMergePossible(Move::Left)],
                 &fallback_moves,
@@ -232,7 +232,7 @@ mod tests {
 
     #[test]
     fn it_get_rules() {
-        let snake = Snake::new(
+        let strategy = Strategy::new(
             &vec![BanMove::IfColumnNotLocked(Move::Up, Column::Left)],
             &vec![
                 TryMove::ProducesMerge(Move::Up),
@@ -242,7 +242,7 @@ mod tests {
         )
         .unwrap();
         assert_eq!(
-            snake.get_rules_ban_first(),
+            strategy.get_rules_ban_first(),
             vec![
                 Rule::Ban(BanMove::IfColumnNotLocked(Move::Up, Column::Left)),
                 Rule::Try(TryMove::ProducesMerge(Move::Up)),
@@ -253,7 +253,7 @@ mod tests {
 
     #[test]
     fn it_swap() {
-        let snake = Snake::new(
+        let strategy = Strategy::new(
             &vec![BanMove::IfColumnNotLocked(Move::Up, Column::Left)],
             &vec![
                 TryMove::ProducesMerge(Move::Up),
@@ -263,7 +263,7 @@ mod tests {
         )
         .unwrap();
 
-        let try_swap_snake = Snake::new(
+        let try_swap_strategy = Strategy::new(
             &vec![BanMove::IfColumnNotLocked(Move::Up, Column::Left)],
             &vec![
                 TryMove::IfMergePossible(Move::Left),
@@ -273,7 +273,7 @@ mod tests {
         )
         .unwrap();
 
-        let ban_swap_snake = Snake::new(
+        let ban_swap_strategy = Strategy::new(
             &vec![BanMove::IfColumnNotLocked(Move::Down, Column::Left)],
             &vec![
                 TryMove::IfMergePossible(Move::Left),
@@ -283,20 +283,20 @@ mod tests {
         )
         .unwrap();
 
-        let snake2 = snake
+        let strategy2 = strategy
             .swap_try_rule(
                 TryMove::ProducesMerge(Move::Up),
                 TryMove::IfMergePossible(Move::Left),
             )
             .unwrap();
-        let snake3 = snake2
+        let strategy3 = strategy2
             .swap_ban_rule(
                 BanMove::IfColumnNotLocked(Move::Up, Column::Left),
                 BanMove::IfColumnNotLocked(Move::Down, Column::Left),
             )
             .unwrap();
 
-        assert_eq!(try_swap_snake, snake2);
-        assert_eq!(ban_swap_snake, snake3);
+        assert_eq!(try_swap_strategy, strategy2);
+        assert_eq!(ban_swap_strategy, strategy3);
     }
 }

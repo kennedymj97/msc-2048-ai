@@ -9,7 +9,7 @@ pub mod expectimax;
 pub mod expectimax_old;
 pub mod random;
 pub mod sequence;
-pub mod snake;
+pub mod strategy;
 
 pub trait AI {
     fn get_next_move<T: GameEngine>(&mut self, engine: &T, board: Board) -> Option<Move>;

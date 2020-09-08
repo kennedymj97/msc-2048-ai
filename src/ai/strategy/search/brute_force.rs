@@ -2,46 +2,46 @@ use super::get_count_mod;
 use super::strategy_duel;
 use super::Confidence;
 use super::Runs;
-use super::Snake;
-use super::SnakeData;
+use super::Strategy;
+use super::StrategyData;
 use super::StrategyDuelResult;
-use crate::ai::snake::generate_strategies::get_snake_iterator;
+use crate::ai::strategy::generate_strategies::get_strategy_iterator;
 use crate::engine::{GameEngineStores, Move};
 
 pub fn brute_force(
     engine: &GameEngineStores,
     max_ban_length: usize,
     max_try_length: usize,
-) -> SnakeData {
-    println!("Generating snakes...");
-    let snakes_iter = get_snake_iterator(max_ban_length, max_try_length);
+) -> StrategyData {
+    println!("Generating strategys...");
+    let strategys_iter = get_strategy_iterator(max_ban_length, max_try_length);
     let mut count = 0;
     let runs = 1000;
-    let total_count = snakes_iter.len();
+    let total_count = strategys_iter.len();
     println!("Getting data...");
-    let best_snake = Snake::new(
+    let best_strategy = Strategy::new(
         &Vec::new(),
         &Vec::new(),
         &vec![Move::Left, Move::Down, Move::Up, Move::Right],
     )
-    .expect("Failed to create initial snake");
-    let mut best_snake_data = SnakeData {
-        strategy: best_snake,
+    .expect("Failed to create initial strategy");
+    let mut best_strategy_data = StrategyData {
+        strategy: best_strategy,
         results: Vec::new(),
     };
     let confidence = Confidence::P05;
-    snakes_iter.for_each(|snake| {
+    strategys_iter.for_each(|strategy| {
         count += 1;
         if count % get_count_mod(total_count) == 0 {
             println!("{}/{}", count, total_count);
         }
-        let mut challenger = SnakeData {
-            strategy: snake,
+        let mut challenger = StrategyData {
+            strategy,
             results: Vec::new(),
         };
         let duel_results = strategy_duel(
             engine,
-            &mut best_snake_data,
+            &mut best_strategy_data,
             &mut challenger,
             Runs {
                 current: runs,
@@ -51,12 +51,12 @@ pub fn brute_force(
         );
         match duel_results {
             StrategyDuelResult::Champion(results) => {
-                best_snake_data = results;
+                best_strategy_data = results;
             }
             StrategyDuelResult::Challenger(results) => {
-                best_snake_data = results;
+                best_strategy_data = results;
             }
         }
     });
-    best_snake_data
+    best_strategy_data
 }

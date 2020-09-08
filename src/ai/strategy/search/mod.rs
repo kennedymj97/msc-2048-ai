@@ -1,7 +1,7 @@
 use super::evaluate_strategies::StrategyDataStore;
 use super::generate_strategies::permutations;
 use super::mann_whitney::{mann_whitney_u_test, Confidence};
-use super::Snake;
+use super::Strategy;
 use crate::ai::AI;
 use crate::engine::{
     get_highest_tile_val, new_board, Board, GameEngine, GameEngineStores, Move, Score,
@@ -80,13 +80,13 @@ pub fn search<T: GameEngine>(
     engine: &T,
     max_ban_length: usize,
     max_try_length: usize,
-) -> SnakeData {
+) -> StrategyData {
     let greedy_results = greedy::greedy_prioritise_best(engine, max_ban_length, max_try_length);
     iterated_local::ils_mutate_try_accept_if_better(engine, greedy_results)
 }
 
 pub fn test_search_method(
-    f: fn(&GameEngineStores, usize, usize) -> SnakeData,
+    f: fn(&GameEngineStores, usize, usize) -> StrategyData,
     filename: &str,
     search_repeats: usize,
 ) {
@@ -137,12 +137,12 @@ pub fn test_search_method(
     );
 }
 
-fn save_results(data: &StrategyDataStore<Snake>, foldername: &Path, runs: usize) {
+fn save_results(data: &StrategyDataStore<Strategy>, foldername: &Path, runs: usize) {
     println!("Saving data @ {} runs...", runs);
     let path = foldername.join(format!("{}_runs.csv", runs));
     let mut f = File::create(path).expect("Failed to create file");
-    data.iter().for_each(|(snake, results)| {
-        f.write_fmt(format_args!("{},", snake))
+    data.iter().for_each(|(strategy, results)| {
+        f.write_fmt(format_args!("{},", strategy))
             .expect("Failed to write strategy information to file");
         let mut results_iter = results.iter().peekable();
         while let Some(score) = results_iter.next() {
@@ -179,7 +179,7 @@ pub fn run_strategy<T: AI, E: GameEngine>(
     }
 }
 
-pub fn run_strategy_save_results(mut ai: Snake, filename: &str) {
+pub fn run_strategy_save_results(mut ai: Strategy, filename: &str) {
     let engine = GameEngineStores::new();
     let mut f = File::create(Path::new(filename)).expect("Failed to create file");
     f.write("score,highest tile\n".as_bytes())
@@ -226,7 +226,7 @@ fn get_count_mod(len: usize) -> u64 {
     100000
 }
 
-pub fn print_best_strategy_info<T: GameEngine>(engine: &T, strategy_data: &mut SnakeData) {
+pub fn print_best_strategy_info<T: GameEngine>(engine: &T, strategy_data: &mut StrategyData) {
     println!("\n\nGetting stats for best strategy_data...");
     run_strategy(
         &mut strategy_data.strategy,
@@ -252,19 +252,19 @@ fn average(items: &Vec<u64>) -> f64 {
     items.iter().fold(0., |acc, &ele| acc + ele as f64) / items.len() as f64
 }
 
-fn find_best_fallback_set<T: GameEngine>(engine: &T, snake: SnakeData) -> SnakeData {
-    let mut best_snake = snake.to_owned();
+fn find_best_fallback_set<T: GameEngine>(engine: &T, strategy: StrategyData) -> StrategyData {
+    let mut best_strategy = strategy.to_owned();
     for mut fallback_set in permutations(vec![vec![Move::Left, Move::Down, Move::Up]]) {
         fallback_set.push(Move::Right);
-        let mut snake_alt;
-        match Snake::new(
-            &snake.strategy.ban_rules,
-            &snake.strategy.try_rules,
+        let mut strategy_alt;
+        match Strategy::new(
+            &strategy.strategy.ban_rules,
+            &strategy.strategy.try_rules,
             &fallback_set,
         ) {
-            Some(valid_snake) => {
-                snake_alt = SnakeData {
-                    strategy: valid_snake,
+            Some(valid_strategy) => {
+                strategy_alt = StrategyData {
+                    strategy: valid_strategy,
                     results: Vec::new(),
                 }
             }
@@ -272,8 +272,8 @@ fn find_best_fallback_set<T: GameEngine>(engine: &T, snake: SnakeData) -> SnakeD
         }
         let duel_results = strategy_duel(
             engine,
-            &mut best_snake,
-            &mut snake_alt,
+            &mut best_strategy,
+            &mut strategy_alt,
             Runs {
                 current: 10,
                 max: 100,
@@ -281,20 +281,20 @@ fn find_best_fallback_set<T: GameEngine>(engine: &T, snake: SnakeData) -> SnakeD
             Confidence::P05,
         );
         match duel_results {
-            StrategyDuelResult::Champion(snake_more_results) => {
-                best_snake = snake_more_results;
+            StrategyDuelResult::Champion(strategy_more_results) => {
+                best_strategy = strategy_more_results;
             }
-            StrategyDuelResult::Challenger(snake_alt_results) => {
-                best_snake = snake_alt_results;
+            StrategyDuelResult::Challenger(strategy_alt_results) => {
+                best_strategy = strategy_alt_results;
             }
         }
     }
-    best_snake
+    best_strategy
 }
 
 #[derive(Clone)]
-pub struct SnakeData {
-    strategy: Snake,
+pub struct StrategyData {
+    strategy: Strategy,
     results: Vec<Score>,
 }
 
@@ -304,14 +304,14 @@ struct Runs {
 }
 
 enum StrategyDuelResult {
-    Champion(SnakeData),
-    Challenger(SnakeData),
+    Champion(StrategyData),
+    Challenger(StrategyData),
 }
 
 fn strategy_duel<T: GameEngine>(
     engine: &T,
-    champion: &mut SnakeData,
-    challenger: &mut SnakeData,
+    champion: &mut StrategyData,
+    challenger: &mut StrategyData,
     runs: Runs,
     confidence: Confidence,
 ) -> StrategyDuelResult {
