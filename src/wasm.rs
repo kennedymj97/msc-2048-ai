@@ -48,7 +48,7 @@ impl WasmSnake {
             TryMove::ProducesMerge(Move::Down),
             TryMove::CreatesMonotonicRow(Move::Down, Row::MiddleTop),
         ];
-        let fallback = vec![Move::Left, Move::Down, Move::Up, Move::Right];
+        let fallback = vec![Move::Left, Move::Up, Move::Down, Move::Right];
         let strategy = Strategy::new(&ban_rules, &try_rules, &fallback).unwrap();
         WasmSnake(strategy)
     }
