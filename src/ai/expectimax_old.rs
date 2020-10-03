@@ -148,7 +148,7 @@ impl AII for Expectimaxx {
     fn get_next_move(&self, board: GameEngine::Board) -> Option<Move> {
         let mut map = HashMap::new();
         let depth = 3.max(count_unique(board) - 2) as u64;
-        let depth = depth.min(6);
+        //let depth = depth.min(8);
         expectimaxx(board, Node::Max, depth, 1., &mut map).move_dir
     }
 }
