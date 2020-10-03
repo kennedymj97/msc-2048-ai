@@ -38,7 +38,7 @@
     );
 	const { WasmExpectimax: wasmExpectimax, WasmSnake: wasmSnake } =  await import('msc-2048-ai-wasm');
 	if (isAi) {
-	  wasm = wasmSnake.new();
+	  wasm = wasmExpectimax.new();
 	} else if (isTesting) {
 	  wasm = wasmSnake.new();
 	}
